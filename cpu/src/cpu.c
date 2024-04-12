@@ -55,7 +55,11 @@ t_log *iniciar_logger(void)
 t_config *iniciar_config(void)
 {
 	t_config *nuevo_config;
+<<<<<<< HEAD
 	nuevo_config = config_create("entradasalida.config");
+=======
+	nuevo_config = config_create("../cpu.config");
+>>>>>>> e4a28e647c2f939e3b133f9d2e24ad81ae1c5fc5
 	if (nuevo_config == NULL)
 	{
 		printf("No se pudo crear el config.");

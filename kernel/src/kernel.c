@@ -19,6 +19,12 @@ int main(int argc, char* argv[]) {
 
     //  ARCHIVOS DE CONFIGURACION
 
+    // Inicio el log
+	logger = iniciar_logger();
+
+	// Inicio el config
+	config = iniciar_config();
+
     puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
@@ -31,12 +37,15 @@ int main(int argc, char* argv[]) {
     instancias_recursos = config_get_string_value(config, "INSTANCIAS_RECURSOS");
     grado_multiprogramacion = config_get_string_value(config, "GRADO_MULTIPROGRAMACION");
 
-        #include "cpu.h"
+    log_info(logger, "%s", ip_memoria);
 
-    // Muestro en pantalla el valor de QUANTUM
-    printf("%s", quantum);
+	// Conexion con el modulo memoria
+	int conexion_memoria;
+    conexion_memoria = crear_conexion(ip_memoria, puerto_memoria);
+	enviar_mensaje("HOLA", conexion_memoria);
+	paquete(conexion_memoria);
 
-    terminar_programa(config);
+    terminar_programa(conexion_memoria, logger , config);
 
     return 0;
 }
@@ -53,14 +62,26 @@ t_config *iniciar_config(void)
 	return nuevo_config;
 }
 
+t_log *iniciar_logger(void)
+{
+	t_log *nuevo_logger;
+	nuevo_logger = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
+	if (nuevo_logger == NULL)
+	{
+		printf("No se pudo crear el logger.");
+		exit(1);
+	}
+
+	return nuevo_logger;
+}
+
 void terminar_programa(t_config *config)
 {
 	if (config != NULL){
 		config_destroy(config);
 	}
 }
-    return 0;
-}
+
 
 t_config *iniciar_config(void)
 {
@@ -74,9 +95,17 @@ t_config *iniciar_config(void)
 	return nuevo_config;
 }
 
-void terminar_programa(t_config *config)
+void terminar_programa(int conexion, t_log *logger, t_config *config)
 {
-	if (config != NULL){
+	if (logger != NULL)
+	{
+		log_destroy(logger);
+	}
+
+	if (config != NULL)
+	{
 		config_destroy(config);
 	}
+
+	liberar_conexion(conexion);
 }

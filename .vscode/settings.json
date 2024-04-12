@@ -1,5 +1,10 @@
 {
     "files.associations": {
+<<<<<<< HEAD
         "hello.h": "c"
+=======
+        "stdlib.h": "c",
+        "stdio.h": "c"
+>>>>>>> e4a28e647c2f939e3b133f9d2e24ad81ae1c5fc5
     }
 }
