@@ -55,8 +55,6 @@ int main(int argc, char* argv[]) {
 	/*servidor(); //revisar si va*/
 
 	terminar_programa(conexion_kernel, logger, config);
-	
-	
 
 	return 0;
 }
