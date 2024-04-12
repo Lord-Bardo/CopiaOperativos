@@ -1,7 +1,7 @@
 #include "kernel.h"
 
 int main(int argc, char* argv[]) {
-    decir_hola("Kernel");
+   
 
     char *puerto_escucha;
     char *ip_memoria;
@@ -16,7 +16,12 @@ int main(int argc, char* argv[]) {
     char *grado_multiprogramacion;
 
     t_config *config;
+    
+    // Inicio el log
+	logger = iniciar_logger();
 
+	// Inicio el config
+	config = iniciar_config();
     //  ARCHIVOS DE CONFIGURACION
 
     puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
@@ -31,21 +36,42 @@ int main(int argc, char* argv[]) {
     instancias_recursos = config_get_string_value(config, "INSTANCIAS_RECURSOS");
     grado_multiprogramacion = config_get_string_value(config, "GRADO_MULTIPROGRAMACION");
 
-        #include "cpu.h"
+        
 
-    // Muestro en pantalla el valor de QUANTUM
-    printf("%s", quantum);
+   // Loggeo el valor de la ip
+	log_info(logger, "%s", ip_memoria);
 
-    terminar_programa(config);
+	// Conexion con el modulo memoria
+    int conexion_memoria;
 
-    return 0;
+	conexion_memoria = crear_conexion(ip_memoria, puerto_memoria);
+	enviar_mensaje("Hola soy el kernel me estoy comunicando con memoria", conexion_memoria);
+	paquete(conexion_memoria);
+
+	terminar_programa(conexion_memoria, logger, config);
+
+	return 0; 
+}
+
+t_log *iniciar_logger(void)
+{
+	t_log *nuevo_logger;
+	nuevo_logger = log_create("kernel.log", "KERNEL", 1, LOG_LEVEL_INFO);
+	if (nuevo_logger == NULL)
+	{
+		printf("No se pudo crear el logger.");
+		exit(1);
+	}
+
+	return nuevo_logger;
 }
 
 t_config *iniciar_config(void)
 {
 	t_config *nuevo_config;
-	nuevo_config = config_create("kernel.config"); 
-	if (nuevo_config == NULL){
+	nuevo_config = config_create("../kernel.config");
+	if (nuevo_config == NULL)
+	{
 		printf("No se pudo crear el config.");
 		exit(2);
 	}
@@ -53,30 +79,59 @@ t_config *iniciar_config(void)
 	return nuevo_config;
 }
 
-void terminar_programa(t_config *config)
+void leer_consola(t_log *logger)
 {
-	if (config != NULL){
+	char *leido;
+
+	// Leo la primer linea
+	leido = readline("> ");
+
+	// El resto, las voy leyendo y logueando hasta recibir un string vacío
+	while (leido[0] != '\0')
+	{
+		log_info(logger, "%s", leido);
+		leido = readline("> ");
+	}
+
+	// Libero las lineas
+	free(leido);
+}
+
+void paquete(int conexion)
+{
+	char *leido;
+	t_paquete *paquete;
+
+	// Creo el paquete
+	paquete = crear_paquete();
+
+	// Leo y agrego las lineas al paquete
+	leido = readline("> ");
+	while (leido[0] != '\0')
+	{
+		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
+		leido = readline("> ");
+	}
+
+	// Envio el paquete
+	enviar_paquete(paquete, conexion);
+
+	// Libero las lineas y el paquete
+	free(leido);
+	eliminar_paquete(paquete);
+}
+
+void terminar_programa(int conexion, t_log *logger, t_config *config)
+{
+	if (logger != NULL)
+	{
+		log_destroy(logger);
+	}
+
+	if (config != NULL)
+	{
 		config_destroy(config);
 	}
-}
-    return 0;
-}
 
-t_config *iniciar_config(void)
-{
-	t_config *nuevo_config;
-	nuevo_config = config_create("kernel.config"); 
-	if (nuevo_config == NULL){
-		printf("No se pudo crear el config.");
-		exit(2);
-	}
-
-	return nuevo_config;
-}
-
-void terminar_programa(t_config *config)
-{
-	if (config != NULL){
-		config_destroy(config);
-	}
+	liberar_conexion(conexion);
 }
