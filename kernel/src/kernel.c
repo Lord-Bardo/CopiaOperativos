@@ -15,13 +15,17 @@ int main(int argc, char* argv[]) {
     char *instancias_recursos;
     char *grado_multiprogramacion;
     
+    t_log *logger;
     t_config *config;
+    
 
+    logger = iniciar_logger();
+    log_info(logger, "Hola! Soy un log")
     /* ---------------- ARCHIVOS DE CONFIGURACION ---------------- */
 
     config = iniciar_config();
 
-    puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
+    puerto_escucha = config_get_int_value(config, "PUERTO_ESCUCHA");
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
     ip_cpu = config_get_string_value(config, "IP_CPU");
@@ -60,4 +64,16 @@ void terminar_programa(t_config *config)
 	if (config != NULL){
 		config_destroy(config);
 	}
+}
+
+_log *iniciar_logger(void)
+{
+	t_log *nuevo_logger;
+	nuevo_logger = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
+	if (nuevo_logger == NULL){
+		printf("No se pudo crear el logger.");
+		exit(1);
+	}
+
+	return nuevo_logger;
 }
