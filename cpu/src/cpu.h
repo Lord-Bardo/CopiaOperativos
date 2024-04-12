@@ -17,3 +17,5 @@ void paquete(int);
 void terminar_programa(int, t_log*, t_config*);
 
 #endif
+
+
