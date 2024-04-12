@@ -17,6 +17,8 @@ int main(int argc, char* argv[]) {
     
     t_config *config;
 
+    /* ---------------- ARCHIVOS DE CONFIGURACION ---------------- */
+
     config = iniciar_config();
 
     puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
