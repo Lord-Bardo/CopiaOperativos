@@ -21,6 +21,9 @@ int main(int argc, char* argv[]) {
 	//inicio del config
     config = iniciar_config();
 
+	//inicio el logger
+	logger = iniciar_logger();
+
 	// Obtengo valores del archivo entradasalida.config
     tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
 	tiempo_unidad_trabajo = config_get_string_value(config, "TIEMPO_UNIDAD_TRABAJO");
@@ -32,12 +35,14 @@ int main(int argc, char* argv[]) {
     block_size = config_get_string_value (config, "BLOCK_SIZE");
     block_count = config_get_string_value (config, "BLOCK_COUNT");
 
+	log_info(logger, "%s", ip_kernel); //registrar mensaje info
+
 	//conexion con el modulo de memoria
 	conexion_memoria = crear_conexion (ip_memoria, puerto_memoria);
 	enviar_mensaje ("Hola hola", conexion_memoria);
 	paquete(conexion_memoria);
 
-	servidor();
+	/*servidor();*/
 
 	terminar_programa(conexion_memoria, logger, config);
 
@@ -47,11 +52,11 @@ int main(int argc, char* argv[]) {
 	enviar_mensaje ("Holi señor Kernel", conexion_kernel);
 	paquete(conexion_kernel);
 
+	/*servidor(); //revisar si va*/
+
 	terminar_programa(conexion_kernel, logger, config);
 	
-	/*
-	servidor(); //revisar si va
-	*/
+	
 
 	return 0;
 }

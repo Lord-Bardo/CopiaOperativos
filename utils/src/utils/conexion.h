@@ -41,15 +41,7 @@ extern t_log* logger;
 
 void* recibir_buffer(int*, int);
 
-int servidor(char* puerto)
-{
-	// Inicializar el servidor utilizando el puerto proporcionado
-    printf("Inicializando servidor en el puerto %s\n", puerto);
-
-    // Lógica de negocio del servidor (por ejemplo, aceptar conexiones y procesar solicitudes)
-
-    return 0; // Devolver un código de estado exitoso
-};
+int servidor(char* puerto);
 void iterator(char*);
 
 int iniciar_servidor(int puerto);
