@@ -136,7 +136,7 @@ void iterator(char* value) {
 	log_info(logger,"%s", value);
 }
 
-int iniciar_servidor(char* puerto)
+int iniciar_servidor(int puerto)
 {
 	int socket_servidor;
 

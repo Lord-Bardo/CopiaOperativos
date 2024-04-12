@@ -16,9 +16,12 @@ int main(int argc, char* argv[]) {
     char *block_count;
 
     t_config *config;
+	t_log *logger;
 
+	//inicio del config
     config = iniciar_config();
 
+	// Obtengo valores del archivo entradasalida.config
     tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
 	tiempo_unidad_trabajo = config_get_string_value(config, "TIEMPO_UNIDAD_TRABAJO");
 	ip_kernel = config_get_string_value(config, "IP_KERNEL");
@@ -29,15 +32,41 @@ int main(int argc, char* argv[]) {
     block_size = config_get_string_value (config, "BLOCK_SIZE");
     block_count = config_get_string_value (config, "BLOCK_COUNT");
 
-    t_config* iniciar_config(void);
+	//conexion con el modulo de memoria
+	conexion_memoria = crear_conexion (ip_memoria, puerto_memoria);
+	enviar_mensaje ("Hola hola", conexion_memoria);
+	paquete(conexion_memoria);
+
+	servidor();
+
+	terminar_programa(conexion_memoria, logger, config);
+
+	//conexion con el modulo del kernel
+	int conexion_kernel;
+	conexion_kernel = crear_conexion (ip_kernel, puerto_kernel);
+	enviar_mensaje ("Holi señor Kernel", conexion_kernel);
+	paquete(conexion_kernel);
+
+	terminar_programa(conexion_kernel, logger, config);
+	
+	/*
+	servidor(); //revisar si va
+	*/
+
+	return 0;
+}
+
+ t_config* iniciar_config(void) 
+ {
 	t_config *nuevo_config;
 	nuevo_config = config_create("../entradasalida.config");
 	if (nuevo_config == NULL){
 		printf("No se pudo crear el config.");
 		exit(2);
 	}
-	return nuevo_config;
-}
+	return nuevo_config; 
+ }
+
 t_log *iniciar_logger(void)
 {
 	t_log *nuevo_logger;
