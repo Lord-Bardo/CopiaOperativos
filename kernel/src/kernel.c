@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     char *grado_multiprogramacion;
 
     t_config *config;
-    
+
     // Inicio el log
 	logger = iniciar_logger();
 
@@ -48,7 +48,13 @@ int main(int argc, char* argv[]) {
 	enviar_mensaje("Hola soy el kernel me estoy comunicando con memoria", conexion_memoria);
 	paquete(conexion_memoria);
 
-	terminar_programa(conexion_memoria, logger, config);
+    //Conexion con modulo cpu
+    int conexion_cpu;
+    conexion_cpu=crear_conexion(ip_cpu,puerto_cpu_dispatch);
+    enviar_mensaje("Hola soy el kernel me estoy comunicando con cpu", conexion_cpu);
+    paquete(conexion_cpu);
+
+	terminar_programa(conexion_memoria,conexion_cpu, logger, config);
 
 	return 0; 
 }
@@ -121,7 +127,7 @@ void paquete(int conexion)
 	eliminar_paquete(paquete);
 }
 
-void terminar_programa(int conexion, t_log *logger, t_config *config)
+void terminar_programa(int conexion,int conexion2, t_log *logger, t_config *config)
 {
 	if (logger != NULL)
 	{
@@ -132,6 +138,6 @@ void terminar_programa(int conexion, t_log *logger, t_config *config)
 	{
 		config_destroy(config);
 	}
-
+    liberar_conexion(conexion2);
 	liberar_conexion(conexion);
 }

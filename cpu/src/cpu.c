@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
 	enviar_mensaje("HOLA", conexion_memoria);
 	paquete(conexion_memoria);
 
+	servidor();
+	
 	terminar_programa(conexion_memoria, logger, config);
 
 	return 0;
