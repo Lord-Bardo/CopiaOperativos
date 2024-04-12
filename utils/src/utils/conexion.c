@@ -102,10 +102,10 @@ void liberar_conexion(int socket_cliente){
 
 t_log* logger;
 
-int servidor(){
+int servidor(char* puerto){
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
 
-	int server_fd = iniciar_servidor();
+	int server_fd = iniciar_servidor(puerto);
 	log_info(logger, "Servidor listo para recibir al cliente");
 	int cliente_fd = esperar_cliente(server_fd);
 
@@ -136,7 +136,7 @@ void iterator(char* value) {
 	log_info(logger,"%s", value);
 }
 
-int iniciar_servidor(void)
+int iniciar_servidor(char* puerto)
 {
 	int socket_servidor;
 
@@ -147,7 +147,7 @@ int iniciar_servidor(void)
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	getaddrinfo(NULL, PUERTO, &hints, &servinfo); // el parametro NULL (junto con el fla AI_PASSIVE de hints) si no entendi mal es para poder aceptar cualquier direccion IP que tenga asociada la maquina que este corriendo el proceso
+	getaddrinfo(NULL, puerto, &hints, &servinfo); // el parametro NULL (junto con el fla AI_PASSIVE de hints) si no entendi mal es para poder aceptar cualquier direccion IP que tenga asociada la maquina que este corriendo el proceso
 
 	// Creamos el socket de escucha del servidor
 	socket_servidor = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);

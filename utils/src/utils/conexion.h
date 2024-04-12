@@ -12,8 +12,6 @@
 #include<commons/log.h>
 #include<commons/collections/list.h>
 
-#define PUERTO "4444" // MODIFICAR, lo deje hardcodeado para probar conexion con memoria
-
 typedef enum{
 	MENSAJE,
 	PAQUETE
