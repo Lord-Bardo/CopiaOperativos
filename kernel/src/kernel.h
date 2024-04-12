@@ -14,9 +14,5 @@ t_config* iniciar_config(void);
 void leer_consola(t_log*);
 void paquete(int);
 void terminar_programa(int, t_log*, t_config*);
-<<<<<<< HEAD
-=======
 
 #endif
->>>>>>> 323aa4c0cf2068a82d403de177303843ff3300da
-
