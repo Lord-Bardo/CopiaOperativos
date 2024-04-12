@@ -59,12 +59,24 @@ void terminar_programa(t_config *config)
 		config_destroy(config);
 	}
 }
-
-
-
-
-
-
-
     return 0;
+}
+
+t_config *iniciar_config(void)
+{
+	t_config *nuevo_config;
+	nuevo_config = config_create("kernel.config"); 
+	if (nuevo_config == NULL){
+		printf("No se pudo crear el config.");
+		exit(2);
+	}
+
+	return nuevo_config;
+}
+
+void terminar_programa(t_config *config)
+{
+	if (config != NULL){
+		config_destroy(config);
+	}
 }
