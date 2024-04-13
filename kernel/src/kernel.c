@@ -58,6 +58,9 @@ int main(int argc, char* argv[]) {
 
 	terminar_programa(conexion_memoria, logger, config);
 
+	//conexion con entrada salida
+	servidor(puerto_escucha);
+
 	return 0; 
 }
 
