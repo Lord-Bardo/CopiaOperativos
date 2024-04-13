@@ -107,9 +107,9 @@ int servidor(char *puerto, t_log *logger)
 {
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
 
-	int server_fd = iniciar_servidor(puerto);
+	int server_fd = iniciar_servidor(puerto, logger, "Memoria Inicializada");
 	log_info(logger, "Servidor listo para recibir al cliente");
-	int cliente_fd = esperar_cliente(server_fd);
+	int cliente_fd = esperar_cliente(server_fd, logger);
 
 	t_list *lista;
 	while (1)
@@ -118,7 +118,7 @@ int servidor(char *puerto, t_log *logger)
 		switch (cod_op)
 		{
 		case MENSAJE:
-			recibir_mensaje(cliente_fd);
+			recibir_mensaje(cliente_fd, logger);
 			break;
 		case PAQUETE:
 			lista = recibir_paquete(cliente_fd);
@@ -136,7 +136,7 @@ int servidor(char *puerto, t_log *logger)
 	return EXIT_SUCCESS;
 }
 
-void iterator(char *value)
+void iterator(char *value, t_log *logger)
 {
 	log_info(logger, "%s", value);
 }
