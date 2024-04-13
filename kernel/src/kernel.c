@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 	// Inicio el config
 	config = iniciar_config();
 
-    puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
+    puerto_escucha = config_get_int_value(config, "PUERTO_ESCUCHA");
     ip_memoria = config_get_string_value(config, "IP_MEMORIA");
     puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
     ip_cpu = config_get_string_value(config, "IP_CPU");
