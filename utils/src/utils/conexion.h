@@ -38,14 +38,15 @@ void *serializar_paquete(t_paquete *paquete, int bytes);
 void eliminar_paquete(t_paquete* paquete);
 
 // SERVIDOR
-int servidor(char* puerto, t_log *logger);
-void iterator(char* value, t_log *logger);
 
-int iniciar_servidor(char* puerto, t_log* logger, char* msj_server);
-int esperar_cliente(int socket_servidor, t_log* logger);
+int servidor(char* puerto);
+void iterator(char* value);
+
+int iniciar_servidor(char* puerto);
+int esperar_cliente(int socket_servidor);
 int recibir_operacion(int socket_cliente);
 void* recibir_buffer(int* size, int socket_cliente);
-void recibir_mensaje(int socket_cliente, t_log* logger);
+void recibir_mensaje(int socket_cliente);
 t_list* recibir_paquete(int);
 
 #endif

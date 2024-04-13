@@ -1,10 +1,6 @@
 #include "entradasalida.h"
 
 int main(int argc, char* argv[]) {
-    
-    int conexion_memoria;
-
-
     char *tipo_interfaz;
 	char *tiempo_unidad_trabajo;
 	char *ip_kernel;
@@ -38,21 +34,10 @@ int main(int argc, char* argv[]) {
 	log_info(logger, "%s", ip_kernel); //registrar mensaje info
 
 	//conexion con el modulo de memoria
-	conexion_memoria = crear_conexion (ip_memoria, puerto_memoria);
-	enviar_mensaje ("Hola hola", conexion_memoria);
-	paquete(conexion_memoria);
-
-	/*servidor();*/
-
-	terminar_programa(conexion_memoria, logger, config);
-
-	//conexion con el modulo del kernel
 	int conexion_kernel;
 	conexion_kernel = crear_conexion (ip_kernel, puerto_kernel);
-	enviar_mensaje ("Holi señor Kernel", conexion_kernel);
+	enviar_mensaje ("Hola hola", conexion_kernel);
 	paquete(conexion_kernel);
-
-	/*servidor(); //revisar si va*/
 
 	terminar_programa(conexion_kernel, logger, config);
 
@@ -62,7 +47,7 @@ int main(int argc, char* argv[]) {
  t_config* iniciar_config(void) 
  {
 	t_config *nuevo_config;
-	nuevo_config = config_create("../entradasalida.config");
+	nuevo_config = config_create("entradasalida.config");
 	if (nuevo_config == NULL){
 		printf("No se pudo crear el config.");
 		exit(2);

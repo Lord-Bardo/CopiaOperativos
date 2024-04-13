@@ -1,65 +1,54 @@
 #include "kernel.h"
 
 int main(int argc, char* argv[]) {
-   
+    // char *puerto_escucha;
+    // char *ip_memoria;
+    // char *puerto_memoria;
+    // char *ip_cpu;
+    // char *puerto_cpu_dispatch;
+    // char *puerto_cpu_interrupt;
+    // char *algoritmo_planificacion;
+    // char *quantum;
+    // char *recursos;
+    // char *instancias_recursos;
+    // char *grado_multiprogramacion;
 
-    char *puerto_escucha;
-    char *ip_memoria;
-    char *puerto_memoria;
-    char *ip_cpu;
-    char *puerto_cpu_dispatch;
-    char *puerto_cpu_interrupt;
-    char *algoritmo_planificacion;
-    char *quantum;
-    char *recursos;
-    char *instancias_recursos;
-    char *grado_multiprogramacion;
+    // t_config *config;
+	// t_log *logger;
 
-    t_config *config;
-	t_log *logger;
+	// //  ARCHIVOS DE CONFIGURACION
 
-	// Inicio el config
-	config = iniciar_config();
-  
-    //  ARCHIVOS DE CONFIGURACION
+    // // Inicio el log
+	// logger = iniciar_logger();
 
-    // Inicio el log
-	logger = iniciar_logger();
+	// // Inicio el config
+	// config = iniciar_config();
 
-	// Inicio el config
-	config = iniciar_config();
+    // puerto_escucha = config_get_int_value(config, "PUERTO_ESCUCHA");
+    // ip_memoria = config_get_string_value(config, "IP_MEMORIA");
+    // puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+    // ip_cpu = config_get_string_value(config, "IP_CPU");
+    // puerto_cpu_dispatch = config_get_string_value(config, "PUERTO_CPU_DISPATCH");
+    // puerto_cpu_interrupt = config_get_string_value(config, "PUERTO_CPU_INTERRUPT");
+    // algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+    // quantum = config_get_string_value(config, "QUANTUM");
+    // recursos = config_get_string_value(config, "RECURSOS");
+    // instancias_recursos = config_get_string_value(config, "INSTANCIAS_RECURSOS");
+    // grado_multiprogramacion = config_get_string_value(config, "GRADO_MULTIPROGRAMACION");
 
-    puerto_escucha = config_get_int_value(config, "PUERTO_ESCUCHA");
-    ip_memoria = config_get_string_value(config, "IP_MEMORIA");
-    puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    ip_cpu = config_get_string_value(config, "IP_CPU");
-    puerto_cpu_dispatch = config_get_string_value(config, "PUERTO_CPU_DISPATCH");
-    puerto_cpu_interrupt = config_get_string_value(config, "PUERTO_CPU_INTERRUPT");
-    algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
-    quantum = config_get_string_value(config, "QUANTUM");
-    recursos = config_get_string_value(config, "RECURSOS");
-    instancias_recursos = config_get_string_value(config, "INSTANCIAS_RECURSOS");
-    grado_multiprogramacion = config_get_string_value(config, "GRADO_MULTIPROGRAMACION");
-
-    log_info(logger, "%s", ip_memoria);
+    // log_info(logger, "%s", ip_memoria);
 
 
-	// Conexion con el modulo memoria
-	int conexion_memoria;
-    conexion_memoria = crear_conexion(ip_memoria, puerto_memoria);
-	enviar_mensaje("HOLA", conexion_memoria);
-	paquete(conexion_memoria);
+	// // Conexion con el modulo memoria
+	// int conexion_memoria;
+    // conexion_memoria = crear_conexion(ip_memoria, puerto_memoria);
+	// enviar_mensaje("HOLA", conexion_memoria);
+	// paquete(conexion_memoria);
 
-    terminar_programa(conexion_memoria, logger , config);
-
-	conexion_memoria = crear_conexion(ip_memoria, puerto_memoria);
-	enviar_mensaje("Hola soy el kernel me estoy comunicando con memoria", conexion_memoria);
-	paquete(conexion_memoria);
-
-	terminar_programa(conexion_memoria, logger, config);
+    // terminar_programa(conexion_memoria, logger , config);
 
 	//conexion con entrada salida
-	servidor(puerto_escucha, logger);
+	servidor("8003");
 
 	return 0; 
 }
@@ -69,7 +58,7 @@ int main(int argc, char* argv[]) {
 t_config *iniciar_config(void)
 {
 	t_config *nuevo_config;
-	nuevo_config = config_create("../kernel.config");
+	nuevo_config = config_create("kernel.config");
 	if (nuevo_config == NULL)
 	{
 		printf("No se pudo crear el config.");

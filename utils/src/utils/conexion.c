@@ -102,14 +102,15 @@ void liberar_conexion(int socket_cliente){
 }
 
 // SERVIDOR
+t_log* logger;
 
-int servidor(char *puerto, t_log *logger)
+int servidor(char *puerto)
 {
 	logger = log_create("log.log", "Servidor", 1, LOG_LEVEL_DEBUG);
 
-	int server_fd = iniciar_servidor(puerto, logger, "Memoria Inicializada");
+	int server_fd = iniciar_servidor(puerto);
 	log_info(logger, "Servidor listo para recibir al cliente");
-	int cliente_fd = esperar_cliente(server_fd, logger);
+	int cliente_fd = esperar_cliente(server_fd);
 
 	t_list *lista;
 	while (1)
@@ -118,7 +119,7 @@ int servidor(char *puerto, t_log *logger)
 		switch (cod_op)
 		{
 		case MENSAJE:
-			recibir_mensaje(cliente_fd, logger);
+			recibir_mensaje(cliente_fd);
 			break;
 		case PAQUETE:
 			lista = recibir_paquete(cliente_fd);
@@ -136,12 +137,12 @@ int servidor(char *puerto, t_log *logger)
 	return EXIT_SUCCESS;
 }
 
-void iterator(char *value, t_log *logger)
+void iterator(char *value)
 {
 	log_info(logger, "%s", value);
 }
 
-int iniciar_servidor(char* puerto, t_log *logger, char *msj_server){
+int iniciar_servidor(char* puerto){
 	int socket_servidor;
 
 	struct addrinfo hints, *servinfo, *p;
@@ -163,12 +164,12 @@ int iniciar_servidor(char* puerto, t_log *logger, char *msj_server){
 	listen(socket_servidor, SOMAXCONN); // El segundo parametro es cantidad de conexiones vivas que puede mantener, SOMAXCONN como indica el nombre, es la cantidad máxima que admite el sistema operativo
 
 	freeaddrinfo(servinfo);
-	log_trace(logger, "SERVER: %s", msj_server); // en msj_server la idea seria pasarle, por ejemplo, "Memoria inicializada" o algo asi
+	log_trace(logger, "SERVER"); // en msj_server la idea seria pasarle, por ejemplo, "Memoria inicializada" o algo asi
 
 	return socket_servidor;
 }
 
-int esperar_cliente(int socket_servidor, t_log *logger){ // se podria llegar a recibir y poner algun mnsj perzonalizado en el log, pero nose si el servidor conoce quien se conecta
+int esperar_cliente(int socket_servidor){ // se podria llegar a recibir y poner algun mnsj perzonalizado en el log, pero nose si el servidor conoce quien se conecta
 	// Aceptamos un nuevo cliente
 	int socket_cliente;
 	socket_cliente = accept(socket_servidor, NULL, NULL);
@@ -201,7 +202,7 @@ void *recibir_buffer(int *size, int socket_cliente)
 	return buffer;
 }
 
-void recibir_mensaje(int socket_cliente, t_log *logger)
+void recibir_mensaje(int socket_cliente)
 {
 	int size;
 	char *buffer = recibir_buffer(&size, socket_cliente); // recibe el mensaje
