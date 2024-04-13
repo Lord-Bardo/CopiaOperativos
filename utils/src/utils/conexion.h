@@ -19,7 +19,7 @@ typedef enum{
 
 typedef struct{
 	int size;
-	void* stream;
+	void* stream; // void* es un puntero generico (puede apuntar a cualquier tipo de dato, pero tmp sabe a q tipo de dato apunta asi que no puedo sacarle informacion de eso y por eso es importante el size)
 } t_buffer;
 
 typedef struct{
@@ -37,17 +37,14 @@ void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
 
 // SERVIDOR
-extern t_log* logger;
-
-void* recibir_buffer(int*, int);
-
 int servidor(char* puerto);
 void iterator(char*);
 
-int iniciar_servidor(int puerto);
-int esperar_cliente(int);
+int iniciar_servidor(int puerto, t_log* logger, char* msj_server);
+int esperar_cliente(int socket_servidor, t_log* logger);
+int recibir_operacion(int socket_cliente);
+void* recibir_buffer(int* size, int socket_cliente);
+void recibir_mensaje(int socket_cliente, t_log* logger);
 t_list* recibir_paquete(int);
-void recibir_mensaje(int);
-int recibir_operacion(int);
 
 #endif
