@@ -141,7 +141,7 @@ void iterator(char *value, t_log *logger)
 	log_info(logger, "%s", value);
 }
 
-int iniciar_servidor(int puerto, t_log *logger, char *msj_server){
+int iniciar_servidor(char* puerto, t_log *logger, char *msj_server){
 	int socket_servidor;
 
 	struct addrinfo hints, *servinfo, *p;

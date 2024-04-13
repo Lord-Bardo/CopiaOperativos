@@ -7,7 +7,8 @@ int main(int argc, char* argv[]) {
     // char *path;
     // char *retardoResp;
 
-	// t_log* logger;
+	t_log* logger;
+	logger = iniciar_logger();
     // t_config* config;
 
     // puerto = config_get_string_value(config, "PUERTO_ESCUCHA");
@@ -16,7 +17,7 @@ int main(int argc, char* argv[]) {
     // path = config_get_string_value(config, "PATH_INSTRUCCIONES");
     // retardoResp =config_get_string_value(config, "RETARDO_RESPUESTA");
 
-	servidor();
+	servidor("4444", logger);
 
     return 0;
 }

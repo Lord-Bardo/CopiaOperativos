@@ -41,7 +41,7 @@ void eliminar_paquete(t_paquete* paquete);
 int servidor(char* puerto, t_log *logger);
 void iterator(char* value, t_log *logger);
 
-int iniciar_servidor(int puerto, t_log* logger, char* msj_server);
+int iniciar_servidor(char* puerto, t_log* logger, char* msj_server);
 int esperar_cliente(int socket_servidor, t_log* logger);
 int recibir_operacion(int socket_cliente);
 void* recibir_buffer(int* size, int socket_cliente);
