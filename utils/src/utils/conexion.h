@@ -34,11 +34,12 @@ t_paquete* crear_paquete(void);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void liberar_conexion(int socket_cliente);
+void *serializar_paquete(t_paquete *paquete, int bytes);
 void eliminar_paquete(t_paquete* paquete);
 
 // SERVIDOR
-int servidor(char* puerto);
-void iterator(char*);
+int servidor(char* puerto, t_log *logger);
+void iterator(char* value, t_log *logger);
 
 int iniciar_servidor(int puerto, t_log* logger, char* msj_server);
 int esperar_cliente(int socket_servidor, t_log* logger);
