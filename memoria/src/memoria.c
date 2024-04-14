@@ -35,7 +35,7 @@ t_log *iniciar_logger(void){
 
 t_config* iniciar_config(void){
 	t_config *nuevo_config;
-	nuevo_config = config_create("memoria.config");
+	nuevo_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria.config");
 	if (nuevo_config == NULL){
 		printf("No se pudo crear el config.");
 		exit(2);

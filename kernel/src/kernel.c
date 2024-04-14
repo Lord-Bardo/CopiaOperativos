@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 t_config *iniciar_config(void)
 {
 	t_config *nuevo_config;
-	nuevo_config = config_create("kernel.config");
+	nuevo_config = config_create("/home/utnso/tp-2024-1c-GSN/kernel/kernel.config");
 	if (nuevo_config == NULL)
 	{
 		printf("No se pudo crear el config.");
