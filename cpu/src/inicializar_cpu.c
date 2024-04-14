@@ -13,8 +13,9 @@ void iniciar_logger(){
 		exit(1);
 	}
 
-	// Se podrian iniciar todos los loggers que vayamos a usar en cpu aca ...
-    // Por ejemplo, se podria crear un logger exclusivo para los logs obligatorios, otro para debuggear (de LOG_LEVEL_TRACE), etc.
+    // Se podrian iniciar todos los loggers que vayamos a usar en cpu aca
+    // Por ejemplo, se podria crear un logger exclusivo para los logs obligatorios (podria ser el cpu_logger directamente), otro para debuggear (de LOG_LEVEL_TRACE), etc.
+    // ...
 }
 
 void iniciar_config(){

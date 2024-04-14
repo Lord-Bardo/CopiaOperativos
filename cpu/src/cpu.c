@@ -1,21 +1,22 @@
 #include "../include/cpu.h"
 
-int main(int argc, char *argv[])
-{
-	// INICIALIZAR CPU
+int main(int argc, char *argv[]){
+	// Inicializar estructuras de CPU (loggers y config)
 	inicializar_cpu();
 
-	// Loggeo el valor de la ip
-	log_info(cpu_logger, "%s", IP_MEMORIA);
+	// Iniciar servidor dispatch de CPU
+	// ...
 
-	// Conexion con el modulo memoria
+	// Iniciar servidor interrupt de CPU
+	// ...
+
+	// Conexion con memoria
 	int conexion_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	enviar_mensaje("HOLA", conexion_memoria);
 	paquete(conexion_memoria);
 	
-	terminar_programa(conexion_memoria, cpu_logger, cpu_config);
-
-	//servidor("8006");
+	// Finalizar CPU (liberar memoria usada por estructuras de CPU)
+	terminar_programa(conexion_memoria, cpu_logger, cpu_config); // en vez de pasarselas por parametro deberia liberar directo todo
 
 	return 0;
 }

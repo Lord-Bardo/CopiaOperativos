@@ -145,7 +145,7 @@ void iterator(char *value)
 int iniciar_servidor(char* puerto){
 	int socket_servidor;
 
-	struct addrinfo hints, *servinfo, *p;
+	struct addrinfo hints, *servinfo, *p; // nose para que esta *p la verdad pero estaba en el TP0 :)
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -164,7 +164,7 @@ int iniciar_servidor(char* puerto){
 	listen(socket_servidor, SOMAXCONN); // El segundo parametro es cantidad de conexiones vivas que puede mantener, SOMAXCONN como indica el nombre, es la cantidad máxima que admite el sistema operativo
 
 	freeaddrinfo(servinfo);
-	log_trace(logger, "SERVER"); // en msj_server la idea seria pasarle, por ejemplo, "Memoria inicializada" o algo asi
+	log_info(logger, "SERVER"); // en msj_server la idea seria pasarle, por ejemplo, "Memoria inicializada" o algo asi
 
 	return socket_servidor;
 }
