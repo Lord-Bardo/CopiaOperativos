@@ -1,71 +1,25 @@
-#include "entradasalida.h"
+#include "../include/entradasalida.h"
 
 int main(int argc, char* argv[]) {
-    char *tipo_interfaz;
-	char *tiempo_unidad_trabajo;
-	char *ip_kernel;
-    char *puerto_kernel;
-    char *ip_memoria;
-    char *puerto_memoria;
-    char *path_base_dialfs;
-    char *block_size;
-    char *block_count;
+    // Inicializar estructuras de CPU (loggers y config)
+	inicializar_cpu();
 
-    t_config *config;
-	t_log *logger;
+	// Iniciar servidor dispatch de CPU
+	// ...
 
-	//inicio del config
-    config = iniciar_config();
+	// Iniciar servidor interrupt de CPU
+	// ...
 
-	//inicio el logger
-	logger = iniciar_logger();
-
-	// Obtengo valores del archivo entradasalida.config
-    tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
-	tiempo_unidad_trabajo = config_get_string_value(config, "TIEMPO_UNIDAD_TRABAJO");
-	ip_kernel = config_get_string_value(config, "IP_KERNEL");
-    puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
-    ip_memoria = config_get_string_value(config, "IP_MEMORIA");
-    puerto_memoria = config_get_string_value (config, "PUERTO_MEMORIA");
-    path_base_dialfs = config_get_string_value (config, "PATH_BASE_DIALFS");
-    block_size = config_get_string_value (config, "BLOCK_SIZE");
-    block_count = config_get_string_value (config, "BLOCK_COUNT");
-
-	log_info(logger, "%s", ip_kernel); //registrar mensaje info
-
-	//conexion con el modulo de memoria
+	//conexion con memoria
 	int conexion_kernel;
 	conexion_kernel = crear_conexion (ip_kernel, puerto_kernel);
 	enviar_mensaje ("Hola hola", conexion_kernel);
 	paquete(conexion_kernel);
 
-	terminar_programa(conexion_kernel, logger, config);
+    // Finalizar ENTRADASALIDA (liberar memoria usada por estructuras de ENTRADASALIDA)
+	terminar_programa(conexion_kernel, entradasalida_logger, entradasalida_config);
 
 	return 0;
-}
-
- t_config* iniciar_config(void) 
- {
-	t_config *nuevo_config;
-	nuevo_config = config_create("/home/utnso/tp-2024-1c-GSN/entradasalida/entradasalida.config");
-	if (nuevo_config == NULL){
-		printf("No se pudo crear el config.");
-		exit(2);
-	}
-	return nuevo_config; 
- }
-
-t_log *iniciar_logger(void)
-{
-	t_log *nuevo_logger;
-	nuevo_logger = log_create("entradasalida.log", "ENTRADAYSALIDA", 1, LOG_LEVEL_INFO);
-	if (nuevo_logger == NULL)
-	{
-		printf("No se pudo crear el logger.");
-		exit(1);
-	}
-
-	return nuevo_logger;
 }
     
 void leer_consola(t_log *logger)
