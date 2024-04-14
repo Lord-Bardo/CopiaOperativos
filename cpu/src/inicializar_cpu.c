@@ -8,7 +8,7 @@ void inicializar_cpu(){
 void iniciar_logger(){
     // Creo el cpu_logger
     cpu_logger = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
-	if (cpu_logger == NULL){
+	if(cpu_logger == NULL){
 		perror("No se pudo crear el logger.");
 		exit(1);
 	}
@@ -21,7 +21,7 @@ void iniciar_logger(){
 void iniciar_config(){
     // Creo el cpu_config
     cpu_config = config_create("/home/utnso/tp-2024-1c-GSN/cpu/cpu.config");
-	if (cpu_config == NULL){
+	if(cpu_config == NULL){
 		perror("No se pudo crear el config.");
 		exit(2);
 	}

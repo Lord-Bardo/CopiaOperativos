@@ -14,7 +14,7 @@ int main(int argc, char *argv[]){
 	int conexion_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	enviar_mensaje("HOLA", conexion_memoria);
 	paquete(conexion_memoria);
-	
+
 	// Finalizar CPU (liberar memoria usada por estructuras de CPU)
 	terminar_programa(conexion_memoria, cpu_logger, cpu_config); // en vez de pasarselas por parametro deberia liberar directo todo
 
