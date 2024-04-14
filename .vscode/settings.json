@@ -2,6 +2,7 @@
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "string.h": "c",
-        "conexion.h": "c"
+        "conexion.h": "c",
+        "inicializar_memoria.h": "c"
     }
 }
