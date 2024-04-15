@@ -6,3 +6,5 @@
 void inicializar_entradasalida(void);
 void iniciar_logger(void);
 void iniciar_config(void);
+
+#endif

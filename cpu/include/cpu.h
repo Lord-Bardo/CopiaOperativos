@@ -15,6 +15,10 @@ char* PUERTO_ESCUCHA_INTERRUPT;
 int CANTIDAD_ENTRADAS_TLB;
 char* ALGORITMO_TLB;
 
+int fd_cpu_dispatch;
+int fd_cpu_interrupt;
+int fd_memoria;
+
 // FUNCIONES
 void leer_consola(t_log*);
 void paquete(int);

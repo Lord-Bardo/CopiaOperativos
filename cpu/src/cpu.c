@@ -5,18 +5,18 @@ int main(int argc, char *argv[]){
 	inicializar_cpu();
 
 	// Iniciar servidor dispatch de CPU
-	// ...
+	fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
 
 	// Iniciar servidor interrupt de CPU
-	// ...
+	fd_cpu_interrupt = iniciar_servidor(PUERTO_ESCUCHA_INTERRUPT);
 
 	// Conexion con memoria
-	int conexion_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
-	enviar_mensaje("HOLA", conexion_memoria);
-	paquete(conexion_memoria);
+	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+	enviar_mensaje("HOLA", fd_memoria);
+	paquete(fd_memoria);
 
 	// Finalizar CPU (liberar memoria usada por estructuras de CPU)
-	terminar_programa(conexion_memoria, cpu_logger, cpu_config); // en vez de pasarselas por parametro deberia liberar directo todo
+	terminar_programa(fd_memoria, cpu_logger, cpu_config); // en vez de pasarselas por parametro deberia liberar directo todo
 
 	return 0;
 }

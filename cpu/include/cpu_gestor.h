@@ -22,4 +22,8 @@ extern char* PUERTO_ESCUCHA_INTERRUPT;
 extern int CANTIDAD_ENTRADAS_TLB;
 extern char* ALGORITMO_TLB;
 
+extern int fd_cpu_dispatch;
+extern int fd_cpu_interrupt;
+extern int fd_memoria;
+
 #endif
