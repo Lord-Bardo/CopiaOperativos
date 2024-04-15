@@ -3,6 +3,9 @@
 
 #include "cpu_gestor.h"
 #include "inicializar_cpu.h"
+#include "cpu_kernel_dispatch.h"
+#include "cpu_kernel_interrupt.h"
+#include "cpu_memoria.h"
 
 // VARIABLES GLOBALES
 t_log* cpu_logger;
@@ -24,7 +27,7 @@ int fd_memoria;
 // FUNCIONES
 void leer_consola(t_log*);
 void paquete(int);
-void terminar_programa(int, t_log*, t_config*);
+void terminar_programa();
 
 #endif
 

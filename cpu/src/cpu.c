@@ -4,28 +4,37 @@ int main(int argc, char *argv[]){
 	// Inicializar estructuras de CPU (loggers y config)
 	inicializar_cpu();
 
-	// Iniciar servidor dispatch de CPU
+	// Iniciar servidor DISPATCH de CPU
 	fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
 	log_info(cpu_logger, "Servidor CPU DISPATCH iniciado!");
 
-	// Esperar conexion del Kernel
+	// Esperar conexion del KERNEL
 	fd_kernel_dispatch = esperar_cliente(fd_cpu_dispatch);
 	log_info(cpu_logger, "Se conecto el cliente KERNEL al servidor CPU DISPATCH!");
 
-	// Iniciar servidor interrupt de CPU
+	// Iniciar servidor INTERRUPT de CPU
 	fd_cpu_interrupt = iniciar_servidor(PUERTO_ESCUCHA_INTERRUPT);
 	log_info(cpu_logger, "Servidor CPU INTERRUPT iniciado!");
 
-	// Esperar conexion del Kernel
+	// Esperar conexion del KERNEL
 	fd_kernel_interrupt = esperar_cliente(fd_cpu_interrupt);
 	log_info(cpu_logger, "Se conecto el cliente KERNEL al servidor CPU INTERRUPT!");
 
-	// Conexion con memoria
+	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	log_info(cpu_logger, "Conexion con MEMORIA establecida!");
 
-	// Finalizar CPU (liberar memoria usada por estructuras de CPU)
-	terminar_programa(fd_memoria, cpu_logger, cpu_config); // en vez de pasarselas por parametro deberia liberar directo todo
+	// Atender los mensajes de KERNEL - DISPATCH
+	atender_cpu_kernel_dispatch();
+
+	//  Atender los mensajes de KERNEL - INTERRUPT
+	atender_cpu_kernel_interrupt();
+
+	// Atender los mensajes de MEMORIA
+	atender_cpu_memoria();
+
+	// Finalizar CPU (liberar memoria usada)
+	terminar_programa();
 
 	return 0;
 }
@@ -72,17 +81,19 @@ void paquete(int conexion)
 	eliminar_paquete(paquete);
 }
 
-void terminar_programa(int conexion, t_log *logger, t_config *config)
-{
-	if (logger != NULL)
-	{
-		log_destroy(logger);
+void terminar_programa(){
+	if (cpu_logger != NULL){
+		log_destroy(cpu_logger);
 	}
 
-	if (config != NULL)
-	{
-		config_destroy(config);
+	if (cpu_config != NULL){
+		config_destroy(cpu_config);
 	}
 
-	liberar_conexion(conexion);
+	// Los sockets del servidor creo q no hay q cerrarlos
+	// liberar_conexion(fd_cpu_dispatch);
+	// liberar_conexion(fd_cpu_interrupt);
+	// liberar_conexion(fd_kernel_dispatch);
+	// liberar_conexion(fd_kernel_interrupt);
+	liberar_conexion(fd_memoria);
 }
