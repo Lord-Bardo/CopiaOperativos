@@ -6,14 +6,23 @@ int main(int argc, char *argv[]){
 
 	// Iniciar servidor dispatch de CPU
 	fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
+	log_info(cpu_logger, "Servidor CPU DISPATCH iniciado!");
+
+	// Esperar conexion del Kernel
+	fd_kernel_dispatch = esperar_cliente(fd_cpu_dispatch);
+	log_info(cpu_logger, "Se conecto el cliente KERNEL al servidor CPU DISPATCH!");
 
 	// Iniciar servidor interrupt de CPU
 	fd_cpu_interrupt = iniciar_servidor(PUERTO_ESCUCHA_INTERRUPT);
+	log_info(cpu_logger, "Servidor CPU INTERRUPT iniciado!");
+
+	// Esperar conexion del Kernel
+	fd_kernel_interrupt = esperar_cliente(fd_cpu_interrupt);
+	log_info(cpu_logger, "Se conecto el cliente KERNEL al servidor CPU INTERRUPT!");
 
 	// Conexion con memoria
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
-	enviar_mensaje("HOLA", fd_memoria);
-	paquete(fd_memoria);
+	log_info(cpu_logger, "Conexion con MEMORIA establecida!");
 
 	// Finalizar CPU (liberar memoria usada por estructuras de CPU)
 	terminar_programa(fd_memoria, cpu_logger, cpu_config); // en vez de pasarselas por parametro deberia liberar directo todo

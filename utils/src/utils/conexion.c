@@ -2,8 +2,7 @@
 
 // CLIENTE
 
-int crear_conexion(char *ip, char *puerto)
-{
+int crear_conexion(char* ip, char* puerto){
 	struct addrinfo hints;
 	struct addrinfo *server_info;
 
@@ -164,16 +163,14 @@ int iniciar_servidor(char* puerto){
 	listen(socket_servidor, SOMAXCONN); // El segundo parametro es cantidad de conexiones vivas que puede mantener, SOMAXCONN como indica el nombre, es la cantidad máxima que admite el sistema operativo
 
 	freeaddrinfo(servinfo);
-	log_info(logger, "SERVER"); // en msj_server la idea seria pasarle, por ejemplo, "Memoria inicializada" o algo asi
 
 	return socket_servidor;
 }
 
-int esperar_cliente(int socket_servidor){ // se podria llegar a recibir y poner algun mnsj perzonalizado en el log, pero nose si el servidor conoce quien se conecta
+int esperar_cliente(int socket_servidor){
 	// Aceptamos un nuevo cliente
 	int socket_cliente;
 	socket_cliente = accept(socket_servidor, NULL, NULL);
-	log_info(logger, "Se conecto un cliente!");
 
 	return socket_cliente;
 }
@@ -229,5 +226,6 @@ t_list *recibir_paquete(int socket_cliente)
 		list_add(valores, valor); // agrega "valor" a la lista valores
 	}
 	free(buffer);
+
 	return valores;
 }

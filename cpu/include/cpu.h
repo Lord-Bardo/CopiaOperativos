@@ -17,6 +17,8 @@ char* ALGORITMO_TLB;
 
 int fd_cpu_dispatch;
 int fd_cpu_interrupt;
+int fd_kernel_dispatch;
+int fd_kernel_interrupt;
 int fd_memoria;
 
 // FUNCIONES
