@@ -1,24 +1,17 @@
 #include "../include/entradasalida.h"
 
 int main(int argc, char* argv[]) {
-    // Inicializar estructuras de CPU (loggers y config)
-	inicializar_cpu();
+    // Inicializar estructuras de entradasalida (loggers y config)
+	inicializar_entradasalida();
 
-	// Iniciar servidor dispatch de CPU
-	// ...
+	//Conexion con KERNEL
+	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
+	log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
 
-	// Iniciar servidor interrupt de CPU
-	// ...
-
-	//conexion con memoria
-	int conexion_kernel;
-	conexion_kernel = crear_conexion (ip_kernel, puerto_kernel);
-	enviar_mensaje ("Hola hola", conexion_kernel);
-	paquete(conexion_kernel);
-
+	atender_entradasalida_kernel();
+	atender_entradasalida_memoria();
     // Finalizar ENTRADASALIDA (liberar memoria usada por estructuras de ENTRADASALIDA)
-	terminar_programa(conexion_kernel, entradasalida_logger, entradasalida_config);
-
+	terminar_programa();
 	return 0;
 }
     
@@ -64,15 +57,16 @@ void paquete(int conexion)
 	eliminar_paquete(paquete);
 }
 
-void terminar_programa(int conexion, t_log *logger, t_config *config)
+void terminar_programa()
 {
-	if (logger != NULL)
+	if (entradasalida_logger != NULL)
 	{
-		log_destroy(logger);
+		log_destroy(entradasalida_logger);
 	}
 
-	if (config != NULL)
+	if (entradasalida_config != NULL)
 	{
-		config_destroy(config);
+		config_destroy(entradasalida_config);
 	}
+	liberar_conexion(fd_kernel);
 }

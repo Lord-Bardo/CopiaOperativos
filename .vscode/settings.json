@@ -4,7 +4,11 @@
         "string.h": "c",
         "conexion.h": "c",
         "inicializar_memoria.h": "c",
+<<<<<<< HEAD
         "cpu_kernel_dispatch.h": "c",
         "kernel_gestor.h": "c"
+=======
+        "entradasalida.h": "c"
+>>>>>>> af9b62c44029d687222c22e658657250cddd6f27
     }
 }
