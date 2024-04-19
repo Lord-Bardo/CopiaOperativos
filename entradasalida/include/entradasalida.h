@@ -19,6 +19,7 @@ int BLOCK_SIZE;
 int BLOCK_COUNT;
 
 int fd_kernel;
+int fd_memoria;
 
 //FUNCIONES
 void leer_consola(t_log*);

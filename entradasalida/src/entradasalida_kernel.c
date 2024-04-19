@@ -16,7 +16,7 @@ void atender_entradasalida_kernel(){
 				continuar = 0;
 				break;
 			default:
-				log_warning(entradasalida_logger, "entradasalida: Operacion desconocida recibida de KERNEL");
+				log_warning(entradasalida_logger, "ENTRADASALIDA: Operacion desconocida recibida de KERNEL");
 				break;
 		}
 	}

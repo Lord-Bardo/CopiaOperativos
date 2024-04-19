@@ -8,10 +8,19 @@ int main(int argc, char* argv[]) {
 	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
 	log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
 
+	// Conexion con MEMORIA
+	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+	log_info(entradasalida_logger, "Conexion con MEMORIA establecida!");
+
+	// Atender los mensajes de KERNEL
 	atender_entradasalida_kernel();
+
+	// Atender los mensajes de MEMORIA
 	atender_entradasalida_memoria();
-    // Finalizar ENTRADASALIDA (liberar memoria usada por estructuras de ENTRADASALIDA)
+
+    // Finalizar ENTRADASALIDA (liberar memoria usada)
 	terminar_programa();
+
 	return 0;
 }
     
@@ -57,16 +66,14 @@ void paquete(int conexion)
 	eliminar_paquete(paquete);
 }
 
-void terminar_programa()
-{
-	if (entradasalida_logger != NULL)
-	{
+void terminar_programa(){
+	if(entradasalida_logger != NULL){
 		log_destroy(entradasalida_logger);
 	}
 
-	if (entradasalida_config != NULL)
-	{
+	if(entradasalida_config != NULL){
 		config_destroy(entradasalida_config);
 	}
+
 	liberar_conexion(fd_kernel);
 }

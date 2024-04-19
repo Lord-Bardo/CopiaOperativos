@@ -16,7 +16,7 @@ void atender_entradasalida_memoria(){
 				continuar = 0;
 				break;
 			default:
-				log_warning(entradasalida_logger, "Entradasalida: Operacion desconocida recibida de MEMORIA");
+				log_warning(entradasalida_logger, "ENTRADASALIDA: Operacion desconocida recibida de MEMORIA");
 				break;
 		}
 	}
