@@ -21,4 +21,9 @@ extern int TAM_PAGINA;
 extern char *PATH_INSTRUCCIONES;
 extern int RETARDO_REPUESTA;
 
+extern int fd_cpu;
+extern int fd_kernel;
+extern int fd_entradasalida;
+extern int fd_memoria;
+
 #endif

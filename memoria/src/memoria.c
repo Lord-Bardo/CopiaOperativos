@@ -1,11 +1,41 @@
 #include "../include/memoria.h"
 
 int main(int argc, char* argv[]) {
+	// Inicializar estructuras de memoria (loggers y config)
 	inicializar_memoria();
-	servidor(PUERTO_ESCUCHA);
-    return 0;
+	
+	// Inciar servidor de Memoria
+	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);
+	log_info(memoria_logger, "Servidor MEMORIA iniciado!")
+
+	// Esperar conexion de KERNEL DISPATCH
+	fd_kernel = esperar_cliente(fd_memoria);
+	log_info(memoria_logger, "Se conecto el cliente KERNEL DISPATCH al servidor MEMORIA!");
+
+	// Esperar conexion de CPU INTERRUPT
+	fd_cpu = esperar_cliente(fd_memoria);
+	log_info(memoria_logger, "Se conecto el cliente CPU INTERRUPT al servidor MEMORIA");
+
+	// Esperar conexion de ENTRADASALIDA
+	fd_entradasalida = esperar_cliente(fd_memoria);
+	log_info(memoria_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
+
+	// Atender los mensajes de ENTRADASALIDA 
+	atender_memoria_entradasalida();
+
+    // Atender los mensajes de KERNEL
+	atender_memoria_kernel();
+
+	// Atender los mensajes de CPU
+	atender_memoria_cpu();
+
+	// Finalizar MEMORIA (liberar memoria usada)
+	terminar_programa();
+
+	return 0;
 }
 
+// TODO -- CONSOLA Y PAQUETE -- Deberian tener el logger y la conexion que no se pasen por parámetros
 void leer_consola(t_log *logger){
 	char *leido;
 
@@ -35,7 +65,6 @@ void paquete(int conexion){
 		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
 		leido = readline("> ");
 	}
-
 	// Envio el paquete
 	enviar_paquete(paquete, conexion);
 
@@ -44,14 +73,14 @@ void paquete(int conexion){
 	eliminar_paquete(paquete);
 }
 
-void terminar_programa(int conexion, t_log* logger, t_config* config){
-    if( logger != NULL ){
-        log_destroy(logger);
+void terminar_programa(){
+    if( memoria_logger != NULL ){
+        log_destroy(memoria_logger);
     }
     
-    if (config != NULL){
-		config_destroy(config);
+    if (memoria_config != NULL){
+		config_destroy(memoria_config);
 	}
 
-    liberar_conexion(conexion);
+    // liberar_conexion(conexion);
 }
