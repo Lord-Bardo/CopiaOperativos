@@ -16,7 +16,7 @@ void atender_kernel_memoria(){
 				continuar = 0;
 				break;
 			default:
-				log_warning(kernel_logger, "CPU: Operacion desconocida recibida de MEMORIA");
+				log_warning(kernel_logger, "KERNEL: Operacion desconocida recibida de MEMORIA");
 				break;
 		}
 	}

@@ -18,11 +18,11 @@ int main(int argc, char* argv[]) {
 
 	// Conexion con CPU - DISPATCH
 	fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
-	log_info(kernel_logger, "Conexion con CPU establecida!");
+	log_info(kernel_logger, "Conexion con CPU DISPATCH establecida!");
 
 	// Conexion con CPU - INTERRUPT
 	fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
-	log_info(kernel_logger, "Conexion con CPU establecida!");
+	log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
 
 	// Atender los mensajes de ENTRADASALIDA 
 	atender_kernel_entradasalida();

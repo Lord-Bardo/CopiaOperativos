@@ -12,11 +12,11 @@ void atender_kernel_cpu_dispatch(){
 				// ...
 				break;
 			case -1:
-				log_error(kernel_logger, "Se perdio la conexion con CPU!");
+				log_error(kernel_logger, "Se perdio la conexion con CPU INTERRUPT!");
 				continuar = 0;
 				break;
 			default:
-				log_warning(kernel_logger, "KERNEL: Operacion desconocida recibida de CPU");
+				log_warning(kernel_logger, "KERNEL: Operacion desconocida recibida de CPU INTERRUPT");
 				break;
 		}
 	}

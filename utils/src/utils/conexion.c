@@ -175,8 +175,7 @@ int esperar_cliente(int socket_servidor){
 	return socket_cliente;
 }
 
-int recibir_operacion(int socket_cliente)
-{
+int recibir_operacion(int socket_cliente){
 	int cod_op;
 	if (recv(socket_cliente, &cod_op, sizeof(int), MSG_WAITALL) > 0) // MSG_WAITALL asegura que recv bloquee la ejecución hasta que se hayan recibido todos los bytes / MSG_WAITALL es la bandera q hace q recv sea bloqueante y espere a recbir un valor para continuar. Si recibe un valor devuelve un numero > a 0 y lo q recibio se lo asigna a cod_op, si la conexion se corta o algo devulve un numero < a 0
 		return cod_op;
