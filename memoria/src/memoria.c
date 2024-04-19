@@ -8,26 +8,26 @@ int main(int argc, char* argv[]) {
 	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 
-	// Esperar conexion de KERNEL
-	fd_kernel = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente KERNEL al servidor MEMORIA!");
-
 	// Esperar conexion de CPU
 	fd_cpu = esperar_cliente(fd_memoria);
 	log_info(memoria_logger, "Se conecto el cliente CPU al servidor MEMORIA");
+
+	// Esperar conexion de KERNEL
+	fd_kernel = esperar_cliente(fd_memoria);
+	log_info(memoria_logger, "Se conecto el cliente KERNEL al servidor MEMORIA!");
 
 	// Esperar conexion de ENTRADASALIDA
 	fd_entradasalida = esperar_cliente(fd_memoria);
 	log_info(memoria_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
 	// Atender los mensajes de ENTRADASALIDA 
-	//atender_memoria_entradasalida();
+	atender_memoria_entradasalida();
 
     // Atender los mensajes de KERNEL
-	//atender_memoria_kernel();
+	atender_memoria_kernel();
 
 	// Atender los mensajes de CPU
-	//atender_memoria_cpu();
+	atender_memoria_cpu();
 
 	// Finalizar MEMORIA (liberar memoria usada)
 	terminar_programa();
