@@ -20,6 +20,12 @@ char** RECURSOS;
 char** INSTANCIAS_RECURSOS;
 int GRADO_MULTIPROGRAMACION;
 
+int fd_kernel;
+int fd_entradasalida;
+int fd_memoria;
+int fd_cpu_dispatch;
+int fd_cpu_interrupt;
+
 // FUNCIONES
 void leer_consola(t_log*);
 void paquete(int);

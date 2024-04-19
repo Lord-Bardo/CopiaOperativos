@@ -1,4 +1,4 @@
-#include "kernel.h"
+#include "../include/kernel.h"
 
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de KERNEL (loggers y config)
