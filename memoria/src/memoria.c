@@ -6,28 +6,28 @@ int main(int argc, char* argv[]) {
 	
 	// Inciar servidor de Memoria
 	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);
-	log_info(memoria_logger, "Servidor MEMORIA iniciado!")
+	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 
-	// Esperar conexion de KERNEL DISPATCH
+	// Esperar conexion de KERNEL
 	fd_kernel = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente KERNEL DISPATCH al servidor MEMORIA!");
+	log_info(memoria_logger, "Se conecto el cliente KERNEL al servidor MEMORIA!");
 
-	// Esperar conexion de CPU INTERRUPT
+	// Esperar conexion de CPU
 	fd_cpu = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente CPU INTERRUPT al servidor MEMORIA");
+	log_info(memoria_logger, "Se conecto el cliente CPU al servidor MEMORIA");
 
 	// Esperar conexion de ENTRADASALIDA
 	fd_entradasalida = esperar_cliente(fd_memoria);
 	log_info(memoria_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
 	// Atender los mensajes de ENTRADASALIDA 
-	atender_memoria_entradasalida();
+	//atender_memoria_entradasalida();
 
     // Atender los mensajes de KERNEL
-	atender_memoria_kernel();
+	//atender_memoria_kernel();
 
 	// Atender los mensajes de CPU
-	atender_memoria_cpu();
+	//atender_memoria_cpu();
 
 	// Finalizar MEMORIA (liberar memoria usada)
 	terminar_programa();
@@ -74,11 +74,11 @@ void paquete(int conexion){
 }
 
 void terminar_programa(){
-    if( memoria_logger != NULL ){
+    if(memoria_logger != NULL){
         log_destroy(memoria_logger);
     }
     
-    if (memoria_config != NULL){
+    if(memoria_config != NULL){
 		config_destroy(memoria_config);
 	}
 

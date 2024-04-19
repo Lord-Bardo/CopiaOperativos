@@ -1,6 +1,6 @@
 #include "../include/kernel_cpu_interrupt.h"
 
-void atender_kernel_cpu_dispatch(){
+void atender_kernel_cpu_interrupt(){
     int continuar = 1;
 	while( continuar ){
 		int cod_op = recibir_operacion(fd_cpu_interrupt);

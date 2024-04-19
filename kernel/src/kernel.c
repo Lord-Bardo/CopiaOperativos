@@ -4,14 +4,6 @@ int main(int argc, char* argv[]) {
 	// Inicializar estructuras de KERNEL (loggers y config)
 	inicializar_kernel();
 
-	// Iniciar servidor de KERNEL
-	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
-	log_info(kernel_logger, "Servidor KERNEL iniciado!");
-
-	// Esperar conexion de ENTRADASALIDA
-	fd_entradasalida = esperar_cliente(fd_kernel);
-	log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
-
 	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	log_info(kernel_logger, "Conexion con MEMORIA establecida!");
@@ -23,6 +15,14 @@ int main(int argc, char* argv[]) {
 	// Conexion con CPU - INTERRUPT
 	fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
 	log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
+
+	// Iniciar servidor de KERNEL
+	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
+	log_info(kernel_logger, "Servidor KERNEL iniciado!");
+
+	// Esperar conexion de ENTRADASALIDA
+	fd_entradasalida = esperar_cliente(fd_kernel);
+	log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
 	// Atender los mensajes de ENTRADASALIDA 
 	atender_kernel_entradasalida();

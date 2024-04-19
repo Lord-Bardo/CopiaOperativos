@@ -2,7 +2,7 @@
 #define KERNEL_H_
 
 #include "kernel_gestor.h"
-#include "incializar_kernel.h"
+#include "inicializar_kernel.h"
 #include "kernel_entradasalida.h"
 #include "kernel_memoria.h"
 #include "kernel_cpu_dispatch.h"
@@ -33,6 +33,6 @@ int fd_cpu_interrupt;
 // FUNCIONES
 void leer_consola(t_log*);
 void paquete(int);
-void terminar_programa(int, t_log*, t_config*);
+void terminar_programa();
 
 #endif

@@ -6,7 +6,7 @@ void inicializar_memoria(){
 }
 
 void iniciar_logger(void){
-	t_log* memoria_logger = log_create("memoria.log", "MEMORIA", 1, LOG_LEVEL_INFO);
+	memoria_logger = log_create("memoria.log", "MEMORIA", 1, LOG_LEVEL_INFO);
 	if(memoria_logger == NULL){
 		printf("No se pudo crear el logger.");
 		exit(1);
@@ -14,7 +14,7 @@ void iniciar_logger(void){
 }
 
 void iniciar_config(void){
-	t_config* memoria_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria.config");
+	memoria_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria.config");
 	if(memoria_config == NULL){
 		printf("No se pudo crear el config.");
 		exit(2);
