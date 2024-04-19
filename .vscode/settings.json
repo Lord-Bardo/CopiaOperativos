@@ -3,6 +3,8 @@
     "files.associations": {
         "string.h": "c",
         "conexion.h": "c",
-        "inicializar_memoria.h": "c"
+        "inicializar_memoria.h": "c",
+        "cpu_kernel_dispatch.h": "c",
+        "kernel_gestor.h": "c"
     }
 }

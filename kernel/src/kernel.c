@@ -4,21 +4,60 @@ int main(int argc, char* argv[]) {
 	// Inicializar estructuras de KERNEL (loggers y config)
 	inicializar_kernel();
 
-	// Iniciar servidor KERNEL
-	// ...
+	// Iniciar servidor de KERNEL
+	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
+	log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
-	// Conexion con el modulo memoria
-	int conexion_memoria;
-    conexion_memoria = crear_conexion(ip_memoria, puerto_memoria);
-	enviar_mensaje("HOLA", conexion_memoria);
-	paquete(conexion_memoria);
+	// Esperar conexion de ENTRADASALIDA
+	fd_entradasalida = esperar_cliente(fd_kernel);
+	log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
-    terminar_programa(conexion_memoria, logger , config);
+	// Conexion con MEMORIA
+	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+	log_info(kernel_logger, "Conexion con MEMORIA establecida!");
 
-	//conexion con entrada salida
-	servidor("8003");
+	// Conexion con CPU - DISPATCH
+	fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
+	log_info(kernel_logger, "Conexion con CPU establecida!");
+
+	// Conexion con CPU - INTERRUPT
+	fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
+	log_info(kernel_logger, "Conexion con CPU establecida!");
+
+	// Atender los mensajes de ENTRADASALIDA 
+	atender_kernel_entradasalida();
+
+	// Atender los mensajes de MEMORIA
+	atender_kernel_memoria();
+
+    // Atender los mensajes de CPU - DISPATCH
+	atender_kernel_cpu_dispatch();
+
+	// Atender los mensajes de CPU - INTERRUPR
+	atender_kernel_cpu_interrupt();
+
+	// Finalizar KERNEL (liberar memoria usada)
+	terminar_programa();
 
 	return 0; 
+}
+
+void leer_consola(t_log *logger)
+{
+	char *leido;
+
+	// Leo la primer linea
+	leido = readline("> ");
+
+	// El resto, las voy leyendo y logueando hasta recibir un string vacío
+	while (leido[0] != '\0')
+	{
+		log_info(logger, "%s", leido);
+		leido = readline("> ");
+	}
+
+	// Libero las lineas
+	free(leido);
 }
 
 void paquete(int conexion)
@@ -47,18 +86,20 @@ void paquete(int conexion)
 
 
 
-void terminar_programa(int conexion, t_log *logger, t_config *config)
+void terminar_programa()
 {
-	if (logger != NULL)
+	if (kernel_logger != NULL)
 	{
-		log_destroy(logger);
+		log_destroy(kernel_logger);
 	}
 
-	if (config != NULL)
+	if (kernel_config != NULL)
 	{
-		config_destroy(config);
+		config_destroy(kernel_config);
 	}
 
-	liberar_conexion(conexion);
+	liberar_conexion(fd_cpu_dispatch);
+	liberar_conexion(fd_cpu_interrupt);
+	liberar_conexion(fd_memoria);
 }
 
