@@ -8,9 +8,10 @@ int main(int argc, char* argv[]) {
 	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
 	log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
 
+	atender_entradasalida_kernel();
+	atender_entradasalida_memoria();
     // Finalizar ENTRADASALIDA (liberar memoria usada por estructuras de ENTRADASALIDA)
-	terminar_programa(conexion_kernel, entradasalida_logger, entradasalida_config);
-
+	terminar_programa();
 	return 0;
 }
     
