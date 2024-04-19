@@ -18,6 +18,8 @@ char* PATH_BASE_DIALFS;
 int BLOCK_SIZE;
 int BLOCK_COUNT;
 
+int fd_kernel;
+
 //FUNCIONES
 void leer_consola(t_log*);
 void paquete(int);

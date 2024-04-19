@@ -3,6 +3,7 @@
     "files.associations": {
         "string.h": "c",
         "conexion.h": "c",
-        "inicializar_memoria.h": "c"
+        "inicializar_memoria.h": "c",
+        "entradasalida.h": "c"
     }
 }
