@@ -2,11 +2,11 @@
 
 
 struct{
-    __uint32_t pc;
+   
     __uint8_t AX;
     __uint8_t BX;
     __uint8_t CX;
-    __uint8_t DX
+    __uint8_t DX;
     __uint32_t EAX;
     __uint32_t EBX;
     __uint32_t ECX;
@@ -18,6 +18,7 @@ struct{
 
 
 struct{
+    __uint32_t pc;
     int pid;
     int quantum;
     t_registros registros
