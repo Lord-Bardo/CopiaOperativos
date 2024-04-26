@@ -12,11 +12,15 @@ int main(int argc, char* argv[]) {
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	log_info(entradasalida_logger, "Conexion con MEMORIA establecida!");
 
-	// Atender los mensajes de KERNEL
-	atender_entradasalida_kernel();
+	//tengo que meter aca lo de los hilos
+	pthread_t hilo_memoria;
+	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_memoria,NULL);
 
-	// Atender los mensajes de MEMORIA
-	atender_entradasalida_memoria();
+	pthread_t hilo_kernel;
+	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_kernel, NULL);
+
+	pthread_join(hilo_kernel, NULL);
+	pthread_join(hilo_memoria, NULL);
 
     // Finalizar ENTRADASALIDA (liberar memoria usada)
 	terminar_programa();
@@ -76,4 +80,5 @@ void terminar_programa(){
 	}
 
 	liberar_conexion(fd_kernel);
+	liberar_conexion(fd_memoria)
 }
