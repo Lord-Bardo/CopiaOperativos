@@ -1,10 +1,13 @@
 #include <utils/planificadores.h>
 
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 struct{
    
 =======
+=======
+>>>>>>> 7653b76 (Actualizo denuevo)
 typedef struct{
     __uint32_t pc;
 >>>>>>> 9519930d52bcdfc5bfcf5c20b69baaee0325214a
@@ -21,12 +24,7 @@ typedef struct{
 }t_registros;
 
 
-<<<<<<< HEAD
-struct{
-    __uint32_t pc;
-=======
 typedef struct{
->>>>>>> 9519930d52bcdfc5bfcf5c20b69baaee0325214a
     int pid;
     int quantum;
     t_registros registros;
