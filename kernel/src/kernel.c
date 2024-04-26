@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 	pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 	pthread_join(hilo_memoria, NULL);
 	pthread_join(hilo_cpu_dispatch, NULL);
-	pthread_join(hilo_cpu_interrupt NULL);
+	pthread_join(hilo_cpu_interrupt, NULL);
 
 	// Finalizar KERNEL (liberar memoria usada)
 	terminar_programa();
@@ -95,17 +95,12 @@ void paquete(int conexion)
 	eliminar_paquete(paquete);
 }
 
-
-
-void terminar_programa()
-{
-	if (kernel_logger != NULL)
-	{
+void terminar_programa(){
+	if(kernel_logger != NULL){
 		log_destroy(kernel_logger);
 	}
 
-	if (kernel_config != NULL)
-	{
+	if(kernel_config != NULL){
 		config_destroy(kernel_config);
 	}
 
@@ -114,5 +109,4 @@ void terminar_programa()
 	liberar_conexion(fd_memoria);
 	liberar_conexion(fd_kernel);
 	liberar_conexion(fd_entradasalida);
-	
-
+}
