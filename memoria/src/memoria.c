@@ -24,24 +24,19 @@ int main(int argc, char* argv[]) {
 	pthread_t hilo_entradasalida;
 	pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
 
-	// Atender los mensajes de KERNEL - DISPATCH
-	// declaro el hilo
-	pthread_t hilo_kernel_dispatch;
-	// creo el hilo. Primer parametro: donde guarda el hilo. Segundo: NULL para q se seteen los valores por defecto. Tercero: funcion a ejecutar en el hilo. Cuarto: si la funcion recibe parametros van aca
-	pthread_create(&hilo_kernel_dispatch, NULL, (void*)atender_memoria_kernel_dispatch, NULL); // tengo duda con el tercer parametro, xq chatgpt recomienda usar un wrapper de la funcion y q tenga la firma q pide pthread_create q es void* (*)(void*) lo cual describe un puntero a una función que toma un puntero void como argumento y devuelve un puntero void. O la otra es modificar directo la firma de la funcion.
-
-	// Atender los mensajes de KERNEL - INTERRUPT
-	pthread_t hilo_kernel_interrupt;
-	pthread_create(&hilo_kernel_interrupt,NULL, (void*)atender_memoria_kernel_interrupt, NULL);
+	// Atender los mensajes de KERNEL 
+	pthread_t hilo_kernel;
+	pthread_create(&hilo_kernel, NULL, (void*)atender_memoria_kernel, NULL);
 
 	// Atender los mensajes de CPU
-	atender_memoria_cpu();
+	thread_t hilo_cpu;
+	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
 
 
 	// Esperar a que los hilos finalicen su ejecucion
-	pthread_join(hilo_kernel_dispatch, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
-	pthread_join(hilo_kernel_interrupt, NULL);
-	pthread_join(hilo_memoria, NULL);//join corta hasta que se termine el proceso
+	pthread_join(hilo_kernel, NULL); 
+	pthread_join(hilo_entradasalida, NULL);
+	pthread_join(hilo_cpu, NULL);
 
 
 	// Finalizar MEMORIA (liberar memoria usada)
@@ -102,4 +97,8 @@ void terminar_programa(){
 	}
 
     // liberar_conexion(conexion);
+	liberar_conexion(fd_cpu);
+	liberar_conexion(fd_memoria);
+	liberar_conexion(fd_kernel);
+	liberar_conexion(fd_entradasalida);
 }
