@@ -112,5 +112,7 @@ void terminar_programa()
 	liberar_conexion(fd_cpu_dispatch);
 	liberar_conexion(fd_cpu_interrupt);
 	liberar_conexion(fd_memoria);
-}
+	liberar_conexion(fd_kernel);
+	liberar_conexion(fd_entradasalida);
+	
 
