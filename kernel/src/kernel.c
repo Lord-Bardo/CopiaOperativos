@@ -25,16 +25,27 @@ int main(int argc, char* argv[]) {
 	log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
 	// Atender los mensajes de ENTRADASALIDA 
+	pthread_t hilo_entradasalida;
+	pthread_create(&hilo_entradasalida, NULL, (void*)atender_kernel_entradasalida, NULL);
 	atender_kernel_entradasalida();
 
 	// Atender los mensajes de MEMORIA
-	atender_kernel_memoria();
+	pthread_t hilo_memoria;
+	pthread_create(&hilo_memoria, NULL, (void*)atender_kernel_memoria, NULL);
 
     // Atender los mensajes de CPU - DISPATCH
-	atender_kernel_cpu_dispatch();
+	pthread_t hilo_cpu_dispatch;
+	pthread_create(&hilo_cpu_dispatch, NULL, (void*)atender_kernel_cpu_dispatch, NULL);
 
-	// Atender los mensajes de CPU - INTERRUPR
-	atender_kernel_cpu_interrupt();
+	// Atender los mensajes de CPU - INTERRUPT
+	pthread_t hilo_cpu_interrupt;
+	pthread_create(&hilo_cpu_interrupt, NULL, (void*)atender_kernel_cpu_interrupt, NULL);
+
+    // Esperar a que los hilos finalicen su ejecucion
+	pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
+	pthread_join(hilo_memoria, NULL);
+	pthread_join(hilo_cpu_dispatch, NULL);
+	pthread_join(hilo_cpu_interrupt NULL);
 
 	// Finalizar KERNEL (liberar memoria usada)
 	terminar_programa();
