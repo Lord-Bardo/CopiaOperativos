@@ -11,7 +11,7 @@
 #include <commons/config.h>
 
 #include <utils/conexion.h>
-
+#include <utils/planificadores.h>
 //VARIABLES GLOBALES
 extern t_log* memoria_logger;
 extern t_config* memoria_config;

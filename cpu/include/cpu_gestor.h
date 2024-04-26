@@ -11,6 +11,7 @@
 #include <commons/config.h>
 
 #include <utils/conexion.h>
+#include <utils/planificadores.h>
 
 // VARIABLES GLOBALES
 extern t_log* cpu_logger;

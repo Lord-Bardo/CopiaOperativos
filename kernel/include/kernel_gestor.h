@@ -11,7 +11,7 @@
 #include <commons/config.h>
 
 #include <utils/conexion.h>
-
+#include <utils/planificadores.h>
 // VARIABLES GLOBALES
 extern t_log* kernel_logger;
 extern t_config* kernel_config;
