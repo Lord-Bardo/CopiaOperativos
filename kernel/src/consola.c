@@ -3,30 +3,36 @@
 void iniciar_consola_interactiva(){
     char *leido;
 
-    // Leer la primer linea
 	leido = readline("> ");
-    if(validar_comando() == 0){
+	while( leido[0] != '\0' ){
+		if( !validar_comando(leido) ){
+			log_error(kernel_logger, "Comando invalido!");
+		}
+		else{
+			atender_comando(leido);
+		}
 
-    }
-
-}
-
-void leer_consola(){
-	char *leido;
-
-	// Leer la primer linea
-	leido = readline("> ");
-
-	// Leer el resto hasta recibir un string vacío
-	while (leido[0] != '\0'){
-		log_info(kernel_logger, "%s", leido);
 		leido = readline("> ");
 	}
-
-	// Libero las lineas
 	free(leido);
 }
 
-int validar_comando(){
-    
+bool validar_comando(char* leido){
+	bool resultado_validacion;
+	char** comando = string_split(leido, " ");
+
+	if( strcmp(comando[0], "EJECUTAR_SCRIPT") == 0 ){
+		resultado_validacion = true;
+	}
+	else if( strcmp(comando[0], "INICIAR_PROCESO") == 0 ){
+		resultado_validacion = true;
+	}
+	// ...
+
+	string_array_destroy(comando);
+	return resultado_validacion;
+}
+
+void atender_comando(char* comando){
+
 }

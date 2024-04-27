@@ -5,7 +5,7 @@
 
 typedef enum{
     EJECUTAR_SCRIPT,
-    INCIAR_PROCESO,
+    INICIAR_PROCESO,
     FINALIZAR_PROCESO,
     DETENER_PLANIFICACION,
     INICIAR_PLANIFICACION,
@@ -14,6 +14,7 @@ typedef enum{
 }comando;
 
 void iniciar_consola_interactiva(void);
-void leer_consola(void);
+int validar_comando(char* leido);
+void atender_instruccion(char* comando);
 
 #endif
