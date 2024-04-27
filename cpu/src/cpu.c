@@ -108,7 +108,7 @@ void terminar_programa(){
 }
 
 void iniciar_ciclo_instruccion(t_pcb PCB){
-	__uint32_t ir = obtener_instruccion(PCB.registros.pc);
+	__uint32_t ir = obtener_instruccion(PCB.registros.PC);
 	t_instruccion instruccion = decode(ir);
 
 }

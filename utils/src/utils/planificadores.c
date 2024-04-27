@@ -1,8 +1,7 @@
 #include <utils/planificadores.h>
 
-
 typedef struct{
-    __uint32_t pc;
+    __uint32_t PC;
     __uint8_t AX;
     __uint8_t BX;
     __uint8_t CX;
@@ -16,7 +15,7 @@ typedef struct{
 }t_registros;
 
 typedef struct{
-    int pid;
+    int PID;
     int quantum;
     t_registros registros;
 }t_pcb;
