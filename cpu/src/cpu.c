@@ -106,3 +106,16 @@ void terminar_programa(){
 	liberar_conexion(fd_kernel_interrupt);
 	liberar_conexion(fd_memoria);
 }
+
+void iniciar_ciclo_instruccion(t_pcb PCB){
+	__uint32_t ir = obtener_instruccion(PCB.registros.pc);
+	t_instruccion instruccion = decode(ir);
+
+}
+
+__uint32_t obtener_instruccion(t_pcb PCB){
+
+    //TODO
+
+	return 0;
+}
