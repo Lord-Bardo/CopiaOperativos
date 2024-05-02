@@ -83,39 +83,32 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
 
 void* deserializar(t_buffer* un_buffer) {
 
-	if(un_buffer->size == 0) {
-		printf("\n [ERROR] Al intentar extraer un contenido de un t buffer vacio\n\n"); 
-		exit(EXIT_FAILURE);
-	}
-
-	if(un_buffer->size < 0) {
-		printf("\n[ERROR] Esto es raro. El t buffer contiene un size NEGATIVO \n\n"); 
+	if(un_buffer->size <= 0) {
+		printf("\n [ERROR] Al intentar extraer un contenido de un t buffer vacio o con tamaño negativo\n\n"); 
 		exit(EXIT_FAILURE);
 	}
 
 	int size_mensaje; // entiendase mensaje por el void* que esta en el paquete.
 	memcpy(&size_mensaje, un_buffer->stream, sizeof(int));
-	void* mensaje malloc(size_mensaje);
+	void* mensaje = malloc(size_mensaje);
 	memcpy(mensaje, un_buffer->stream + sizeof(int), size_mensaje);
 
 	int nuevo_size = un_buffer->size - sizeof(int) - size_mensaje;
-	if (nuevo_size == 0) {
-		un_buffer->size = 0;
-		free(un_buffer->stream);
-		un_buffer->stream = NULL;
-		return mensaje;
-	}
-
 	if (nuevo_size < 0) {
 		perror("\n [ERROR_MENSAJE] BUFFER con tamaño negativo");
 		exit(EXIT_FAILURE);
 	}
 
-	void* nuevo stream = malloc(nuevo_size);
-	memcpy (nuevo_stream, un_buffer->stream + sizeof(int) + size_mensaje, nuevo_size); 
-	free(un_buffer->stream);
-	un_buffer->size nuevo_size;
-	un_buffer->stream = nuevo_stream;
+	un_buffer->size = nuevo_size;
+	if (nuevo_size == 0) {
+		free(un_buffer->stream);
+		un_buffer->stream = NULL;
+	} else {
+		void* nuevo_stream = malloc(nuevo_size);
+		memcpy(nuevo_stream, un_buffer->stream + sizeof(int) + size_mensaje, nuevo_size); 
+		free(un_buffer->stream);
+		un_buffer->stream = nuevo_stream;
+	}
 
     return mensaje;
 }
