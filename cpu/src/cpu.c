@@ -119,19 +119,37 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 	copiar_contexto_PCB(PCB, PCB_auxiliar); // copiar contenido del PCB en los registros del CPU.
 	t_instruccion ir = obtener_instruccion(PC); // El PC (program counter) lo copiamos en la funcion anterior y va a estar en algun lado.
 	switch (ir.op_cod) {
-		case 0:
+		case 0: //SET
 		 if (parametros_validos_SET(ir.parametros)) // validamos que los parametros sean correctos y, si lo son, ejecutamos la instruccion.
 			ejecutar_SET()
 		 else 
 			no_ejecutar()
 		 break;
-		case 1: 
-		 break;
-		case 2:
-		 break;
-		case 3:
-		 break;
-		case 4:
+		case 1: //SUM
+		t_registros* destino;
+		t_registros* origen;
+
+		if (parametros_validos_SUM(ir.parametros)){
+		   *destino += *origen;}
+			else
+			no_ejecutar();
+			break;
+
+		case 2: //SUB
+		if (parametros_validos_SUB(ir.parametros)){
+			*destino -= *origen;}
+			else
+			no_ejecutar();
+			break;
+
+		case 3: //JNZ
+	 		if (parametros_validos_JNZ(ir.parametros) && parametros != 0){
+			PC = parametros;}
+			else
+			no_ejecutar();
+			break;
+
+		case 4: //IO_GEN_SLEEP
 		 break;
 		default:
 		 break;

@@ -3,31 +3,34 @@
 #include "conexion.h"
 
 
-void test_deserializar() {
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+
+void test_deserializar() {  //no funciona porque el buffer no permite recibir un char
     // Caso de prueba 1: Buffer con un mensaje válido
     {
         char* mensaje_original = "Hola, mundo!";
         int size_mensaje = strlen(mensaje_original) + 1; // +1 para el caracter nulo al final
-        t_buffer* buffer = serializar(mensaje_original, size_mensaje);
+       // Corregir llamada a deserializar en el primer caso de prueba
+        t_buffer* buffer = deserializar(mensaje_original);
 
-        void* mensaje_deserializado = deserializar(buffer);
-        assert(strcmp(mensaje_original, mensaje_deserializado) == 0);
-        assert(buffer->size == 0);
-        assert(buffer->stream == NULL);
+        assert(buffer != NULL);
+        assert(buffer->size == size_mensaje);
+        assert(strcmp(buffer->stream, mensaje_original) == 0);
 
-        free(mensaje_deserializado);
+        free(buffer->stream);
         free(buffer);
     }
 
     // Caso de prueba 2: Buffer vacío
     {
-        t_buffer* buffer = serializar("", 0);
-        if(buffer->size > 0) {
-            void* mensaje_deserializado = deserializar(buffer);
-            free(mensaje_deserializado); // Por las dudas
-        } else {
-            printf("\n [ERROR] Al intentar extraer un contenido de un t buffer vacio o con tamaño negativo\n\n");
-        }
+        t_buffer* buffer = deserializar(NULL);
+        assert(buffer != NULL);
+        assert(buffer->size == 0);
+        assert(buffer->stream == NULL);
+
         free(buffer);
     }
 }
