@@ -107,9 +107,37 @@ void terminar_programa(){
 	liberar_conexion(fd_memoria);
 }
 
-void iniciar_ciclo_instruccion(t_pcb PCB){
-	__uint32_t ir = obtener_instruccion(PCB.registros.PC);
-	t_instruccion instruccion = decode(ir);
+/* 
+El IC es igual a op_cod + n, siendo n parametros o registros 
+(por ejemplo: SET AX 3, los parametros son AX y 3, y SET es el op_cod).
+Los parametros lo guardamos en una lista.
+*/
+void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB serializado.
+{ 
+	t_pcb PCB = deserializarPCB(PCB_serializado);
+	t_pcb* PCB_auxiliar; // declaramos un puntero, para poder modificarlo en la funcion siguiente.
+	copiar_contexto_PCB(PCB, PCB_auxiliar); // copiar contenido del PCB en los registros del CPU.
+	t_instruccion ir = obtener_instruccion(PC); // El PC (program counter) lo copiamos en la funcion anterior y va a estar en algun lado.
+	switch (ir.op_cod) {
+		case 0:
+		 if (parametros_validos_SET(ir.parametros)) // validamos que los parametros sean correctos y, si lo son, ejecutamos la instruccion.
+			ejecutar_SET()
+		 else 
+			no_ejecutar()
+		 break;
+		case 1: 
+		 break;
+		case 2:
+		 break;
+		case 3:
+		 break;
+		case 4:
+		 break;
+		default:
+		 break;
+	}
+	PC++;
+	devolver_PCB(PCB); //devuelve el PCB a Kernel para que sea actualizado.
 
 }
 
@@ -119,3 +147,4 @@ __uint32_t obtener_instruccion(t_pcb PCB){
 
 	return 0;
 }
+
