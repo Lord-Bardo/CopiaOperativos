@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
 	// Atender los mensajes de ENTRADASALIDA 
 	pthread_t hilo_entradasalida;
 	pthread_create(&hilo_entradasalida, NULL, (void*)atender_kernel_entradasalida, NULL);
-	atender_kernel_entradasalida();
 
 	// Atender los mensajes de MEMORIA
 	pthread_t hilo_memoria;
