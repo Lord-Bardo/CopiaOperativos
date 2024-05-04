@@ -121,7 +121,7 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 	t_pcb* PCB_auxiliar; // declaramos un puntero, para poder modificarlo en la funcion siguiente.
 	copiar_contexto_PCB(PCB, PCB_auxiliar); // copiar contenido del PCB en los registros del CPU.
 	t_instruccion ir = obtener_instruccion(PC); // El PC (program counter) lo copiamos en la funcion anterior y va a estar en algun lado.
-	switch (ir.op_cod) {
+	switch (ir.op_cod) { //no mandas pc, vamos con el id del proceso y la instruccion que queremos leer, como reconocer los registros a los que acceder
 		case 0: //SET
 		 if (parametros_validos_SET(ir.parametros)) // validamos que los parametros sean correctos y, si lo son, ejecutamos la instruccion.
 			ejecutar_SET() //podemos usar diccionario para reconocer registros
