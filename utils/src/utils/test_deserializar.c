@@ -35,8 +35,3 @@ void test_deserializar() {  //no funciona porque el buffer no permite recibir un
     }
 }
 
-int main() {
-    test_deserializar();
-    printf("Todos los tests pasaron correctamente.\n");
-    return 0;
-}

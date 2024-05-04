@@ -6,7 +6,7 @@
 #include "cpu_kernel_dispatch.h"
 #include "cpu_kernel_interrupt.h"
 #include "cpu_memoria.h"
-
+#include "utils/conexion.h"
 // VARIABLES GLOBALES
 t_log* cpu_logger;
 t_config* cpu_config;

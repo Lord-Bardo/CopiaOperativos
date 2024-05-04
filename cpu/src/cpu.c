@@ -4,6 +4,8 @@ int main(int argc, char *argv[]){
 	// Inicializar estructuras de CPU (loggers y config)
 	inicializar_cpu();
 
+	test_deserializar();
+    printf("Todos los tests pasaron correctamente.\n");
 	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	log_info(cpu_logger, "Conexion con MEMORIA establecida!");
@@ -42,6 +44,7 @@ int main(int argc, char *argv[]){
 	pthread_join(hilo_kernel_dispatch, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 	pthread_join(hilo_kernel_interrupt, NULL);
 	pthread_join(hilo_memoria, NULL);
+
 
 	// Finalizar CPU (liberar memoria usada)
 	terminar_programa();
@@ -121,7 +124,7 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 	switch (ir.op_cod) {
 		case 0: //SET
 		 if (parametros_validos_SET(ir.parametros)) // validamos que los parametros sean correctos y, si lo son, ejecutamos la instruccion.
-			ejecutar_SET()
+			ejecutar_SET() //podemos usar diccionario para reconocer registros
 		 else 
 			no_ejecutar()
 		 break;
@@ -130,21 +133,24 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 		t_registros* origen;
 
 		if (parametros_validos_SUM(ir.parametros)){
-		   *destino += *origen;}
+		   *destino += *origen;
+		   }
 			else
 			no_ejecutar();
 			break;
 
 		case 2: //SUB
 		if (parametros_validos_SUB(ir.parametros)){
-			*destino -= *origen;}
+			*destino -= *origen;
+			}
 			else
 			no_ejecutar();
 			break;
 
 		case 3: //JNZ
 	 		if (parametros_validos_JNZ(ir.parametros) && parametros != 0){
-			PC = parametros;}
+			//PC = parametros;
+			}
 			else
 			no_ejecutar();
 			break;
