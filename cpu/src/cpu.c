@@ -1,4 +1,5 @@
 #include "../include/cpu.h"
+#include "../include/serializar.h"
 
 int main(int argc, char *argv[]){
 	// Inicializar estructuras de CPU (loggers y config)
@@ -52,8 +53,7 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-void leer_consola(t_log *logger)
-{
+void leer_consola(t_log *logger){
 	char *leido;
 
 	// Leo la primer linea
@@ -115,15 +115,36 @@ El IC es igual a op_cod + n, siendo n parametros o registros
 (por ejemplo: SET AX 3, los parametros son AX y 3, y SET es el op_cod).
 Los parametros lo guardamos en una lista.
 */
-void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB serializado.
+
+
+
+void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ 
+
+	t_pcb *pcb = deserializar(pcb_empaquetado); //el deserealizar devuelvo un execution_context
+	
+	while(1){//aca  van semaforos 
+		t_paquete *paquete_direccion_instruccion = crear_paquete(); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
+		agregar_a_paquete(paquete_direccion_instruccion, pcb->registros.PC, sizeof(__uint32_t));
+		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion
+		t_paquete *instruccion_serializada= recibir_paquete(fd_memoria); //me da la instruccion serializada
+		t_instruccion *instruccion = deserializar_instruccion(instruccion_serializada); 
+		ejecutar_instruccion(instruccion); 
+		pcb->registros.PC;  //seria el program counter, sumamos 1 para pasar a la siguiente instrucicon del proceso
+		//check interrupt
+	}
+	paquete_pcb_actualizado = crear_paquete();
+	agregar_a_paquete(paquete_pcb_actualizado,magia);
+	enviar_paquete(paquete_pcb_actualizado, socket_kernel);
+
+}
+
+
+void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializado.
 { 
-	t_pcb PCB = deserializarPCB(PCB_serializado);
-	t_pcb* PCB_auxiliar; // declaramos un puntero, para poder modificarlo en la funcion siguiente.
-	copiar_contexto_PCB(PCB, PCB_auxiliar); // copiar contenido del PCB en los registros del CPU.
-	t_instruccion ir = obtener_instruccion(PC); // El PC (program counter) lo copiamos en la funcion anterior y va a estar en algun lado.
-	switch (ir.op_cod) { //no mandas pc, vamos con el id del proceso y la instruccion que queremos leer, como reconocer los registros a los que acceder
+	//aca hay qye hacer cosas
+	switch (instruccion.op_cod) { //no mandas pc, vamos con el id del proceso y la instruccion que queremos leer, como reconocer los registros a los que acceder
 		case 0: //SET
-		 if (parametros_validos_SET(ir.parametros)) // validamos que los parametros sean correctos y, si lo son, ejecutamos la instruccion.
+		 if (parametros_validos_SET(instruccion.argumentos)) // validamos que los parametros sean correctos y, si lo son, ejecutamos la instruccion.
 			ejecutar_SET() //podemos usar diccionario para reconocer registros
 		 else 
 			no_ejecutar()
@@ -132,7 +153,7 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 		t_registros* destino;
 		t_registros* origen;
 
-		if (parametros_validos_SUM(ir.parametros)){
+		if (parametros_validos_SUM(instruccion.argumentos)){
 		   *destino += *origen;
 		   }
 			else
@@ -140,7 +161,7 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 			break;
 
 		case 2: //SUB
-		if (parametros_validos_SUB(ir.parametros)){
+		if (parametros_validos_SUB(instruccion.argumentos)){
 			*destino -= *origen;
 			}
 			else
@@ -148,7 +169,7 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 			break;
 
 		case 3: //JNZ
-	 		if (parametros_validos_JNZ(ir.parametros) && parametros != 0){
+	 		if (parametros_validos_JNZ(instruccion.argumentos)){
 			//PC = parametros;
 			}
 			else
@@ -159,9 +180,7 @@ void iniciar_ciclo_instruccion(t_buffer* PCB_serializado) // recibe el PCB seria
 		 break;
 		default:
 		 break;
-	}
-	PC++;
-	devolver_PCB(PCB); //devuelve el PCB a Kernel para que sea actualizado.
+
 
 }
 

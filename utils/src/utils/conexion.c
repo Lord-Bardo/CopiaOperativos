@@ -77,11 +77,11 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
 	desplazamiento += paquete->buffer->size;
-
+ 
 	return magic;
 }
 
-void* deserializar(t_buffer* un_buffer) {
+void* deserializar(t_paquete paquete) { // hacerla bien 
 
 	if(un_buffer->size <= 0) {
 		printf("\n [ERROR] Al intentar extraer un contenido de un t buffer vacio o con tamaño negativo\n\n"); 
@@ -112,6 +112,71 @@ void* deserializar(t_buffer* un_buffer) {
 
     return mensaje;
 }
+
+/*
+en shared_deserializer:
+// Devuelve el mensaje deserializado, y destruye el paquete
+char* deserialize_message(t_package* package);
+---------------------------------------------------------------
+char* deserialize_message(t_package* package) {
+	uint64_t offset = 0;
+	char* message = package_decode_string(package->buffer, &offset);
+	package_destroy(package);
+	return message;
+}
+
+t_package* package_decode(void* source, uint64_t* offset) {
+	bool discarded_offset = offset == NULL;
+	if (discarded_offset) {
+		offset = s_malloc(sizeof(uint64_t));
+		*offset = 0;
+	}
+	t_package* package = s_malloc(sizeof(t_package));
+	memcpy(&(package->size), source + *offset, sizeof(uint64_t));
+	*offset += sizeof(uint64_t);
+	memcpy(&(package->type), source + *offset, sizeof(int32_t));
+	*offset += sizeof(int32_t);
+	package->buffer = s_malloc(package->size);
+	memcpy(package->buffer, source + *offset, package->size);
+	*offset += package->size;
+	if (discarded_offset) free(offset);
+	return package;
+}
+
+char* package_decode_string(void* buffer, uint64_t* offset) {
+	bool discarded_offset = offset == NULL;
+	if (discarded_offset) {
+		offset = s_malloc(sizeof(uint64_t));
+		*offset = 0;
+	}
+	uint64_t *size = s_malloc(sizeof(uint64_t));
+	memcpy(size, buffer + *offset, sizeof(uint64_t));
+	*offset += sizeof(uint64_t);
+	char *str = s_malloc(*size + 1);
+	memcpy(str, buffer + *offset, *size);
+	str[*size] = '\0';
+	*offset += *size;
+	free(size);
+	if (discarded_offset) free(offset);
+	return str;
+}
+void package_decode_buffer(void* buffer, void* dest, uint64_t* offset) {
+	bool discarded_offset = offset == NULL;
+	if (discarded_offset) {
+		offset = s_malloc(sizeof(uint64_t));
+		*offset = 0;
+	}
+	uint64_t *size = s_malloc(sizeof(uint64_t));
+	memcpy(size, buffer + *offset, sizeof(uint64_t));
+	*offset += sizeof(uint64_t);
+	memcpy(dest, buffer + *offset, *size);
+	*offset += *size;
+	free(size);
+	if (discarded_offset) free(offset);
+}
+*/
+
+
 
 void enviar_paquete(t_paquete *paquete, int socket_cliente){
 	int bytes = paquete->buffer->size + 2 * sizeof(int); // tamaño del stream del buffer + un int para el codigo de operacion + un int para el tamaño del buffer
@@ -260,3 +325,66 @@ t_list *recibir_paquete(int socket_cliente)
 
 	return valores;
 }
+
+/*
+void serialize(MyStruct *input, void **output, size_t *size) {
+    // Calcular el tamaño necesario
+    *size = sizeof(input->num) + sizeof(input->value) + sizeof(input->inner.id) + sizeof(input->inner.name);
+    
+    // Asignar memoria para el stream
+    *output = malloc(*size);
+    if (*output == NULL) {
+        perror("Error allocating memory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copiar los datos al stream
+    void *ptr = *output;
+    memcpy(ptr, &(input->num), sizeof(input->num));
+    ptr += sizeof(input->num);
+    memcpy(ptr, &(input->value), sizeof(input->value));
+    ptr += sizeof(input->value);
+    memcpy(ptr, &(input->inner.id), sizeof(input->inner.id));
+    ptr += sizeof(input->inner.id);
+    memcpy(ptr, &(input->inner.name), sizeof(input->inner.name));
+}
+
+int main() {
+    MyStruct s = {42, 3.14, {1, "example"}};
+    void *stream;
+    size_t size;
+
+    serialize(&s, &stream, &size);
+
+    // Aquí puedes usar el stream como desees
+    printf("Serialized data size: %zu bytes\n", size);
+
+    // No olvides liberar la memoria cuando termines
+    free(stream);
+
+    return 0;
+}
+
+
+//shared-package
+void package_close(t_package* package) {
+	uint64_t package_size = sizeof(uint64_t) + sizeof(int32_t) + package->size;
+	void* stream = s_malloc(package_size);
+	uint64_t offset = 0;
+	memcpy(stream + offset, &(package->size), sizeof(uint64_t)); //operación esté destinada a serializar el dato size en un flujo de datos (stream) para su posterior transmisión o almacenamiento.
+	offset += sizeof(uint64_t);
+	memcpy(stream + offset, &(package->type), sizeof(int32_t));
+	offset += sizeof(int32_t);
+	memcpy(stream + offset, package->buffer, package->size);
+	package->type = SERIALIZED;
+	package->size = package_size;
+	free(package->buffer);
+	package->buffer = stream;
+}
+
+
+
+
+
+
+*/
