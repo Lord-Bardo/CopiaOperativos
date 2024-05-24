@@ -138,9 +138,10 @@ void copiar_PCB(t_pcb *pcb){
 
 void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
 	t_pcb *pcb = deserializar_pcb(pcb_empaquetado); //el deserealizar devuelvo un pcb auxiliar
-	pcb->estado= 2; //2
-	copiar_PCB(pcb); //falta implementar
-	//aca  van semaforos 
+	pcb->estado= RUNNING; // 2
+	copiar_PCB(pcb); // falta implementar
+	//Mati dice de hacer un solo pcb global y fue
+	// aca  van semaforos 
 	while(1){
 		t_paquete *paquete_direccion_instruccion = crear_paquete(); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
 		agregar_a_paquete(paquete_direccion_instruccion, pcb_auxiliar->registros.PC, sizeof(__uint32_t));
@@ -151,6 +152,7 @@ void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manej
 		atender_cpu_memoria();//acá se ejecuta la instrucción
 		//aca tiene que bloquearse x que tiene que esperar que se ejecuta le instruccion
 		//deberia haber un pc++ crep aca
+		
 		}
 	//aca iria el camino feliz cuando termina el procesdo bien y le devuelve el nuevo pcb a kerrnel
 	
@@ -207,7 +209,7 @@ void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializa
 	}
 }
 
-void ejecutar_SET(t_instruccion* instruccion){ //supongo que si en los argumentos hay un registro habrá un numero que representará al valor del enum que se deba acceder
+void ejecutar_SUM(t_instruccion* instruccion){ //supongo que si en los argumentos hay un registro habrá un numero que representará al valor del enum que se deba acceder
 	switch(*instruccion->argumentos->head->data){
 	    case 0: //AX
 		 pcb_auxiliar.registros.AX += *argumentos->head->next->data;
