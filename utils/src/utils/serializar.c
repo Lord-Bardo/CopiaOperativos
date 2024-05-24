@@ -39,24 +39,23 @@ t_package* decodificacion_paquete(void* source, uint64_t* offset) {
 }
 
 t_pcb* deserializar_pcb (t_paquete* paquete) {
-	t_execution_context* ec = s_malloc(sizeof(t_execution_context));
-	ec->kernel_request = NULL;
+	t_pcb* pcb = s_malloc(sizeof(t_pcb));
 	uint64_t offset = 0;
 	while (package_decode_isset(package, offset)) { //isset indica si hay algun valor valido para extraer de la estructura
-		t_paquete* paquete_anidado = package_decode(package->buffer, &offset);
+		t_paquete* paquete_anidado = decodificar_paquete(paquete->buffer, &offset);
 		switch (nested_package->type) {
-			case EC_INSTRUCTIONS:
-				ec->instructions = queue_create();
-				deserialize_instructions(nested_package, ec->instructions);
-				break;
+			/*case EC_INSTRUCTIONS: //ver que hacer con esto
+				pcb->instrucciones = queue_create();
+				deserialize_instructions(nested_package, pcb->instructions);
+				break;*/
 			case PROGRAM_COUNTER:
-				package_decode_buffer(nested_package->buffer, &(ec->program_counter), NULL);
+				decodificar_paquete_buffer(nested_package->buffer, &(pcb->program_counter), NULL); //crear definicion del program_counter
 				break;
-			case LAST_BURST_TIME:
+			/*case LAST_BURST_TIME:
 				package_decode_buffer(nested_package->buffer, &(ec->last_burst_time), NULL);
-				break;
+				break;*/
 			case PROCESS_PID:
-				package_decode_buffer(nested_package->buffer, &(ec->pid), NULL);
+				decodificar_paquete_buffer(nested_package->buffer, &(pcb->pid), NULL);
 				break;
 			case CPU_REGISTERS:
 				ec->cpu_register = deserialize_cpu_registers(nested_package->buffer);
@@ -64,12 +63,6 @@ t_pcb* deserializar_pcb (t_paquete* paquete) {
 			case SEGMENTS_TABLE:
 				ec->segments_table = deserialize_segment_table(nested_package);
 				break;
-			case KERNEL_REQUEST: {
-				t_package* kernel_request = package_decode(nested_package->buffer, NULL);
-				ec->kernel_request = deserialize_instruction(kernel_request);
-				package_destroy(kernel_request);
-				break;
-			}
 			default:
 				printf("Error: Tipo de paquete desconocido.\n");
 				return NULL;
@@ -78,7 +71,20 @@ t_pcb* deserializar_pcb (t_paquete* paquete) {
 	}
 	return ec;
 }
-
+void decodificar_paquete_buffer(void* buffer, void* dest, uint64_t* offset) {
+	bool discarded_offset = offset == NULL;
+	if (discarded_offset) {
+		offset = s_malloc(sizeof(uint64_t));
+		*offset = 0;
+	}
+	uint64_t *size = s_malloc(sizeof(uint64_t));
+	memcpy(size, buffer + *offset, sizeof(uint64_t));
+	*offset += sizeof(uint64_t);
+	memcpy(dest, buffer + *offset, *size);
+	*offset += *size;
+	free(size);
+	if (discarded_offset) free(offset);
+}
 
 
 
