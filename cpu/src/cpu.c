@@ -146,22 +146,27 @@ void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manej
 		agregar_a_paquete(paquete_direccion_instruccion, pcb_auxiliar->registros.PC, sizeof(__uint32_t));
 		serializar_paquete_instruccion(paquete_direccion_instruccion, sizeof(enum) + paquete_direccion_instruccion->buffer->size);
 		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion
-		t_paquete *instruccion_serializada= recibir_paquete(fd_memoria); //me da la instruccion serializada
-		t_instruccion *instruccion = deserializar_instruccion(instruccion_serializada); 
-		ejecutar_instruccion(instruccion); 
-		/*if(!hay_interrupcion()) // falta implementar
-			pcb_auxiliar->registros.PC++;  //seria el program counter, sumamos 1 para pasar a la siguiente instrucicon del proceso
-		else
+		t_paquete *instruccion_serializada= recibir_paquete(fd_memoria); //me da la ins
+		if(instruccion == NULL){
+			pcb->estado = 3;
+			t_paquete *paquete_pcb_actualizado = crear_paquete();
+			agregar_a_paquete(paquete_pcb_actualizado, pcb_auxiliar, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
+			serializar_paquete_pcb(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
+			enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
+		}
+		else{
+			t_instruccion *instruccion = deser //dentro de ejecutar tendremos que tener en cuenta las interrupciones de SW (excepciones como la división por cero)
+			pcb_auxiliar.registros.PC++;
+		}
 			ejecutar_interrupcion(); // falta implementar */
 	}
-	pcb->estado= 4; //4 es exit, esto para mi va en el planificador
+es responsabilidad del kernel	pcb->estado= 4; //4 es exit, esto para mi va en el planificador
 	t_paquete *paquete_pcb_actualizado = crear_paquete();
 	agregar_a_paquete(paquete_pcb_actualizado, pcb_auxiliar, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
 	serializar_paquete_pcb(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
-	enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
-	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch)
-	{
-	
+	/*enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
+	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch){
+		log_error(config_cpu)*/ 
 }
 
 

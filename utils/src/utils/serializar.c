@@ -17,7 +17,7 @@ void agregar_paquete(t_paquete* paquete, void* dato_a_agregar, uint64_t* tamanio
     paquete->tamanio += sizeof(uint64_t) + *tamanio_dato_a_agregar;
     paquete->buffer = realloc(paquete->buffer, paquete->tamanio);
     memcpy(paquete->buffer + offset, tamanio_dato_a_agregar, sizeof(uint64_t));
-    memcpy(paquete->buffer + offset + sizeof(uint64_t), value, *tamanio_dato_a_agregar; //falta manejo excepcion
+    memcpy(paquete->buffer + offset + sizeof(uint64_t), value, *tamanio_dato_a_agregar); //falta manejo excepcion
 }//notese que la funcion se lo mandamos al paquete y este agrega al buffer
 
 t_package* decodificar_paquete(void* source, uint64_t* offset) { //verificar si sirve almacenando los datos decodificados en una nueva estructura t_paquete
