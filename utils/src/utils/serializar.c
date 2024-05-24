@@ -20,22 +20,22 @@ void agregar_paquete(t_paquete* paquete, void* dato_a_agregar, uint64_t* tamanio
     memcpy(paquete->buffer + offset + sizeof(uint64_t), value, *tamanio_dato_a_agregar;
 }//notese que la funcion se lo mandamos al paquete y este agrega al buffer
 
-t_package* package_decode(void* source, uint64_t* offset) {
+t_package* decodificacion_paquete(void* source, uint64_t* offset) {
 	bool discarded_offset = offset == NULL; //revisar si es necesario ya que sería para "descartar el offset" si el puntero offset fue descartado
 	if (discarded_offset) {
 		offset = s_malloc(sizeof(uint64_t)); //s_malloc es un wrappler de malloc
 		*offset = 0;}
 
-	t_package* package = s_malloc(sizeof(t_package));
-	memcpy(&(package->size), source + *offset, sizeof(uint64_t));
+	t_paquete* paquete = s_malloc(sizeof(t_paquete));
+	memcpy(&(paquete->size), source + *offset, sizeof(uint64_t)); //revisar los uint
 	*offset += sizeof(uint64_t);
-	memcpy(&(package->type), source + *offset, sizeof(int32_t));
+	memcpy(&(paquete->type), source + *offset, sizeof(int32_t));
 	*offset += sizeof(int32_t);
-	package->buffer = s_malloc(package->size);
-	memcpy(package->buffer, source + *offset, package->size);
-	*offset += package->size;
+	paquete->buffer = s_malloc(paquete->size);
+	memcpy(paquete->buffer, source + *offset, paquete->size);
+	*offset += paquete->size;
 	if (discarded_offset) free(offset);
-	return package;
+	return paquete;
 }
 
 t_pcb* deserializar_pcb (t_paquete* paquete) {

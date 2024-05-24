@@ -118,23 +118,25 @@ Los parametros lo guardamos en una lista.
 
 
 
-void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ 
+void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
 
-	t_pcb *pcb = deserializar(pcb_empaquetado); //el deserealizar devuelvo un execution_context
+	t_pcb *pcb = deserializar_pcb(pcb_empaquetado); //el deserealizar devuelvo un execution_context
 	
 	while(1){//aca  van semaforos 
 		t_paquete *paquete_direccion_instruccion = crear_paquete(); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
 		agregar_a_paquete(paquete_direccion_instruccion, pcb->registros.PC, sizeof(__uint32_t));
+		serializar_paquete_instruccion(paquete_direccion_instruccion, sizeof(enum) + paquete_direccion_instruccion->buffer->size);
 		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion
 		t_paquete *instruccion_serializada= recibir_paquete(fd_memoria); //me da la instruccion serializada
 		t_instruccion *instruccion = deserializar_instruccion(instruccion_serializada); 
 		ejecutar_instruccion(instruccion); 
-		pcb->registros.PC;  //seria el program counter, sumamos 1 para pasar a la siguiente instrucicon del proceso
+		pcb->registros.PC++;  //seria el program counter, sumamos 1 para pasar a la siguiente instrucicon del proceso
 		//check interrupt
 	}
-	paquete_pcb_actualizado = crear_paquete();
-	agregar_a_paquete(paquete_pcb_actualizado,magia);
-	enviar_paquete(paquete_pcb_actualizado, socket_kernel);
+	t_paquete *paquete_pcb_actualizado = crear_paquete();
+	agregar_a_paquete(paquete_pcb_actualizado,magia); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
+	serializar_paquete_pcb(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
+	enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
 
 }
 
@@ -183,11 +185,3 @@ void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializa
 
 
 }
-
-__uint32_t obtener_instruccion(t_pcb PCB){
-
-    //TODO
-
-	return 0;
-}
-
