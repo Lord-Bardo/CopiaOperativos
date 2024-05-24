@@ -87,7 +87,7 @@ void decodificar_paquete_buffer(void* buffer, void* dest, uint64_t* offset) {
 }
 
 
-void destruir_paquete(t_paquete* paquete) {
+void destruir_paquete(t_paquete* paquete){
 	free(paquete->buffer);
 	paquete->buffer = NULL;
 	free(paquete);

@@ -70,7 +70,7 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
 	void *magic = malloc(bytes);
 	int desplazamiento = 0;
 
-	// Formato (nose si esto sera el protocolo de comunicacion): codigo de operacion (int) + numero de bytes del contenido (int) + contenido (paquete->buffer->size)
+	// Formato (no se si esto sera el protocolo de comunicacion): codigo de operacion (int) + numero de bytes del contenido (int) + contenido (paquete->buffer->size)
 	memcpy(magic + desplazamiento, &(paquete->codigo_operacion), sizeof(int));
 	desplazamiento += sizeof(int);
 	memcpy(magic + desplazamiento, &(paquete->buffer->size), sizeof(int));
@@ -78,36 +78,35 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
 	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->size);
 	desplazamiento += paquete->buffer->size;
  
-	return magic;
+	return magic; //por qué magic?????
 }
 
-void* deserializar(t_paquete paquete) { // hacerla bien 
+void* deserializar(t_paquete paquete) { // creo que la arreglé
 
-	if(un_buffer->size <= 0) {
-		printf("\n [ERROR] Al intentar extraer un contenido de un t buffer vacio o con tamaño negativo\n\n"); 
-		exit(EXIT_FAILURE);
-	}
-
+	 if(paquete == NULL || paquete->stream == NULL || paquete->size <= 0) {
+       printf("\n[ERROR] El paquete no es válido para deserializar.\n");
+       return NULL; // Devuelve NULL para indicar un error
+    }
 	int size_mensaje; // entiendase mensaje por el void* que esta en el paquete.
-	memcpy(&size_mensaje, un_buffer->stream, sizeof(int));
+	memcpy(&size_mensaje, paquete->stream, sizeof(int));
 	void* mensaje = malloc(size_mensaje);
-	memcpy(mensaje, un_buffer->stream + sizeof(int), size_mensaje);
+	memcpy(mensaje, paquete->stream + sizeof(int), size_mensaje);
 
-	int nuevo_size = un_buffer->size - sizeof(int) - size_mensaje;
+	int nuevo_size = paquete->size - sizeof(int) - size_mensaje;
 	if (nuevo_size < 0) {
 		perror("\n [ERROR_MENSAJE] BUFFER con tamaño negativo");
 		exit(EXIT_FAILURE);
 	}
 
-	un_buffer->size = nuevo_size;
+	paquete->size = nuevo_size;
 	if (nuevo_size == 0) {
-		free(un_buffer->stream);
-		un_buffer->stream = NULL;
+		free(paquete->stream);
+		paquete->stream = NULL;
 	} else {
 		void* nuevo_stream = malloc(nuevo_size);
-		memcpy(nuevo_stream, un_buffer->stream + sizeof(int) + size_mensaje, nuevo_size); 
-		free(un_buffer->stream);
-		un_buffer->stream = nuevo_stream;
+		memcpy(nuevo_stream, paquete->stream + sizeof(int) + size_mensaje, nuevo_size); 
+		free(paquete->stream);
+		paquete->stream = nuevo_stream;
 	}
 
     return mensaje;

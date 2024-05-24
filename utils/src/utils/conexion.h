@@ -13,9 +13,13 @@
 #include<commons/collections/list.h>
 
 typedef enum{
-	MENSAJE,
-	PAQUETE
-}op_code;
+	//SERIALIZED,             // 0
+    MESSAGE_OK,             // 1
+    MESSAGE_FLAW,           // 2
+    MESSAGE_DONE,           // 3
+    INSTRUCTIONS,           // 4
+    PCB     // 5
+}tipo_t_paquete;
 
 typedef struct{
 	int size;
@@ -23,9 +27,10 @@ typedef struct{
 } t_buffer;
 
 typedef struct{
-	op_code codigo_operacion;
+	tipo_t_paquete tipo;
 	t_buffer* buffer;
 } t_paquete;
+
 
 //CLIENTE
 int crear_conexion(char* ip, char* puerto);

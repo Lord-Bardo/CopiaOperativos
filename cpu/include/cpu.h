@@ -28,7 +28,7 @@ int fd_memoria;
 void leer_consola(t_log*);
 void paquete(int);
 void terminar_programa();
-
+void iniciar_ciclo_instruccion();
 #endif
 
 

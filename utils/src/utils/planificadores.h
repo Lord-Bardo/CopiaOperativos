@@ -11,7 +11,7 @@ typedef enum{
     BLOCKED,
     EXIT,
 }estado;
-
+//hi
 typedef struct{
     __uint32_t PC;
     __uint8_t AX;
@@ -34,17 +34,5 @@ typedef struct{
     // FALTARÍAN AGREGAR EL SIGUIENTE CAMPO (posiblemente, no asegurado)
     //segment table
 }t_pcb; 
-
-/*
-typedef struct t_pcb {
-	uint32_t pid;  // También funciona como ID del socket
-	process_state state;
-	int aprox_burst_time;
-	uint64_t last_burst_time;
-	time_t last_ready_time;
-	t_dictionary* local_files; // Key-value: filename - position
-	t_execution_context* execution_context;
-} t_pcb;
-/*
 
 #endif

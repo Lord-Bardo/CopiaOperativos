@@ -1,5 +1,4 @@
 #include "../include/cpu.h"
-#include "../include/serializar.h"
 
 
 t_pcb pcb_auxiliar;
@@ -135,40 +134,38 @@ void copiar_PCB(t_pcb *pcb){
 	pcb_auxiliar.registros.ECX = pcb->registros.ECX;
 	pcb_auxiliar.registros.EDX = pcb->registros.EDX;
 	pcb_auxiliar.registros.SI = pcb->registros.SI;
-
 }
 
 void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
-	t_pcb *pcb = deserializar_pcb(pcb_empaquetado); //el deserealizar devuelvo un execution_context
-	b->estado= 2; //2	//copiar_PCB(pcb); //falta implementar
-	while(1){//aca  van semaforos 
+	t_pcb *pcb = deserializar_pcb(pcb_empaquetado); //el deserealizar devuelvo un pcb auxiliar
+	pcb->estado= 2; //2
+	copiar_PCB(pcb); //falta implementar
+	//aca  van semaforos 
+	while(1){
 		t_paquete *paquete_direccion_instruccion = crear_paquete(); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
 		agregar_a_paquete(paquete_direccion_instruccion, pcb_auxiliar->registros.PC, sizeof(__uint32_t));
 		serializar_paquete_instruccion(paquete_direccion_instruccion, sizeof(enum) + paquete_direccion_instruccion->buffer->size);
-		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion
-		t_paquete *instruccion_serializada= recibir_paquete(fd_memoria); //me da la ins
-		if(instruccion == NULL){
-			pcb->estado = 3;
-			t_paquete *paquete_pcb_actualizado = crear_paquete();
-			agregar_a_paquete(paquete_pcb_actualizado, pcb_auxiliar, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
-			serializar_paquete_pcb(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
-			enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
+		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion a memoria
+		//aca deberiamos bloquear el proceso x que estamos esperando que nos lo traiga?
+	
+		atender_cpu_memoria();//acá se ejecuta la instrucción
+		//aca tiene que bloquearse x que tiene que esperar que se ejecuta le instruccion
+		//deberia haber un pc++ crep aca
 		}
-		else{
-			t_instruccion *instruccion = deser //dentro de ejecutar tendremos que tener en cuenta las interrupciones de SW (excepciones como la división por cero)
-			pcb_auxiliar.registros.PC++;
-		}
-			ejecutar_interrupcion(); // falta implementar */
-	}
-es responsabilidad del kernel	pcb->estado= 4; //4 es exit, esto para mi va en el planificador
+	//aca iria el camino feliz cuando termina el procesdo bien y le devuelve el nuevo pcb a kerrnel
+	
+	pcb->estado= 4; //4 es exit, esto para mi va en el planificador /
 	t_paquete *paquete_pcb_actualizado = crear_paquete();
 	agregar_a_paquete(paquete_pcb_actualizado, pcb_auxiliar, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
 	serializar_paquete_pcb(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
-	/*enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
-	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch){
-		log_error(config_cpu)*/ 
+	enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
+	
+	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch)){ //manejo de logs?
+		log_error(config_cpu)
+	}
+	//liberar memoria hacer logs
+	
 }
-
 
 void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializado.
 { 
@@ -176,21 +173,17 @@ void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializa
 	switch (instruccion.op_cod) { //no mandas pc, vamos con el id del proceso y la instruccion que queremos leer, como reconocer los registros a los que acceder
 		case 0: //SET
 		 if (parametros_validos_SET(instruccion.argumentos)) // validamos que los parametros sean correctos y, si lo son, ejecutamos la instruccion.
-			ejecutar_SET() //podemos usar diccionario para reconocer registros
+			ejecutar_SET(instruccion); //podemos usar diccionario para reconocer registros
 		 else 
-			no_ejecutar()
-		 break;/*
+			printf("ERROR, parametros incorrecto");
+		 break;
 		case 1: //SUM
-		t_registros* destino;
-		t_registros* origen;
-
-		if (parametros_validos_SUM(instruccion.argumentos)){
-		   *destino += *origen;
-		   }
-			else
-			no_ejecutar();
-			break;
-
+		if (parametros_validos_SUM(instruccion.argumentos))
+		   ejecutar_SUM(instruccion);
+		else
+			printf("ERROR, parametros incorrecto");
+		 break;
+/*
 		case 2: //SUB
 		if (parametros_validos_SUB(instruccion.argumentos)){
 			*destino -= *origen;
@@ -214,3 +207,86 @@ void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializa
 	}
 }
 
+void ejecutar_SET(t_instruccion* instruccion){ //supongo que si en los argumentos hay un registro habrá un numero que representará al valor del enum que se deba acceder
+	switch(*instruccion->argumentos->head->data){
+	    case 0: //AX
+		 pcb_auxiliar.registros.AX += *argumentos->head->next->data;
+		 break;
+		case 1: //BX
+		 pcb_auxiliar.registros.BX += *argumentos->head->next->data;
+		 break;
+		case 2: //CX
+		pcb_auxiliar.registros.CX += *argumentos->head->next->data;
+			break;
+		case 3: //DX
+	 		pcb_auxiliar.registros.CX += *argumentos->head->next->data;
+			break;
+		case 4: //EAX
+		 pcb_auxiliar.registros.EAX += *argumentos->head->next->data;
+		 break;
+		case 5: //EBX
+		 pcb_auxiliar.registros.EBX += *argumentos->head->next->data;
+		 break;
+		case 6: //ECX
+		 pcb_auxiliar.registros.ECX += *argumentos->head->next->data;
+		 break;
+		case 7: //EDX
+		 pcb_auxiliar.registros.EDX += *argumentos->head->next->data;
+		 break;   
+		default: 
+		 break;
+	}
+}
+
+void ejecutar_SET(t_instruccion* instruccion){
+	switch(*instruccion->argumentos->head->data){
+	    case 0: //AX
+		 pcb_auxiliar.registros.AX = *argumentos->head->next->data;
+		 break;
+		case 1: //BX
+		 pcb_auxiliar.registros.BX = *argumentos->head->next->data;
+		 break;
+		case 2: //CX
+		pcb_auxiliar.registros.CX = *argumentos->head->next->data;
+			break;
+		case 3: //DX
+	 		pcb_auxiliar.registros.CX = *argumentos->head->next->data;
+			break;
+		case 4: //EAX
+		 pcb_auxiliar.registros.EAX = *argumentos->head->next->data;
+		 break;
+		case 5: //EBX
+		 pcb_auxiliar.registros.EBX = *argumentos->head->next->data;
+		 break;
+		case 6: //ECX
+		 pcb_auxiliar.registros.ECX = *argumentos->head->next->data;
+		 break;
+		case 7: //EDX
+		 pcb_auxiliar.registros.EDX = *argumentos->head->next->data;
+		 break;   
+		default: 
+		 break;
+	}
+};
+
+bool parametros_validos_SET(t_list *argumentos){
+	if(argumentos->elements_count == 2){
+		if(between(*argumentos->head->data, 0, 7) && isdigit(*argumentos->head->next->data))
+			return true;
+	}
+	else
+		return false;
+}
+bool parametros_validos_SUM(t_list *argumentos){
+    if(argumentos->elements_count == 2){
+		if(between(*argumentos->head->data, 0, 7) && between(*argumentos->head->next->data, 0, 7))
+			return true;
+	}
+	else
+		return false;
+
+}
+bool between(float valor, float min, float max){
+	if(valor>=min && valor<=max)
+		return true;
+}
