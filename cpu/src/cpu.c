@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
 
 	// Atender los mensajes de MEMORIA
 	pthread_t hilo_memoria;
-	pthread_create(&hilo_memoria, NULL, (void*)atender_cpu_memoria, NULL);
+	pthread_create(&hilo_memoria, NULL, (void*)atender_cpu_memoria, NULL); //no hacen falta hilos
 
 	// Esperar a que los hilos finalicen su ejecucion
 	pthread_join(hilo_kernel_dispatch, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
@@ -138,11 +138,11 @@ void copiar_PCB(t_pcb *pcb){
 
 void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
 	t_pcb *pcb = deserializar_pcb(pcb_empaquetado); //el deserealizar devuelvo un pcb auxiliar
-	pcb->estado= RUNNING; // 2
-	copiar_PCB(pcb); // falta implementar
+	pcb->estado= RUNNING; // hacerlo en kernel
+	copiar_PCB(pcb); // no es necesario
 	//Mati dice de hacer un solo pcb global y fue
 	// aca  van semaforos 
-	while(1){
+	while(1){ //habria que mandar el pi tambien, x que van a haber varios procesos en memoria
 		t_paquete *paquete_direccion_instruccion = crear_paquete(); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
 		agregar_a_paquete(paquete_direccion_instruccion, pcb_auxiliar->registros.PC, sizeof(__uint32_t));
 		serializar_paquete_instruccion(paquete_direccion_instruccion, sizeof(enum) + paquete_direccion_instruccion->buffer->size);
