@@ -11,6 +11,7 @@ typedef enum{
     BLOCKED,
     EXIT,
 }estado;
+
 //hi
 typedef struct{
     __uint32_t PC;

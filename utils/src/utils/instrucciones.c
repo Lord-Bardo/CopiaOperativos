@@ -1,5 +1,5 @@
 #include <utils/instrucciones.h>
-#include <commons/collections/list.h>
+#include <commons/collections>
 
 struct {
     int opcode;
