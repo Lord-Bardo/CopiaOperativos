@@ -80,6 +80,7 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
  
 	return magic; //por qué magic?????
 }
+// creamos el paquete, agregar_instruccion_a_paquete(paquete,puntero instruccion,queremos guardarlo sin padding), serializar_paquete_completo(agrega el op_code y al buffer a un void * y lo devuelve)
 
 void* deserializar(t_paquete paquete) { // creo que la arreglé
 
@@ -293,7 +294,7 @@ void *recibir_buffer(int *size, int socket_cliente)
 
 	return buffer;
 }
-
+//hacer un recibir_instruccion
 void recibir_mensaje(int socket_cliente)
 {
 	int size;

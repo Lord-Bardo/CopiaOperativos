@@ -21,8 +21,8 @@ void atender_memoria_cpu(){
 	while( continuar ){
 		int cod_op = recibir_operacion(fd_cpu);
 		switch(cod_op){
-			case MENSAJE_OK: //no se si va aca?
-				recibir_mensaje(fd_cpu)
+			case FETCH: //no se si va aca?
+				recibir_mensaje(fd_cpu)//aca deberia ser elmismo tipo de lo que nos mandaron
 				t_paquete paquete_instrucicon = crear_paquete();
 				agregar_a_paquete(paquete_instrucicon,hardcode, sizeof(t_instruccion));//me hace ruido el tamaño
 				serializar_paquete_instruccion(paquete_instrucicon, sizeof(t_instruccion));
