@@ -2,7 +2,10 @@
 
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de KERNEL (loggers y config)
-	inicializar_kernel(); // podria iniciar la cola de ready y ready_plus
+	inicializar_kernel();
+
+	// Iniciar planificacion (largo y corto plazo)
+	iniciar_planificacion();
 
 	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
@@ -92,4 +95,6 @@ void terminar_programa(){
 	liberar_conexion(fd_memoria);
 	liberar_conexion(fd_kernel);
 	liberar_conexion(fd_entradasalida);
+
+	// deberiamos liberar los recursos usados por los modulos (nose si aca o en otro lado)
 }

@@ -3,7 +3,6 @@
 void inicializar_kernel(){
     inicializar_logger();
     inicializar_config();
-    inicializar_estructuras_planificador();
 }
 
 void inicializar_logger(){

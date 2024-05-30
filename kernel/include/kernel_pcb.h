@@ -2,13 +2,13 @@
 #define KERNEL_PCB_H_
 
 #include "kernel_gestor.h"
-#include "kernel_planificador.h"
+#include "kernel_planificadores.h"
 
 // ESTRUCTURAS
 typedef struct{
     int PID;
     int quantum;
-    estado estado;
+    t_nombre_estado estado;
     t_registros registros;
 } t_pcb;
 
@@ -30,5 +30,7 @@ typedef struct{
 t_pcb *crear_pcb(void);
 void eliminar_pcb(t_pcb *pcb);
 int generar_pid(void);
+void pcb_get_estado(t_pcb *pcb);
+void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado);
 
 #endif

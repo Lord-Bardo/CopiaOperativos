@@ -25,12 +25,6 @@ t_pcb *crear_pcb(){
     return pcb;
 }
 
-void eliminar_pcb(t_pcb *pcb){
-    if( pcb != NULL ){
-        free(pcb);
-    }
-}
-
 int generar_pid(){
 	pthread_mutex_lock(&mutex_pid);
 	int pid_proceso = pid_actual;
@@ -38,4 +32,18 @@ int generar_pid(){
 	pthread_mutex_unlock(&mutex_pid);
 
 	return pid_proceso;
+}
+
+void eliminar_pcb(t_pcb *pcb){
+    if( pcb != NULL ){
+        free(pcb);
+    }
+}
+
+void pcb_get_estado(t_pcb *pcb){
+    return pcb->estado;
+}
+
+void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado){
+    pcb->estado = nuevo_estado;
 }

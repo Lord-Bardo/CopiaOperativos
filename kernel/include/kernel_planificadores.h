@@ -3,27 +3,21 @@
 
 #include "kernel_gestor.h"
 #include "kernel_pcb.h"
-
-// ESTRUCTURAS
-typedef enum{
-    NEW,
-    READY,
-    RUNNING,
-    BLOCKED,
-    EXIT,
-} estado;
+#include "kernel_estados.h"
 
 // VARIABLES GLOBALES
+// Estados
+t_estado *estado_new;
+t_estado *estado_ready;
+t_estado *estado_ready_plus;
+t_estado *estado_running;
+t_estado *estado_blocked;
+t_estado *estado_exit;
 // PID
 int pid_actual;
 pthread_mutex_t mutex_pid;
-
 // Semaforos
 sem_t sem_grado_multiprogramacion;
-
-// Colas
-t_queue *ready;
-t_queue *ready_plus;
 
 // FUNCIONES
 void iniciar_proceso(const char *path);
