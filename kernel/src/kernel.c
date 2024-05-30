@@ -2,7 +2,7 @@
 
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de KERNEL (loggers y config)
-	inicializar_kernel();
+	inicializar_kernel(); // podria iniciar la cola de ready y ready_plus
 
 	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
@@ -40,6 +40,9 @@ int main(int argc, char* argv[]) {
 	pthread_t hilo_cpu_interrupt;
 	pthread_create(&hilo_cpu_interrupt, NULL, (void*)atender_kernel_cpu_interrupt, NULL);
 
+	// Iniciar consola interactiva
+	iniciar_consola_interactiva();
+
     // Esperar a que los hilos finalicen su ejecucion
 	pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 	pthread_join(hilo_memoria, NULL);
@@ -52,26 +55,7 @@ int main(int argc, char* argv[]) {
 	return 0; 
 }
 
-void leer_consola(t_log *logger)
-{
-	char *leido;
-
-	// Leo la primer linea
-	leido = readline("> ");
-
-	// El resto, las voy leyendo y logueando hasta recibir un string vacío
-	while (leido[0] != '\0')
-	{
-		log_info(logger, "%s", leido);
-		leido = readline("> ");
-	}
-
-	// Libero las lineas
-	free(leido);
-}
-
-void paquete(int conexion)
-{
+void paquete(int conexion){
 	char *leido;
 	t_paquete *paquete;
 

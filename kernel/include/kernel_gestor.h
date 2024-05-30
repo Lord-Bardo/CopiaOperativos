@@ -5,13 +5,13 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <readline/readline.h>
+#include <semaphore.h>
 
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
 
 #include <utils/conexion.h>
-#include <utils/planificadores.h>
 
 // VARIABLES GLOBALES
 extern t_log* kernel_logger;

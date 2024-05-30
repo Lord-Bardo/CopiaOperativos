@@ -11,7 +11,7 @@ typedef enum{
     INICIAR_PLANIFICACION,
     MULTIPROGRAMACION,
     PROCESO_ESTADO
-}comando;
+} comando;
 
 void iniciar_consola_interactiva(void);
 void atender_instruccion(char* comando);

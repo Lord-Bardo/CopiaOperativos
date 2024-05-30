@@ -1,11 +1,12 @@
 #include "../include/inicializar_kernel.h"
 
 void inicializar_kernel(){
-    iniciar_logger();
-    iniciar_config();
+    inicializar_logger();
+    inicializar_config();
+    inicializar_estructuras_planificador();
 }
 
-void iniciar_logger(){
+void inicializar_logger(){
 	// Creo el kernel_logger
     kernel_logger = log_create("kernel.log", "KERNEL", 1, LOG_LEVEL_INFO);
 	if(kernel_logger == NULL){
@@ -16,7 +17,7 @@ void iniciar_logger(){
     // ...
 }
 
-void iniciar_config(){
+void inicializar_config(){
     // Creo el kernel_config
 	kernel_config = config_create("/home/utnso/tp-2024-1c-GSN/kernel/kernel.config");
 	if(kernel_config == NULL){

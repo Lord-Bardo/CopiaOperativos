@@ -2,6 +2,7 @@
 #define INICIALIZAR_KERNEL_H_
 
 #include "kernel_gestor.h"
+#include "kernel_planificador.h"
 
 void inicializar_kernel(void);
 void iniciar_logger(void);

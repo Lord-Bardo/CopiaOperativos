@@ -34,6 +34,10 @@ typedef struct{
     t_registros registros;
     // FALTARÍAN AGREGAR EL SIGUIENTE CAMPO (posiblemente, no asegurado)
     //segment table
-}t_pcb; 
+}t_pcb;
+
+// Mati: "Me copie todas las estructuras al modulo de planificacion del kernel.
+//        Creo q CPU no necesita conocer las mismas cosas del pcb que Kernel.
+//        Capaz conviene tener una estructura en Kernel y otra en CPU."
 
 #endif
