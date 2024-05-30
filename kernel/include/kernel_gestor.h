@@ -15,6 +15,7 @@
 
 // VARIABLES GLOBALES
 extern t_log* kernel_logger;
+extern t_log* kernel_logger_min_y_obl;
 extern t_config* kernel_config;
 
 extern char* PUERTO_ESCUCHA;

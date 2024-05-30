@@ -1,6 +1,6 @@
 #include "../include/kernel_planificadores.h"
 
-void iniciar_planificacion(){
+void iniciar_planificadores(){
     // Estructuras
     inicializar_estructuras();
 
@@ -13,6 +13,8 @@ void iniciar_planificacion(){
     pthread_t hilo_planificador_corto_plazo;
     pthread_create(&hilo_planificador_corto_plazo, NULL, (void*)planificador_corto_plazo, NULL);
     pthread_detach(hilo_planificador_corto_plazo);
+
+    iniciar_planificacion();
 }
 
 void inicializar_estructuras(){
@@ -25,7 +27,7 @@ void inicializar_estructuras_estados(){
     estado_new = crear_estado(NEW);
     estado_ready = crear_estado(READY);
     estado_ready_plus = crear_estado(READY_PLUS);
-    estado_running = crear_estado(RUNNING);
+    estado_exec = crear_estado(EXEC);
     estado_blocked = crear_estado(BLOCKED);
     estado_exit = crear_estado(EXIT);
 }
@@ -33,20 +35,97 @@ void inicializar_estructuras_estados(){
 void inicializar_estructuras_pid(void){
     pid_actual = 0;
     pthread_mutex_init(&mutex_pid, NULL);
-    
-    return;
 }
 
 void inicializar_semaforos(){
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
+    sem_init(&sem_dispatch, 0, 1);
+}
+
+void iniciar_planificacion(){
+    estado_planificacion = ACTIVA;
+}
+
+void detener_planificacion(){
+    estado_planificacion = PAUSADA;
 }
 
 void planificador_largo_plazo(){
-    // TODO
+    // Manejar NEW -> READY
+    // while(1){
+    //     sem_wait(&sem_grado_multiprogramacion);
+    //     t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+    //     estado_encolar_pcb(estado_ready, pcb);
+    // }
+
+    // Manejar ESTADO -> EXIT
+
 }
 
-void planificador_corto_plazo(){
-    // TODO
+// void planificador_corto_plazo(){
+//     while(1){
+//         t_pcb *pcb = elegir_proceso();
+//         proceso_a_exec(pcb);
+//         pthread_mutex_lock(&mutex_dispatch);
+//         // Mandarselo a CPU
+//         // Esperar respuesta
+//     }
+// }
+
+// t_pcb *elegir_proceso(){ // TERMINAR
+//     t_pcb *pcb;
+    
+//     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
+//         pcb = elegir_proceso_segun_fifo();
+//     }
+//     else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
+//         TODO
+//     }
+//     else if( strcmp(ALGORITMO_PLANIFICACION, "VRR") == 0 ){
+//         TODO
+//         Tener en cuenta READY_PLUS
+//     }
+//     else{
+//         log_error(kernel_logger, "Algoritmo de planificacion invalido!");
+//     }
+
+//     return pcb;
+// }
+
+void planificador_corto_plazo(){    
+    if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
+        planificador_corto_plazo_fifo();
+    }
+    else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
+        // TODO
+    }
+    else if( strcmp(ALGORITMO_PLANIFICACION, "VRR") == 0 ){
+        // TODO
+        // Tener en cuenta READY_PLUS
+    }
+    else{
+        log_error(kernel_logger, "Algoritmo de planificacion invalido!");
+    }
+}
+
+void planificador_corto_plazo_fifo(){
+    while( planificacion_esta_activa() ){
+        sem_wait(&sem_dispatch);
+        t_pcb *pcb = elegir_proceso_segun_fifo();
+        proceso_a_exec(pcb);
+    }
+}
+
+t_estado_planificacion planificacion_esta_activa(){
+    return estado_planificacion;
+}
+
+t_pcb *elegir_proceso_segun_fifo(){
+    return estado_desencolar_primer_pcb(estado_ready);
+}
+
+void proceso_a_exec(pcb){
+    pcb_cambiar_estado_a(pcb, EXEC);
 }
 
 // INICIAR PROCESO
@@ -58,21 +137,31 @@ void planificador_corto_plazo(){
 // cola de NEW a la cola de READY, caso contrario, se quedarán a la espera de que finalicen procesos
 // que se encuentran en ejecución.
 
-void iniciar_proceso(const char *path){
+// Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
+void iniciar_proceso(const char *path){ // REVISAR
     t_pcb *pcb = crear_pcb();
     estado_encolar_pcb(estado_new, pcb);
-    sem_wait(&sem_grado_multiprogramacion);
-    pedir_a_memoria_iniciar_proceso(path);
+    //sem_wait(&sem_grado_multiprogramacion);
+    pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
     // Mati: Creo q deberiamos esperar el aviso de memoria de que ya esta creado el espacio antes de encolar el proceso,
     //       porque puede ser que se encole sin que esten las estructuras creadas
-    proceso_a_ready(t_pcb *pcb);
+    // Mati: Podria meterse la espera dentro de pedir_a_memoria_iniciar_proceso
+    // Mati en respuesta a Mati: Por lo q me parecio entender en los issues, no deberia nunca surgir un problema de falta de memoria.
+    //                           Por lo q no seria necesario esperar para pedirle a memoria q cree las estructuras.
+    log_info(kernel_logger_min_y_obl, "Se crea el proceso %d en NEW", pcb_get_pid());
 }
 
-void proceso_a_ready(t_pcb *pcb){
+void proceso_a_ready(t_pcb *pcb){ // REVISAR
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
     sem_post(&sem_grado_multiprogramacion);
 }
+
+// void iniciar_proceso(const char *path){
+//     t_pcb *pcb = crear_pcb();
+//     estado_encolar_pcb(estado_new, pcb);
+//     // Mati: Puede q si convenga tener el path dentro del pcb, asi el tema de pedirle a memoria que cree las estructuras lo hace el planificador cuando lo desencola
+// }
 
 void pedir_a_memoria_iniciar_proceso(const char *path){
     // TODO

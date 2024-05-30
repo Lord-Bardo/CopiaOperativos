@@ -6,11 +6,11 @@
 #include "kernel_entradasalida.h"
 #include "kernel_memoria.h"
 #include "kernel_cpu_dispatch.h"
-#include "kernel_cpu_interrupt.h"
 #include "kernel_planificadores.h"
 
 // VARIABLES GLOBALES
 t_log* kernel_logger;
+t_log* kernel_logger_min_y_obl;
 t_config* kernel_config;
 
 char* PUERTO_ESCUCHA;

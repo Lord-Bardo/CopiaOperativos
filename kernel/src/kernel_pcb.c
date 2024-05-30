@@ -44,6 +44,12 @@ void pcb_get_estado(t_pcb *pcb){
     return pcb->estado;
 }
 
+void pcb_get_pid(t_pcb *pcb){
+    return pcb->PID;
+}
+
 void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado){
+    t_nombre_estado estado_anterior = pcb_get_estado(pcb);
     pcb->estado = nuevo_estado;
+    log_info(kernel_logger_min_y_obl, "PID: %d - Estado Anterior: %s - Estado Actual: %s", pcb_get_pid(pcb), estado_get_nombre_estado_string(estado_anterior), estado_get_nombre_estado_string(nuevo_estado));
 }

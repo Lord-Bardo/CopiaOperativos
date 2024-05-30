@@ -5,7 +5,7 @@ int main(int argc, char* argv[]) {
 	inicializar_kernel();
 
 	// Iniciar planificacion (largo y corto plazo)
-	iniciar_planificacion();
+	iniciar_planificadores();
 
 	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
 	// Atender los mensajes de ENTRADASALIDA 
 	pthread_t hilo_entradasalida;
-	pthread_create(&hilo_entradasalida, NULL, (void*)atender_kernel_entradasalida, NULL);
+	pthread_create(&hilo_entradasalida, NULL, (void*)atender_kernel_entradasalida, NULL); // Mati: vi en un issue que decian que el main es buen lugar para manejar conexiones de las interfaces e/s
 
 	// Atender los mensajes de MEMORIA
 	pthread_t hilo_memoria;
@@ -38,10 +38,6 @@ int main(int argc, char* argv[]) {
     // Atender los mensajes de CPU - DISPATCH
 	pthread_t hilo_cpu_dispatch;
 	pthread_create(&hilo_cpu_dispatch, NULL, (void*)atender_kernel_cpu_dispatch, NULL);
-
-	// Atender los mensajes de CPU - INTERRUPT
-	pthread_t hilo_cpu_interrupt;
-	pthread_create(&hilo_cpu_interrupt, NULL, (void*)atender_kernel_cpu_interrupt, NULL);
 
 	// Iniciar consola interactiva
 	iniciar_consola_interactiva();

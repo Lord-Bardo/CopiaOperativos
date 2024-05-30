@@ -27,6 +27,46 @@ t_estado *crear_estado(t_nombre_estado nombre_estado){
     return estado;
 }
 
+void eliminar_estado(t_estado *estado){
+    if( list_is_empty(estado->lista_procesos) ){
+        list_destroy(estado->lista_procesos);
+    }
+    else{
+        list_destroy_and_destroy_elements(estado->lista_procesos);
+    } 
+    free(estado->lista_procesos);
+
+    pthread_mutex_destroy(estado->mutex_estado);
+    free(estado->mutex_estado);
+
+    sem_destroy(estado->sem_estado);
+    free(estado->sem_estado);
+
+    free(estado);
+}
+
+t_nombre_estado estado_get_nombre_estado(t_estado *estado){
+    return estado->nombre_estado;
+}
+
+const char *estado_get_nombre_estado_string(t_nombre_estado nombre_estado){
+    switch(nombre_estado){
+        case NEW:
+            return "NEW";
+        case READY:
+            return "READY";
+        case READY_PLUS:
+            return "READY_PLUS";
+        case EXEC:
+            return "EXEC";
+        case BLOCKED:
+            return "BLOCKED";
+        case EXIT:
+            return "EXIT";
+        // Mati: Probablemente deberia haber un default q loggee el error y devuelva algo, pero no se que podria devolver (NULL capaz)
+    }
+}
+
 t_list *estado_get_lista_procesos(t_estado *estado){
     return estado->lista_procesos;
 }

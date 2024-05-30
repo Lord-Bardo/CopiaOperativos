@@ -13,7 +13,12 @@ void inicializar_logger(){
 		exit(1);
 	}
     
-    // ...
+    // Creo el kernel_logger_min_y_obl
+    kernel_logger_min_y_obl = log_create("kernel_min_y_obl.log", "KERNEL", 1, LOG_LEVEL_INFO);
+	if(kernel_logger_min_y_obl == NULL){
+		perror("No se pudo crear el logger.");
+		exit(1);
+	}
 }
 
 void inicializar_config(){
