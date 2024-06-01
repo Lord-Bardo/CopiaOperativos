@@ -49,24 +49,6 @@ t_nombre_estado estado_get_nombre_estado(t_estado *estado){
     return estado->nombre_estado;
 }
 
-const char *estado_get_nombre_estado_string(t_nombre_estado nombre_estado){
-    switch(nombre_estado){
-        case NEW:
-            return "NEW";
-        case READY:
-            return "READY";
-        case READY_PLUS:
-            return "READY_PLUS";
-        case EXEC:
-            return "EXEC";
-        case BLOCKED:
-            return "BLOCKED";
-        case EXIT:
-            return "EXIT";
-        // Mati: Probablemente deberia haber un default q loggee el error y devuelva algo, pero no se que podria devolver (NULL capaz)
-    }
-}
-
 t_list *estado_get_lista_procesos(t_estado *estado){
     return estado->lista_procesos;
 }

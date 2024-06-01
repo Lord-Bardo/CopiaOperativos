@@ -2,6 +2,9 @@
 #define CONSOLA_H_
 
 #include "kernel_gestor.h"
+#include "kernel_utils.h"
+#include "kernel_planificadores.h"
+#include "kernel_estados.h"
 
 typedef enum{
     EJECUTAR_SCRIPT,
@@ -16,5 +19,6 @@ typedef enum{
 void iniciar_consola_interactiva(void);
 void atender_instruccion(char* comando);
 void ejecutar_script(char* path);
+void proceso_estado(void);
 
 #endif

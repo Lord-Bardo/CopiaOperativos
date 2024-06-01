@@ -8,8 +8,9 @@ int main(int argc, char* argv[]) {
 	iniciar_planificadores();
 
 	// Conexion con MEMORIA
-	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
-	log_info(kernel_logger, "Conexion con MEMORIA establecida!");
+	conectar_a_memoria();
+	// fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+	// log_info(kernel_logger, "Conexion con MEMORIA establecida!");
 
 	// Conexion con CPU - DISPATCH
 	fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
@@ -24,8 +25,9 @@ int main(int argc, char* argv[]) {
 	log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
 	// Esperar conexion de ENTRADASALIDA
-	fd_entradasalida = esperar_cliente(fd_kernel);
-	log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
+	aceptar_conexion_entradasalida();
+	// fd_entradasalida = esperar_cliente(fd_kernel);
+	// log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
 	// Atender los mensajes de ENTRADASALIDA 
 	pthread_t hilo_entradasalida;
@@ -46,13 +48,34 @@ int main(int argc, char* argv[]) {
 	pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 	pthread_join(hilo_memoria, NULL);
 	pthread_join(hilo_cpu_dispatch, NULL);
-	pthread_join(hilo_cpu_interrupt, NULL);
 
 	// Finalizar KERNEL (liberar memoria usada)
 	terminar_programa();
 
 	return 0; 
 }
+
+int conectar_a_memoria(){
+	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+	enviar_handshake(fd_memoria, HANDSHAKE_KERNEL);
+	if( recibir_handshake(fd_memoria) == HANDSHAKE_OK ){
+		log_info(kernel_logger, "Conexion con MEMORIA establecida!");
+	}
+	else{
+		log_info(kernel_logger, "No se pudo establcer conexion con MEMORIA!");
+	}
+}
+
+int aceptar_conexion_entradasalida(){
+	fd_entradasalida = esperar_cliente(fd_kernel);
+	if( recibir_handshake(fd_entradasalida) == HANDSHAKE_ENTRADASALIDA ){
+		enviar_handshake(fd_entradasalida, HANDSHAKE_OK);
+		log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
+	}
+	else{
+		enviar_handshake(fd_entradasalida, HANDSHAKE_ERROR);
+	}
+
 
 void paquete(int conexion){
 	char *leido;

@@ -2,6 +2,7 @@
 #define KERNEL_PLANIFICADOR_H_
 
 #include "kernel_gestor.h"
+#include "kernel_utils.h"
 #include "kernel_pcb.h"
 #include "kernel_estados.h"
 

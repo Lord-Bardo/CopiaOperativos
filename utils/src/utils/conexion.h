@@ -21,6 +21,16 @@ typedef enum{
     PCB     // 5
 }tipo_t_paquete;
 
+typedef enum{
+    HANDSHAKE_KERNEL,
+    HANDSHAKE_CPU_INTERRUPT,
+    HANDSHAKE_CPU_DISPATCH,
+    HANDSHAKE_MEMORIA,
+    HANDSHAKE_ENTRADASALIDA,
+    HANDSHAKE_OK,
+    HANDSHAKE_ERROR
+} t_handshake;
+
 typedef struct{
 	int size;
 	void* stream; // void* es un puntero generico (puede apuntar a cualquier tipo de dato, pero tmp sabe a q tipo de dato apunta asi que no puedo sacarle informacion de eso y por eso es importante el size)

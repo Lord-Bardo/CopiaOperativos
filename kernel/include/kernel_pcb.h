@@ -2,7 +2,9 @@
 #define KERNEL_PCB_H_
 
 #include "kernel_gestor.h"
+#include "kernel_utils.h"
 #include "kernel_planificadores.h"
+#include "kernel_estados.h"
 
 // ESTRUCTURAS
 typedef struct{

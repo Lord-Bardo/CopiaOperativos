@@ -25,7 +25,6 @@ void atender_comando(char *leido){
 		}
 		else{
 			log_error(kernel_logger, "Falta el PATH del script");
-			exit(EXIT_FAILURE);
 		}
 	}
 	else if( strcmp(comando[0], "INICIAR_PROCESO") == 0 ){
@@ -35,35 +34,47 @@ void atender_comando(char *leido){
 		}
 		else{
 			log_error(kernel_logger, "Falta el PATH para iniciar un proceso");
-			exit(EXIT_FAILURE);
 		}
 	}
-	else if (strcmp(comando[0], "FINALIZAR_PROCESO") == 0){
-		// cargar_string_al_buffer(buffer, comando[1]) // [PID]
+	else if( strcmp(comando[0], "FINALIZAR_PROCESO") == 0 ){
+		// FINALIZAR_PROCESO [PID]
+		if( comando[1] ){
+			finalizar_proceso(comando[1]);
+		}
+		else{
+			log_error(kernel_logger, "Falta el PID para finalizar un proceso");
+		}
 	}
-	else if (strcmp(comando[0], "INICIAR_PLANIFICACION") == 0){
-		// ...
+	else if( strcmp(comando[0], "INICIAR_PLANIFICACION") == 0 ){
+		// INICIAR_PLANIFICACION
+		iniciar_planificacion();
 	}
-	else if (strcmp(comando[0], "DETENER_PLANIFICACION") == 0){
-		// ...
+	else if( strcmp(comando[0], "DETENER_PLANIFICACION") == 0){
+		// DETENER_PLANIFICACION
+		detener_planificacion();
 	}
-	else if (strcmp(comando[0], "MULTIPROGRAMACION") == 0){
-		// cargar_string_al_buffer(buffer, comando[1]) // [VALOR]
+	else if( strcmp(comando[0], "MULTIPROGRAMACION") == 0 ){
+		// MULTIPROGRAMACION [VALOR]
+		if( comando[1] ){
+			cambiar_grado_multiprogramacion_a(atoi(comando[1]));
+		}
+		else{
+			log_error(kernel_logger, "Falta el VALOR del grado de multiprogramacion");
+		}
 	}
 	else if (strcmp(comando[0], "PROCESO_ESTADO") == 0){
-		// ...
+		// PROCESO_ESTADO
+		proceso_estado();
 	}
 	else{
 		log_error(kernel_logger, "Comando invalido!");
-		exit(EXIT_FAILURE);
 	}
 
 	string_array_destroy(comando);
 }
 
 // EJECUTAR SCRIPT
-void ejecutar_script(char *path)
-{
+void ejecutar_script(char *path){
     FILE *archivo = fopen(path, "r");
     if (archivo == NULL) {
         log_error(kernel_logger, "Error al abrir el archivo de script");
@@ -94,4 +105,36 @@ void ejecutar_script(char *path)
     // Liberar la memoria y cerrar el archivo
     free(linea);
     fclose(archivo);
+}
+
+void proceso_estado(){
+	// NEW
+	char * lista_new = lista_pids_string(estado_new);
+	printf("NEW: %s", lista_new);
+	free(lista_new);
+
+	// READY
+	char * lista_ready = lista_pids_string(estado_ready);
+	printf("READY: %s", lista_ready);
+	free(lista_ready);
+
+	// READY_PLUS
+	char * lista_ready_plus = lista_pids_string(estado_ready_plus);
+	printf("READY PLUS: %s", lista_ready_plus);
+	free(lista_ready_plus);
+
+	// EXEC
+	char * lista_exec = lista_pids_string(estado_exec);
+	printf("EXEC: %s", lista_exec);
+	free(lista_exec);
+
+	// BLOCKED
+	char * lista_blocked = lista_pids_string(estado_blocked);
+	printf("BLOCKED: %s", lista_blocked);
+	free(lista_blocked);
+
+	// EXIT
+	char * lista_exit = lista_pids_string(estado_exit);
+	printf("EXIT: %s", lista_exit);
+	free(lista_exit);
 }

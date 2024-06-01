@@ -24,6 +24,16 @@ int crear_conexion(char* ip, char* puerto){
 	return socket_cliente;
 }
 
+void enviar_handshake(int socket, t_handshake handshake){
+	send(socket, &handshake, sizeof(t_handshake), 0);
+}
+
+t_handshake recibir_handshake(int socket){
+	t_handshake handshake;
+	recv(socket, &handshake, sizeof(t_handshake), MSG_WAITALL);
+	return handshake;
+}
+
 void enviar_mensaje(char *mensaje, int socket_cliente){
 	t_paquete *paquete = malloc(sizeof(t_paquete));
 

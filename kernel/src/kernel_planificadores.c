@@ -50,6 +50,10 @@ void detener_planificacion(){
     estado_planificacion = PAUSADA;
 }
 
+void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
+    GRADO_MULTIPROGRAMACION = nuevo_grado_multiprogramacion;
+}
+
 void planificador_largo_plazo(){
     // Manejar NEW -> READY
     // while(1){
@@ -109,15 +113,13 @@ void planificador_corto_plazo(){
 }
 
 void planificador_corto_plazo_fifo(){
-    while( planificacion_esta_activa() ){
-        sem_wait(&sem_dispatch);
+    while( estado_planificacion ){
+        // sem_wait(&sem_dispatch); // Espera a que no hay ningun proceso ejecutando.
         t_pcb *pcb = elegir_proceso_segun_fifo();
         proceso_a_exec(pcb);
+        enviar_contexto_de_ejecucion();
+        recibir_contexto_de_ejecucion_actualizado(); // Si es bloqueante no deberia ser necesario usar el semaforo
     }
-}
-
-t_estado_planificacion planificacion_esta_activa(){
-    return estado_planificacion;
 }
 
 t_pcb *elegir_proceso_segun_fifo(){
@@ -126,6 +128,7 @@ t_pcb *elegir_proceso_segun_fifo(){
 
 void proceso_a_exec(pcb){
     pcb_cambiar_estado_a(pcb, EXEC);
+    estado_encolar_pcb(estado_exec, pcb);
 }
 
 // INICIAR PROCESO
@@ -148,13 +151,14 @@ void iniciar_proceso(const char *path){ // REVISAR
     // Mati: Podria meterse la espera dentro de pedir_a_memoria_iniciar_proceso
     // Mati en respuesta a Mati: Por lo q me parecio entender en los issues, no deberia nunca surgir un problema de falta de memoria.
     //                           Por lo q no seria necesario esperar para pedirle a memoria q cree las estructuras.
-    log_info(kernel_logger_min_y_obl, "Se crea el proceso %d en NEW", pcb_get_pid());
+    log_creacion_proceso();
 }
 
 void proceso_a_ready(t_pcb *pcb){ // REVISAR
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
     sem_post(&sem_grado_multiprogramacion);
+    log_ingreso_ready();
 }
 
 // void iniciar_proceso(const char *path){
