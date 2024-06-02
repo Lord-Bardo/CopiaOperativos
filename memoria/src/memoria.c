@@ -3,9 +3,11 @@
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de memoria (loggers y config)
 	inicializar_memoria();
+	atender_memoria_cpu();
 	
 	// Inciar servidor de Memoria
 	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);
+														
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 
 	// Esperar conexion de CPU
@@ -20,6 +22,10 @@ int main(int argc, char* argv[]) {
 	fd_entradasalida = esperar_cliente(fd_memoria);
 	log_info(memoria_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
+	// Atender los mensajes de CPU
+	pthread_t hilo_cpu;
+	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
+
 	/// Atender los mensajes de ENTRADASALIDA
 	pthread_t hilo_entradasalida;
 	pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
@@ -27,10 +33,8 @@ int main(int argc, char* argv[]) {
 	// Atender los mensajes de KERNEL 
 	pthread_t hilo_kernel;
 	pthread_create(&hilo_kernel, NULL, (void*)atender_memoria_kernel, NULL);
-
-	// Atender los mensajes de CPU
-	thread_t hilo_cpu;
-	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
+	
+	
 
 
 	// Esperar a que los hilos finalicen su ejecucion
@@ -43,10 +47,6 @@ int main(int argc, char* argv[]) {
 	terminar_programa();
 
 	return 0;
-
-
-
-
 }
 
 // TODO -- CONSOLA Y PAQUETE -- Deberian tener el logger y la conexion que no se pasen por parámetros
@@ -71,7 +71,7 @@ void paquete(int conexion){
 	t_paquete *paquete;
 
     // Creo el paquete
-	paquete = crear_paquete();
+	paquete = crear_paquete(PAQUETE);
 
 	// Leo y agrego las lineas al paquete
 	leido = readline("> ");

@@ -10,7 +10,7 @@ typedef enum{
     RUNNING,
     BLOCKED,
     EXIT,
-}estado;
+}t_estado;
 
 //hi
 typedef struct{
@@ -24,13 +24,13 @@ typedef struct{
     __uint32_t ECX;
     __uint32_t EDX;
     __uint32_t SI; //contiene la direccion logica de memoria de origen desde donde se va a copir un string
-    __uint32_t DI;  //contiene la direccion logica de memoria de destino desde donde se va a copir un string
+    __uint32_t DI; //contiene la direccion logica de memoria de destino desde donde se va a copir un string
 }t_registros;
 
 typedef struct{
     int PID;
     int quantum;
-    estado estado;
+    t_estado estado;
     t_registros registros;
     // FALTARÍAN AGREGAR EL SIGUIENTE CAMPO (posiblemente, no asegurado)
     //segment table

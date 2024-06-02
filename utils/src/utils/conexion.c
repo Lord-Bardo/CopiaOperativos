@@ -1,5 +1,5 @@
 #include "conexion.h"
-#include "so-commons-library"
+
 // CLIENTE
 
 int crear_conexion(char* ip, char* puerto){
@@ -37,7 +37,7 @@ t_handshake recibir_handshake(int socket){
 void enviar_mensaje(char *mensaje, int socket_cliente){
 	t_paquete *paquete = malloc(sizeof(t_paquete));
 
-	paquete->codigo_operacion = MENSAJE;
+	paquete->codigo_operacion = FETCH;
 	paquete->buffer = malloc(sizeof(t_buffer));
 	paquete->buffer->size = strlen(mensaje) + 1; // +1 para el \0
 	paquete->buffer->stream = malloc(paquete->buffer->size);
@@ -59,19 +59,12 @@ void crear_buffer(t_paquete *paquete){
 	paquete->buffer->stream = NULL;
 }
 
-t_paquete *crear_paquete(t_codigo_operacion codigo_operacion){
+
+t_paquete *crear_paquete(t_codigo_operacion codigo){
 	t_paquete *paquete = malloc(sizeof(t_paquete));
-	paquete->codigo_operacion = codigo_operacion;
+	paquete->codigo_operacion = codigo;
 	crear_buffer(paquete);
 	return paquete;
-}
-
-void package_add(t_package* package, void* value, uint64_t* value_size) {
-    uint64_t offset = package->size;
-    package->size += sizeof(uint64_t) + *value_size;
-    package->buffer = realloc(package->buffer, package->size);
-    memcpy(package->buffer + offset, value_size, sizeof(uint64_t));
-    memcpy(package->buffer + offset + sizeof(uint64_t), value, *value_size);
 }
 
 void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio) // agrega al buffer del paquete lo recibido en "valor" que tiene un determinado "tamanio" de bytes
@@ -84,9 +77,25 @@ void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio) // agrega a
 	paquete->buffer->size += tamanio + sizeof(int); // actualiza el tamaño del buffer
 }
 
-void *agregar_instruccion_paquete(t_paquete paquete, char* instruccion)
+void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion)
 {
-	agregar_a_paquete(paquete, instruccion, sizeof(length(instruccion)));
+	agregar_a_paquete(paquete, instruccion, string_length(instruccion));
+}
+void agregar_pcb_paquete(t_paquete *paquete, t_pcb *pcb){
+	agregar_a_paquete(paquete, pcb->PID, sizeof(int));
+	agregar_a_paquete(paquete, pcb->quantum, sizeof(int));
+	agregar_a_paquete(paquete, &(pcb->estado), sizeof(t_estado));
+	agregar_a_paquete(paquete, pcb->registros.PC, 8);
+	agregar_a_paquete(paquete, pcb->registros.AX, 2);
+	agregar_a_paquete(paquete, pcb->registros.BX, 2);
+	agregar_a_paquete(paquete, pcb->registros.CX, 2);
+	agregar_a_paquete(paquete, pcb->registros.DX, 2);
+	agregar_a_paquete(paquete, pcb->registros.EAX, 8);
+	agregar_a_paquete(paquete, pcb->registros.EBX, 8);
+	agregar_a_paquete(paquete, pcb->registros.ECX, 8);
+	agregar_a_paquete(paquete, pcb->registros.EDX, 8);
+	agregar_a_paquete(paquete, pcb->registros.SI, 8);
+	agregar_a_paquete(paquete, pcb->registros.DI, 8);
 }
 
 void *serializar_paquete(t_paquete *paquete, int bytes){
@@ -104,7 +113,7 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
 	return magic; //por qué magic?????
 }
 // creamos el paquete, agregar_instruccion_a_paquete(paquete,puntero instruccion,queremos guardarlo sin padding), serializar_paquete_completo(agrega el op_code y al buffer a un void * y lo devuelve)
-
+/*
 void* deserializar(t_paquete paquete) { // creo que la arreglé
 
 	 if(paquete == NULL || paquete->stream == NULL || paquete->size <= 0) {
@@ -134,7 +143,7 @@ void* deserializar(t_paquete paquete) { // creo que la arreglé
 	}
 
     return mensaje;
-}
+}*/
 
 /*
 en shared_deserializer:

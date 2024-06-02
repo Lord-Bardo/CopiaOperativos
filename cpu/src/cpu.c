@@ -1,14 +1,37 @@
 #include "../include/cpu.h"
-
-
+#include "utils/planificadores.h"
+#include "../include/cpu_memoria.h"
 t_pcb *pcb;
+//VOY A CREAR UN PAQUETE AUXILIAR
+
+
 
 int main(int argc, char *argv[]){
 	// Inicializar estructuras de CPU (loggers y config)
 	inicializar_cpu();
+	t_paquete *auxiliar = crear_paquete(PAQUETE);
+	t_pcb ejemplo_pcb = {
+        .PID = 123,
+        .quantum = 5,
+        .estado = RUNNING,
+        .registros = {
+            .PC = 100,
+            .AX = 10,
+            .BX = 20,
+            .CX = 30,
+            .DX = 40,
+            .EAX = 1000,
+            .EBX = 2000,
+            .ECX = 3000,
+            .EDX = 4000,
+            .SI = 5000,
+            .DI = 6000
+        }
+    };
+	agregar_pcb_paquete(auxiliar,&(ejemplo_pcb)); //es serializarlo
+	void* enviar = serializar_paquete(auxiliar,(sizeof(int) + auxiliar->buffer->size));
 
-	test_deserializar();
-    printf("Todos los tests pasaron correctamente.\n");
+	iniciar_ciclo_instruccion(enviar);
 	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	log_info(cpu_logger, "Conexion con MEMORIA establecida!");
@@ -72,7 +95,7 @@ void leer_consola(t_log *logger){
 	free(leido);
 }
 
-void paquete(int conexion)
+void paquete(int conexion) //esta definido en memoria.h, en cpu.h y kernel.h
 {
 	char *leido;
 	t_paquete *paquete;
@@ -119,12 +142,12 @@ Los parametros lo guardamos en una lista.
 */
 
 void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
-	pcb = deserializar_pcb(pcb_empaquetado);
+	*pcb = deserializar_pcb(pcb_empaquetado);
 	// aca van semaforos 
 	while(1){ //habria que mandar el pi tambien, x que van a haber varios procesos en memoria
-		t_paquete *paquete_direccion_instruccion = crear_paquete(); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
+		t_paquete *paquete_direccion_instruccion = crear_paquete(FETCH); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
 		agregar_a_paquete(paquete_direccion_instruccion, pcb->registros.PC, sizeof(__uint32_t));
-		serializar_paquete_instruccion(paquete_direccion_instruccion, sizeof(enum) + paquete_direccion_instruccion->buffer->size);
+		serializar_paquete_instruccion(paquete_direccion_instruccion, (sizeof(int) + (paquete_direccion_instruccion->buffer->size)));
 		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion a memoria, vamos a tener que mandar tambien el id de proceso para que lo pueda buscaar
 		//aca deberiamos bloquear el proceso x que estamos esperando que nos lo traiga?
 	
@@ -142,12 +165,12 @@ void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manej
 	pcb->estado= 4; //4 es exit, esto para mi va en el planificador /
 	t_paquete *paquete_pcb_actualizado = crear_paquete();
 	agregar_a_paquete(paquete_pcb_actualizado, pcb, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
-	serializar_paquete_pcb(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
+	serializar_paquete(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
 	enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
 	
 	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch)) //manejo de logs?
 	{ 
-		log_error(config_cpu);
+		log_error(config_cpu,"HUBO QUILOMBO"); //falta definir la funcion "config_cpu"
 	}
 	//liberar memoria hacer logs
 }
@@ -192,86 +215,3 @@ void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manej
 	}
 }
 */
-void ejecutar_SUM(t_instruccion* instruccion){ //supongo que si en los argumentos hay un registro habrá un numero que representará al valor del enum que se deba acceder
-	switch(*instruccion->argumentos->head->data){
-	    case 0: //AX
-		 pcb_auxiliar.registros.AX += *argumentos->head->next->data;
-		 break;
-		case 1: //BX
-		 pcb_auxiliar.registros.BX += *argumentos->head->next->data;
-		 break;
-		case 2: //CX
-		pcb_auxiliar.registros.CX += *argumentos->head->next->data;
-			break;
-		case 3: //DX
-	 		pcb_auxiliar.registros.CX += *argumentos->head->next->data;
-			break;
-		case 4: //EAX
-		 pcb_auxiliar.registros.EAX += *argumentos->head->next->data;
-		 break;
-		case 5: //EBX
-		 pcb_auxiliar.registros.EBX += *argumentos->head->next->data;
-		 break;
-		case 6: //ECX
-		 pcb_auxiliar.registros.ECX += *argumentos->head->next->data;
-		 break;
-		case 7: //EDX
-		 pcb_auxiliar.registros.EDX += *argumentos->head->next->data;
-		 break;   
-		default: 
-		 break;
-	}
-}
-
-void ejecutar_SET(t_instruccion* instruccion){
-	switch(*instruccion->argumentos->head->data){
-	    case 0: //AX
-		 pcb_auxiliar.registros.AX = *argumentos->head->next->data;
-		 break;
-		case 1: //BX
-		 pcb_auxiliar.registros.BX = *argumentos->head->next->data;
-		 break;
-		case 2: //CX
-		pcb_auxiliar.registros.CX = *argumentos->head->next->data;
-			break;
-		case 3: //DX
-	 		pcb_auxiliar.registros.CX = *argumentos->head->next->data;
-			break;
-		case 4: //EAX
-		 pcb_auxiliar.registros.EAX = *argumentos->head->next->data;
-		 break;
-		case 5: //EBX
-		 pcb_auxiliar.registros.EBX = *argumentos->head->next->data;
-		 break;
-		case 6: //ECX
-		 pcb_auxiliar.registros.ECX = *argumentos->head->next->data;
-		 break;
-		case 7: //EDX
-		 pcb_auxiliar.registros.EDX = *argumentos->head->next->data;
-		 break;   
-		default: 
-		 break;
-	}
-};
-
-bool parametros_validos_SET(t_list *argumentos){
-	if(argumentos->elements_count == 2){
-		if(between(*argumentos->head->data, 0, 7) && isdigit(*argumentos->head->next->data))
-			return true;
-	}
-	else
-		return false;
-}
-bool parametros_validos_SUM(t_list *argumentos){
-    if(argumentos->elements_count == 2){
-		if(between(*argumentos->head->data, 0, 7) && between(*argumentos->head->next->data, 0, 7))
-			return true;
-	}
-	else
-		return false;
-
-}
-bool between(float valor, float min, float max){
-	if(valor>=min && valor<=max)
-		return true;
-}

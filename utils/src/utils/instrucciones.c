@@ -1,5 +1,6 @@
 #include <utils/instrucciones.h>
-#include <commons/collections>
+
+#include <commons/collections/list.h>
 
 struct {
     int ins_code;

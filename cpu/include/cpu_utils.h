@@ -8,4 +8,8 @@
 #include "cpu_memoria.h"
 #include "utils/conexion.h"
 #include "cpu.h"
+#include <commons/log.h>
+#include <commons/string.h>
+#include <commons/config.h>
+#include <commons/collections/list.h>
 
