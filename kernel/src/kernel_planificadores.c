@@ -116,7 +116,7 @@ void recibir_contexto_de_ejecucion_actualizado(){
 
 // INICIAR PROCESO
 // Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
-void iniciar_proceso(const char *path){ // REVISAR
+void iniciar_proceso(const char *path){
     t_pcb *pcb = crear_pcb();
     pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
     estado_encolar_pcb(estado_new, pcb);
@@ -129,9 +129,11 @@ void proceso_a_ready(t_pcb *pcb){
     log_ingreso_ready();
 }
 
-void pedir_a_memoria_iniciar_proceso(const char *path){
-    // TODO
+void pedir_a_memoria_iniciar_proceso(int pid, const char *path){
     t_paquete *paquete = crear_paquete(SOLICITUD_INICIAR_PROCESO);
+    agregar_a_paquete(paquete, pid, sizeof(int));
+    agregar_a_paquete(paquete, path, string_length(path)+1); // +1 para contar el '\0'
+    enviar_paquete(paquete, fd_memoria);
 }
 
 // FINALIZAR PROCESO

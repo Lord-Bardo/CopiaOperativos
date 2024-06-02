@@ -306,8 +306,7 @@ int recibir_operacion(int socket_cliente){
 	}
 }
 
-void *recibir_buffer(int *size, int socket_cliente)
-{
+void *recibir_buffer(int *size, int socket_cliente){
 	void *buffer;
 
 	recv(socket_cliente, size, sizeof(int), MSG_WAITALL); // recibe el tamaño del contenido y lo guarda en size
@@ -317,6 +316,7 @@ void *recibir_buffer(int *size, int socket_cliente)
 
 	return buffer;
 }
+
 //hacer un recibir_instruccion
 void recibir_mensaje(int socket_cliente)
 {
@@ -326,8 +326,7 @@ void recibir_mensaje(int socket_cliente)
 	free(buffer);										  // libera la memoria creada dinamicamente por recibir_buffer
 }
 
-t_list *recibir_paquete(int socket_cliente)
-{
+t_list *recibir_paquete(int socket_cliente){
 	int size;
 	int desplazamiento = 0;
 	void *buffer;
@@ -335,8 +334,7 @@ t_list *recibir_paquete(int socket_cliente)
 	int tamanio;
 
 	buffer = recibir_buffer(&size, socket_cliente);
-	while (desplazamiento < size)
-	{
+	while (desplazamiento < size){
 		memcpy(&tamanio, buffer + desplazamiento, sizeof(int)); // se copia en tamanio el tamaño en bytes del siguiente valor a leer  
 		desplazamiento += sizeof(int); // se desplaza hasta donde termina el int definido para guardar tamanio
 		char *valor = malloc(tamanio); // reserva dinamicamente la memoria necesaria para guardar el valor a leer
