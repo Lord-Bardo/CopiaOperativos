@@ -39,7 +39,8 @@ void inicializar_estructuras_pid(void){
 
 void inicializar_semaforos(){
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
-    sem_init(&sem_dispatch, 0, 1);
+    sem_init(&sem_socket_dispatch, 0, 1);
+    pthread_mutex_init(&mutex_socket_memoria, NULL);
 }
 
 // // Mati: Para las siguientes 3 funciones: entiendo que la asignacion es atomica y no requiere uso de semaforo
@@ -51,13 +52,26 @@ void detener_planificacion(){
     estado_planificacion = PAUSADA;
 }
 
+// REVISAR -> El semaforo controla si hay o no espacio y una vez que arranca ya se inicializa,
+// por lo que cambiando GRADO_MULTIPROGRAMACION solo no hacemos nada.
+// IDEA 1: Calcular la diferencia entre el grado anterior y el nuevo. En base a eso hacer la cantidad de post o waits necesarios.
+// IDEA 2: En lugar de un semaforo usar una variable que cuente la cantidad de procesos que hay en el sistema. El problema que le
+//         veo es que no sabria como hacer para que el planificador de largo plazo no entre en espera activa. Porq si usamos una
+//         variable quedaria algo como:
+//         while( estado_planificacion){
+//            if(procesos_activos < GRADO_MULTIPROGRAMACION){
+//               t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+//               estado_encolar_pcb(estado_ready, pcb); 
+//            }
+//         }
+//         Si estado_planificacion esta en ACTIVO va a ser un bucle infinito.
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
     GRADO_MULTIPROGRAMACION = nuevo_grado_multiprogramacion;
 }
 
 void planificador_largo_plazo(){
     // Manejar NEW -> READY
-    // while(1){
+    // while( estado_planificacion ){
     //     sem_wait(&sem_grado_multiprogramacion);
     //     t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
     //     estado_encolar_pcb(estado_ready, pcb);
@@ -85,7 +99,7 @@ void planificador_corto_plazo(){
 
 void planificador_corto_plazo_fifo(){
     while( estado_planificacion ){
-        // sem_wait(&sem_dispatch); // Espera a que no hay ningun proceso ejecutando.
+        // sem_wait(&sem_socket_dispatch); // Espera a que no hay ningun proceso ejecutando.
         t_pcb *pcb = elegir_proceso_segun_fifo();
         proceso_a_exec(pcb);
         enviar_contexto_de_ejecucion();
@@ -133,7 +147,10 @@ void pedir_a_memoria_iniciar_proceso(int pid, const char *path){
     t_paquete *paquete = crear_paquete(SOLICITUD_INICIAR_PROCESO);
     agregar_a_paquete(paquete, pid, sizeof(int));
     agregar_a_paquete(paquete, path, string_length(path)+1); // +1 para contar el '\0'
+    pthread_mutex_lock(mutex_socket_memoria);
     enviar_paquete(paquete, fd_memoria);
+    pthread_mutex_unlock(mutex_socket_memoria);
+    eliminar_paquete(paquete);
 }
 
 // FINALIZAR PROCESO

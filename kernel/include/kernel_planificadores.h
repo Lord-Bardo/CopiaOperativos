@@ -33,7 +33,8 @@ int pid_actual;
 pthread_mutex_t mutex_pid;
 // Semaforos
 sem_t sem_grado_multiprogramacion;
-sem_t sem_dispatch;
+sem_t sem_socket_dispatch;
+pthread_mutex_t mutex_socket_memoria;
 
 // FUNCIONES
 void iniciar_proceso(const char *path);
