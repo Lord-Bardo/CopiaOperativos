@@ -38,7 +38,7 @@ void log_fin_quantum(){
 }
 
 void log_ingreso_ready(){
-    log_info(kernel_logger_min_y_obl, "Cola Ready <COLA>: %s:", lista_pids_string(estado_ready)); // Mati: No se que poner en <COLA>
+    log_info(kernel_logger_min_y_obl, "Cola Ready READY: %s:", lista_pids_string(estado_ready)); // Mati: No se que poner en <COLA> -> Lo cambiamos por READY pero sigue la duda
 }
 
 const char* lista_pids_string(t_estado *estado){
@@ -59,7 +59,7 @@ const char* lista_pids_string(t_estado *estado){
 
         // Agrego ',' si no es el ultimo pid de la lista
         if( i != (lista_pids->elements_count - 1) ){
-            string_append(&lista_pids_string, ", ")
+            string_append(&lista_pids_string, ", ");
         }
 
     }

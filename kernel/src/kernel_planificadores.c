@@ -67,36 +67,6 @@ void planificador_largo_plazo(){
 
 }
 
-// void planificador_corto_plazo(){
-//     while(1){
-//         t_pcb *pcb = elegir_proceso();
-//         proceso_a_exec(pcb);
-//         pthread_mutex_lock(&mutex_dispatch);
-//         // Mandarselo a CPU
-//         // Esperar respuesta
-//     }
-// }
-
-// t_pcb *elegir_proceso(){ // TERMINAR
-//     t_pcb *pcb;
-    
-//     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
-//         pcb = elegir_proceso_segun_fifo();
-//     }
-//     else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
-//         TODO
-//     }
-//     else if( strcmp(ALGORITMO_PLANIFICACION, "VRR") == 0 ){
-//         TODO
-//         Tener en cuenta READY_PLUS
-//     }
-//     else{
-//         log_error(kernel_logger, "Algoritmo de planificacion invalido!");
-//     }
-
-//     return pcb;
-// }
-
 void planificador_corto_plazo(){    
     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
         planificador_corto_plazo_fifo();
@@ -145,48 +115,26 @@ void recibir_contexto_de_ejecucion_actualizado(){
 }
 
 // INICIAR PROCESO
-// Ante la solicitud de la consola de crear un nuevo proceso el Kernel deberá informarle a la memoria
-// que debe crear un proceso cuyas operaciones corresponderán al archivo de pseudocódigo pasado
-// por parámetro, todos los procesos iniciarán sin espacio reservado en memoria, por lo que solamente
-// tendrán una tabla de páginas vacía.
-// En caso de que el grado de multiprogramación lo permita, los procesos creados podrán pasar de la
-// cola de NEW a la cola de READY, caso contrario, se quedarán a la espera de que finalicen procesos
-// que se encuentran en ejecución.
-
 // Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
 void iniciar_proceso(const char *path){ // REVISAR
     t_pcb *pcb = crear_pcb();
     pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
     estado_encolar_pcb(estado_new, pcb);
-    //sem_wait(&sem_grado_multiprogramacion);
-    // Mati: Creo q deberiamos esperar el aviso de memoria de que ya esta creado el espacio antes de encolar el proceso,
-    //       porque puede ser que se encole sin que esten las estructuras creadas
-    // Mati: Podria meterse la espera dentro de pedir_a_memoria_iniciar_proceso
-    // Mati en respuesta a Mati: Por lo q me parecio entender en los issues, no deberia nunca surgir un problema de falta de memoria.
-    //                           Por lo q no seria necesario esperar para pedirle a memoria q cree las estructuras.
     log_creacion_proceso();
 }
 
-void proceso_a_ready(t_pcb *pcb){ // REVISAR
+void proceso_a_ready(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
-    sem_post(&sem_grado_multiprogramacion);
     log_ingreso_ready();
 }
 
-// void iniciar_proceso(const char *path){
-//     t_pcb *pcb = crear_pcb();
-//     estado_encolar_pcb(estado_new, pcb);
-//     // Mati: Puede q si convenga tener el path dentro del pcb, asi el tema de pedirle a memoria que cree las estructuras lo hace el planificador cuando lo desencola
-// }
-
 void pedir_a_memoria_iniciar_proceso(const char *path){
     // TODO
-    t_paquete *paquete = crear_paquete();
+    t_paquete *paquete = crear_paquete(SOLICITUD_INICIAR_PROCESO);
 }
 
 // FINALIZAR PROCESO
-
 void finalizar_proceso(){ // TERMINAR
     
 

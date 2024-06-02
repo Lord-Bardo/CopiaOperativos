@@ -13,13 +13,12 @@
 #include<commons/collections/list.h>
 
 typedef enum{
-	//SERIALIZED,             // 0
-    MESSAGE_OK,             // 1
-    MESSAGE_FLAW,           // 2
-    MESSAGE_DONE,           // 3
-    INSTRUCTIONS,           // 4
-    PCB     // 5
-}tipo_t_paquete;
+    // KERNEL - MEMORIA
+    SOLICITUD_INICIAR_PROCESO,
+    // CPU
+
+    // ...
+} t_codigo_operacion;
 
 typedef enum{
     HANDSHAKE_KERNEL,
@@ -37,7 +36,7 @@ typedef struct{
 } t_buffer;
 
 typedef struct{
-	tipo_t_paquete tipo;
+	t_codigo_operacion codigo_operacion;
 	t_buffer* buffer;
 } t_paquete;
 
