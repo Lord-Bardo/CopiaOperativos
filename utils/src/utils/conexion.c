@@ -37,7 +37,7 @@ t_handshake recibir_handshake(int socket){
 void enviar_mensaje(char *mensaje, int socket_cliente){
 	t_paquete *paquete = malloc(sizeof(t_paquete));
 
-	paquete->codigo_operacion = FETCH;
+	paquete->codigo_operacion = MENSAJE;
 	paquete->buffer = malloc(sizeof(t_buffer));
 	paquete->buffer->size = strlen(mensaje) + 1; // +1 para el \0
 	paquete->buffer->stream = malloc(paquete->buffer->size);
@@ -77,26 +77,6 @@ void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio) // agrega a
 	paquete->buffer->size += tamanio + sizeof(int); // actualiza el tamaño del buffer
 }
 
-void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion)
-{
-	agregar_a_paquete(paquete, instruccion, string_length(instruccion));
-}
-void agregar_pcb_paquete(t_paquete *paquete, t_pcb *pcb){
-	agregar_a_paquete(paquete, pcb->PID, sizeof(int));
-	agregar_a_paquete(paquete, pcb->quantum, sizeof(int));
-	agregar_a_paquete(paquete, &(pcb->estado), sizeof(t_estado));
-	agregar_a_paquete(paquete, pcb->registros.PC, 8);
-	agregar_a_paquete(paquete, pcb->registros.AX, 2);
-	agregar_a_paquete(paquete, pcb->registros.BX, 2);
-	agregar_a_paquete(paquete, pcb->registros.CX, 2);
-	agregar_a_paquete(paquete, pcb->registros.DX, 2);
-	agregar_a_paquete(paquete, pcb->registros.EAX, 8);
-	agregar_a_paquete(paquete, pcb->registros.EBX, 8);
-	agregar_a_paquete(paquete, pcb->registros.ECX, 8);
-	agregar_a_paquete(paquete, pcb->registros.EDX, 8);
-	agregar_a_paquete(paquete, pcb->registros.SI, 8);
-	agregar_a_paquete(paquete, pcb->registros.DI, 8);
-}
 
 void *serializar_paquete(t_paquete *paquete, int bytes){
 	void *magic = malloc(bytes);
@@ -112,102 +92,6 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
  
 	return magic; //por qué magic?????
 }
-// creamos el paquete, agregar_instruccion_a_paquete(paquete,puntero instruccion,queremos guardarlo sin padding), serializar_paquete_completo(agrega el op_code y al buffer a un void * y lo devuelve)
-/*
-void* deserializar(t_paquete paquete) { // creo que la arreglé
-
-	 if(paquete == NULL || paquete->stream == NULL || paquete->size <= 0) {
-       printf("\n[ERROR] El paquete no es válido para deserializar.\n");
-       return NULL; // Devuelve NULL para indicar un error
-    }
-	int size_mensaje; // entiendase mensaje por el void* que esta en el paquete.
-	memcpy(&size_mensaje, paquete->stream, sizeof(int));
-	void* mensaje = malloc(size_mensaje);
-	memcpy(mensaje, paquete->stream + sizeof(int), size_mensaje);
-
-	int nuevo_size = paquete->size - sizeof(int) - size_mensaje;
-	if (nuevo_size < 0) {
-		perror("\n [ERROR_MENSAJE] BUFFER con tamaño negativo");
-		exit(EXIT_FAILURE);
-	}
-
-	paquete->size = nuevo_size;
-	if (nuevo_size == 0) {
-		free(paquete->stream);
-		paquete->stream = NULL;
-	} else {
-		void* nuevo_stream = malloc(nuevo_size);
-		memcpy(nuevo_stream, paquete->stream + sizeof(int) + size_mensaje, nuevo_size); 
-		free(paquete->stream);
-		paquete->stream = nuevo_stream;
-	}
-
-    return mensaje;
-}*/
-
-/*
-en shared_deserializer:
-// Devuelve el mensaje deserializado, y destruye el paquete
-char* deserialize_message(t_package* package);
----------------------------------------------------------------
-char* deserialize_message(t_package* package) {
-	uint64_t offset = 0;
-	char* message = package_decode_string(package->buffer, &offset);
-	package_destroy(package);
-	return message;
-}
-
-t_package* package_decode(void* source, uint64_t* offset) {
-	bool discarded_offset = offset == NULL;
-	if (discarded_offset) {
-		offset = s_malloc(sizeof(uint64_t));
-		*offset = 0;
-	}
-	t_package* package = s_malloc(sizeof(t_package));
-	memcpy(&(package->size), source + *offset, sizeof(uint64_t));
-	*offset += sizeof(uint64_t);
-	memcpy(&(package->type), source + *offset, sizeof(int32_t));
-	*offset += sizeof(int32_t);
-	package->buffer = s_malloc(package->size);
-	memcpy(package->buffer, source + *offset, package->size);
-	*offset += package->size;
-	if (discarded_offset) free(offset);
-	return package;
-}
-
-char* package_decode_string(void* buffer, uint64_t* offset) {
-	bool discarded_offset = offset == NULL;
-	if (discarded_offset) {
-		offset = s_malloc(sizeof(uint64_t));
-		*offset = 0;
-	}
-	uint64_t *size = s_malloc(sizeof(uint64_t));
-	memcpy(size, buffer + *offset, sizeof(uint64_t));
-	*offset += sizeof(uint64_t);
-	char *str = s_malloc(*size + 1);
-	memcpy(str, buffer + *offset, *size);
-	str[*size] = '\0';
-	*offset += *size;
-	free(size);
-	if (discarded_offset) free(offset);
-	return str;
-}
-void package_decode_buffer(void* buffer, void* dest, uint64_t* offset) {
-	bool discarded_offset = offset == NULL;
-	if (discarded_offset) {
-		offset = s_malloc(sizeof(uint64_t));
-		*offset = 0;
-	}
-	uint64_t *size = s_malloc(sizeof(uint64_t));
-	memcpy(size, buffer + *offset, sizeof(uint64_t));
-	*offset += sizeof(uint64_t);
-	memcpy(dest, buffer + *offset, *size);
-	*offset += *size;
-	free(size);
-	if (discarded_offset) free(offset);
-}
-*/
-
 
 
 void enviar_paquete(t_paquete *paquete, int socket_cliente){
@@ -337,11 +221,6 @@ void recibir_mensaje(int socket_cliente)
 
 
 
-void recibir_pcb(int socket_cliente){
-	t_list *pcb_como_lista = recibir_paquete(socket_cliente);
-	t_pcb pcb;
-	
-}
 
 t_list *recibir_paquete(int socket_cliente){
 	int size;

@@ -5,15 +5,6 @@ void atender_cpu_memoria(){
 	while(continuar){
 		int tipo_de_paquete = recibir_operacion(fd_memoria);
 		switch(tipo_de_paquete){
-			case MENSAJE_OK:
-				// ...
-				break;
-			case MENSAJE_FLAW: //NO SE A QUE SE REFIERE CON FLAW
-
-				break;
-			case MENSAJE_LISTO:
-				// ...
-				break;
 			case INSTRUCCION: // ... aca hay que recibir bb recive_buffer size instruccion
 				recibir_instruccion(fd_memoria); 
 				//contemplar interrupciones?

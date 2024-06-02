@@ -4,23 +4,7 @@ int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
 	inicializar_cpu();
 	//t_paquete *auxiliar = crear_paquete(PAQUETE);
-	/* t_pcb ejemplo_pcb = {
-        .PID = 123,
-        .quantum = 5,
-        .estado = RUNNING,
-        .registros = {
-            .PC = 100,
-            .AX = 10,
-            .BX = 20,
-            .CX = 30,
-            .DX = 40,
-            .EAX = 1000,
-            .EBX = 2000,
-            .ECX = 3000,
-            .EDX = 4000,
-            .SI = 5000,
-            .DI = 6000
-        }
+	/* 
     }; */
 	//agregar_pcb_paquete(auxiliar,&(ejemplo_pcb)); //es serializarlo
 

@@ -5,22 +5,6 @@ void atender_cpu_kernel_interrupt(){
 	while( continuar ){
 		int cod_op = recibir_operacion(fd_kernel_interrupt); // pese a q esto es un while(1) NO es un bucle que esta todo el tiempo usando el recurso del procesador, porq recibir_operacion usa recv que es una sys bloqueante y ahi corta la ejecucion hasta recibir algo
 		switch(cod_op){
-			case MENSAJE_OK:
-				// ...
-				break;
-			case MENSAJE_FLAW: //NO SE A QUE SE REFIERE CON FLAW
-				
-
-				break;
-			case MENSAJE_LISTO:
-				// ...
-				break;
-			case INSTRUCCION: 
-
-				break;
-			case PCB:
-				// ..
-				break;
 			case -1:
 				log_error(cpu_logger, "KERNEL se desconecto del servidor CPU INTERRUPT!");
 				continuar = 0;

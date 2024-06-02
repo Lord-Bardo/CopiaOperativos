@@ -2,7 +2,7 @@
 #define CPU_MEMORIA_H_
 
 #include "cpu_gestor.h"
-#include "cpu.c"
+#include "cpu.h"
 
 void atender_cpu_memoria();
 
