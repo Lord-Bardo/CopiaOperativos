@@ -19,7 +19,8 @@ typedef enum{
     MENSAJE,
     PAQUETE,
     FETCH,
-    INSTRUCCION
+    INSTRUCCION,
+    DATO, //usado para mov_in y mov_out
     // ...
 } t_codigo_operacion;
 
@@ -49,6 +50,7 @@ int crear_conexion(char* ip, char* puerto);
 void enviar_mensaje(char* mensaje, int socket_cliente);
 t_paquete* crear_paquete(t_codigo_operacion codigo);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
+void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void liberar_conexion(int socket_cliente);
 void *serializar_paquete(t_paquete *paquete, int bytes);

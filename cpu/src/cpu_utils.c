@@ -1,8 +1,5 @@
 
 #include "../include/cpu_utils.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include "cpu.c" //lo agrego para poder usar el pcb en ejecutar instruccion
 
 /* t_pcb* deserializar_pcb (t_paquete* paquete) {
 	t_pcb* pcb = s_malloc(sizeof(t_pcb));
@@ -39,7 +36,8 @@
 } */
 
 // Función para deserializar una estructura t_pcb desde un paquete
-t_pcb* deserializar_pcb(uint8_t* buffer, size_t buffer_size) {
+t_pcb* deserializar_pcb(t_paquete pcb_empaquetado) {
+	int buffer_size = 
     if (buffer_size < sizeof(int) * 2 + sizeof(estado)) {
         printf("Error: Tamaño de buffer insuficiente para deserializar t_pcb\n");
         return NULL;
@@ -96,14 +94,25 @@ t_pcb* deserializar_pcb(uint8_t* buffer, size_t buffer_size) {
 }
 
 
-char* recibir_instruccion(socket_cliente)
+char* recibir_instruccion(socket_cliente) //no se quien hizo esto pero tiene que retornar un char* y no retorna nada
 {
 	t_list recibir_instruccion = recibir_paquete(socket_cliente)
 	
 	char* instruccion_completa;
 	strcpy (instruccion_completa, recibir_instruccion->head->dato);
 	char **instruccion_parciada = string_split(instruccion_completa, " ");
-	interpretar_instruccion()
+	ejecutar_instruccion(instruccion_parciada); //no se llama asi me parece
+}
+
+char* recibir_dato(socket_cliente)
+{
+	t_list recibir_dato = recibir_paquete(socket_cliente)
+	
+	char* instruccion_completa;
+	strcpy (instruccion_completa, recibir_instruccion->head->dato);
+	char **instruccion_parciada = string_split(instruccion_completa, " ");
+	interpretar_instruccion() //no se llama asi me parece
+	return 
 }
 
 void ejecutar_instruccion(char **instruccion){
@@ -357,11 +366,16 @@ void ejecutar_JNZ(t_instruccion* instruccion){ //supongo que si en los argumento
 		 break;
 	}
 }
-void ejecutar_MOV_IN(t_instruccion* instruccion){
-	t_paquete *paquete_direccion_instruccion = crear_paquete(FETCH); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
-	agregar_a_paquete(paquete_direccion_instruccion, instruccion->argumentos->head->next->data, sizeof(instruccion->argumentos->head->next->data));
-	serializar_paquete_instruccion(paquete_direccion_instruccion, (sizeof(int) + (paquete_direccion_instruccion->buffer->size)));
-	enviar_paquete(paquete_direccion_instruccion, fd_memoria); // TODO ESTO DEBE SER CORREGIDO CON LOS DATOS DE LA INSTRUCCION
+void ejecutar_MOV_OUT(t_instruccion* instruccion){
+	//Creo un paquete para enviarle la direccion lógica que tiene la instruccion en su segundo parametro
+	t_paquete *paquete_direccion_dato = crear_paquete(DATO); 
+	agregar_a_paquete(paquete_direccion_dato, *instruccion->argumentos->head->next->data, sizeof(*instruccion->argumentos->head->next->data));
+	serializar_paquete(paquete_direccion_dato, (sizeof(int) + (paquete_direccion_dato->buffer->size)));
+	enviar_paquete(paquete_direccion_dato, fd_memoria);
+	atender_cpu_memoria(); 
+	//recibo el paquete que me envía memoria con el dato que necesito guardar
+	t_list* dato = recibir_paquete(); 
+	instruccion->argumentto->head->data = *dato->argumentos->head->data;
 }
 
 bool son_dos_registros(t_list *argumentos){

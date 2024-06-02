@@ -4,6 +4,6 @@
 #include "cpu_gestor.h"
 #include "cpu.c"
 
-void atender_cpu_memoria(void);
+void atender_cpu_memoria();
 
 #endif

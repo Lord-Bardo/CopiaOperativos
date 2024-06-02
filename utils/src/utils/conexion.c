@@ -335,6 +335,14 @@ void recibir_mensaje(int socket_cliente)
 	free(buffer);										  // libera la memoria creada dinamicamente por recibir_buffer
 }
 
+
+
+void recibir_pcb(int socket_cliente){
+	t_list *pcb_como_lista = recibir_paquete(socket_cliente);
+	t_pcb pcb;
+	
+}
+
 t_list *recibir_paquete(int socket_cliente){
 	int size;
 	int desplazamiento = 0;

@@ -2,14 +2,13 @@
 
 void atender_cpu_memoria(){
     int continuar = 1;
-	while( continuar ){
+	while(continuar){
 		int tipo_de_paquete = recibir_operacion(fd_memoria);
 		switch(tipo_de_paquete){
 			case MENSAJE_OK:
 				// ...
 				break;
 			case MENSAJE_FLAW: //NO SE A QUE SE REFIERE CON FLAW
-				
 
 				break;
 			case MENSAJE_LISTO:
@@ -19,6 +18,8 @@ void atender_cpu_memoria(){
 				recibir_instruccion(fd_memoria); 
 				//contemplar interrupciones?
 				break;
+			case DATO:
+			    recibir_dato(fd_memoria);
 			case -1:
 				log_error(cpu_logger, "Se perdio la conexion con MEMORIA!");
 				continuar = 0;

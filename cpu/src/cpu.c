@@ -1,16 +1,10 @@
 #include "../include/cpu.h"
-#include "utils/planificadores.h"
-#include "../include/cpu_memoria.h"
-t_pcb *pcb;
-//VOY A CREAR UN PAQUETE AUXILIAR
 
-
-
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
 	inicializar_cpu();
-	t_paquete *auxiliar = crear_paquete(PAQUETE);
-	t_pcb ejemplo_pcb = {
+	//t_paquete *auxiliar = crear_paquete(PAQUETE);
+	/* t_pcb ejemplo_pcb = {
         .PID = 123,
         .quantum = 5,
         .estado = RUNNING,
@@ -27,11 +21,10 @@ int main(int argc, char *argv[]){
             .SI = 5000,
             .DI = 6000
         }
-    };
-	agregar_pcb_paquete(auxiliar,&(ejemplo_pcb)); //es serializarlo
-	void* enviar = serializar_paquete(auxiliar,(sizeof(int) + auxiliar->buffer->size));
+    }; */
+	//agregar_pcb_paquete(auxiliar,&(ejemplo_pcb)); //es serializarlo
 
-	iniciar_ciclo_instruccion(enviar);
+	//iniciar_ciclo_instruccion(ejemplo_pcb);
 	// Conexion con MEMORIA
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	log_info(cpu_logger, "Conexion con MEMORIA establecida!");
@@ -78,7 +71,7 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-void leer_consola(t_log *logger){
+void leer_consola(t_log *logger){ //lo comenté porque ya fue definido en memoria.c
 	char *leido;
 
 	// Leo la primer linea
@@ -101,7 +94,7 @@ void paquete(int conexion) //esta definido en memoria.h, en cpu.h y kernel.h
 	t_paquete *paquete;
 
 	// Creo el paquete
-	paquete = crear_paquete();
+	paquete = crear_paquete(PAQUETE);
 
 	// Leo y agrego las lineas al paquete
 	leido = readline("> ");
@@ -141,20 +134,15 @@ El IC es igual a op_cod + n, siendo n parametros o registros
 Los parametros lo guardamos en una lista.
 */
 
-void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
-	*pcb = deserializar_pcb(pcb_empaquetado);
-	// aca van semaforos 
+void iniciar_ciclo_instruccion(t_pcb pcb){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
+	 //buffer y buffer_size
 	while(1){ //habria que mandar el pi tambien, x que van a haber varios procesos en memoria
 		t_paquete *paquete_direccion_instruccion = crear_paquete(FETCH); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
 		agregar_a_paquete(paquete_direccion_instruccion, pcb->registros.PC, sizeof(__uint32_t));
-		serializar_paquete_instruccion(paquete_direccion_instruccion, (sizeof(int) + (paquete_direccion_instruccion->buffer->size)));
+		serializar_paquete_direccion(paquete_direccion_instruccion, (sizeof(int) + (paquete_direccion_instruccion->buffer->size)));
 		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion a memoria, vamos a tener que mandar tambien el id de proceso para que lo pueda buscaar
-		//aca deberiamos bloquear el proceso x que estamos esperando que nos lo traiga?
-	
 		atender_cpu_memoria();//acá se ejecuta la instrucción
 		//aca tiene que bloquearse x que tiene que esperar que se ejecuta le instruccion
-		//deberia haber un pc++ crep aca
-		//tenemos que cazar los quilombos que haya y mandarselo a kernel-interrupt
 		}
 	//aca iria el camino feliz cuando termina el procesdo bien y le devuelve el nuevo pcb a kerrnel
 	
@@ -163,15 +151,12 @@ void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manej
 
 
 	pcb->estado= 4; //4 es exit, esto para mi va en el planificador /
-	t_paquete *paquete_pcb_actualizado = crear_paquete();
+	t_paquete *paquete_pcb_actualizado = crear_paquete(PAQUETE);
 	agregar_a_paquete(paquete_pcb_actualizado, pcb, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
-	serializar_paquete(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
+	serializar_paquete(paquete_pcb_actualizado, (sizeof(enum)+ (paquete_pcb_actualizado->buffer->size)));
 	enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
 	
-	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch)) //manejo de logs?
-	{ 
-		log_error(config_cpu,"HUBO QUILOMBO"); //falta definir la funcion "config_cpu"
-	}
+	
 	//liberar memoria hacer logs
 }
 
@@ -191,7 +176,7 @@ void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manej
 		else
 			printf("ERROR, parametros incorrecto");
 		 break;
-/*
+
 		case 2: //SUB
 		if (parametros_validos_SUB(instruccion.argumentos)){
 			*destino -= *origen;
