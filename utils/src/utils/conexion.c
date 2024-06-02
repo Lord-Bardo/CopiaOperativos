@@ -71,7 +71,7 @@ void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio) // agrega a
 	paquete->buffer->stream = realloc(paquete->buffer->stream, paquete->buffer->size + tamanio + sizeof(int)); // realloc sirve para cambiar el tamaño de un bloque de memoria previamente asignado dinámicamente. En este caso le asigno a stream el tamaño q ya tenia el buffer del paquete + el numero de bytes de valor + un int para poner el tamaño de valor
 
 	memcpy(paquete->buffer->stream + paquete->buffer->size, &tamanio, sizeof(int)); // copia el tamaño de valor (tamanio) al final del stream del buffer. Esto es necesario para que, al recibir el paquete, se pueda saber cuántos bytes se deben leer para obtener el valor.
-	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio); // se copia valor dsp de tamanio (q colocamos recion)
+	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio); // se copia valor dsp de tamanio (q colocamos recien)
 
 	paquete->buffer->size += tamanio + sizeof(int); // actualiza el tamaño del buffer
 }

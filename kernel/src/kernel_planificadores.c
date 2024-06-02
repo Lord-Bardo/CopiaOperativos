@@ -42,6 +42,7 @@ void inicializar_semaforos(){
     sem_init(&sem_dispatch, 0, 1);
 }
 
+// // Mati: Para las siguientes 3 funciones: entiendo que la asignacion es atomica y no requiere uso de semaforo
 void iniciar_planificacion(){
     estado_planificacion = ACTIVA;
 }
@@ -131,6 +132,18 @@ void proceso_a_exec(pcb){
     estado_encolar_pcb(estado_exec, pcb);
 }
 
+void enviar_contexto_de_ejecucion(){
+    // Manda a CPU el contexto de la ejecucion por el Dispatch
+}
+
+void recibir_contexto_de_ejecucion_actualizado(){
+    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
+    // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
+    // En cualquier caso se lo debe desencolar de EXEC
+    // Si puede seguir ejecutando se lo encola en READY
+    // Si no se bloqueo entonces se lo encola en BLOCKED
+}
+
 // INICIAR PROCESO
 // Ante la solicitud de la consola de crear un nuevo proceso el Kernel deberá informarle a la memoria
 // que debe crear un proceso cuyas operaciones corresponderán al archivo de pseudocódigo pasado
@@ -143,9 +156,9 @@ void proceso_a_exec(pcb){
 // Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
 void iniciar_proceso(const char *path){ // REVISAR
     t_pcb *pcb = crear_pcb();
+    pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
     estado_encolar_pcb(estado_new, pcb);
     //sem_wait(&sem_grado_multiprogramacion);
-    pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
     // Mati: Creo q deberiamos esperar el aviso de memoria de que ya esta creado el espacio antes de encolar el proceso,
     //       porque puede ser que se encole sin que esten las estructuras creadas
     // Mati: Podria meterse la espera dentro de pedir_a_memoria_iniciar_proceso
@@ -169,6 +182,7 @@ void proceso_a_ready(t_pcb *pcb){ // REVISAR
 
 void pedir_a_memoria_iniciar_proceso(const char *path){
     // TODO
+    t_paquete *paquete = crear_paquete();
 }
 
 // FINALIZAR PROCESO
