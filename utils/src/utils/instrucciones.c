@@ -2,14 +2,14 @@
 #include <commons/collections>
 
 struct {
-    int opcode;
+    int ins_code;
     t_list* argumentos;
 }t_instruccion;
 
-typedef enum op_code {
+typedef enum{
     SET,
     SUM, 
     SUB,
     JNZ,
     IO_GEN_SLEEP,
-}op_code;
+}ins_code;
