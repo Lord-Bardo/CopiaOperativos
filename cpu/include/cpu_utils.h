@@ -7,3 +7,5 @@
 #include "cpu_kernel_interrupt.h"
 #include "cpu_memoria.h"
 #include "utils/conexion.h"
+#include "cpu.h"
+
