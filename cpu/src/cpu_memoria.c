@@ -16,15 +16,8 @@ void atender_cpu_memoria(){
 				// ...
 				break;
 			case INSTRUCCION: // ... aca hay que recibir bb recive_buffer size instruccion
-				t_list * valores = recibir_paquete(fd_memoria); //creo que hay error con el tamaño igual
-				t_instruccion *instruccion_a_ejecutar;
-				instruccion_a_ejecutar.opcode = valores->head->data;
-				//sacar head de la lista y guardarlo en instruccion.parametros ?
-				//tengo que leer el void * del buffer de a poquto con mallocs y crear mi instruccion?
-
-
-				ejecutar_instruccion(instruccion_a_ejecutar);
-				//falta hacer que se elimine la instruccion y liberar esa memoria
+				recibir_instruccion(fd_memoria); 
+				//contemplar interrupciones?
 				break;
 			case -1:
 				log_error(cpu_logger, "Se perdio la conexion con MEMORIA!");

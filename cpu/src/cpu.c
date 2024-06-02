@@ -1,7 +1,7 @@
 #include "../include/cpu.h"
 
 
-t_pcb pcb_auxiliar;
+t_pcb *pcb;
 
 int main(int argc, char *argv[]){
 	// Inicializar estructuras de CPU (loggers y config)
@@ -118,58 +118,41 @@ El IC es igual a op_cod + n, siendo n parametros o registros
 Los parametros lo guardamos en una lista.
 */
 
-void copiar_PCB(t_pcb *pcb){
-	//copiar todo 1 por 1, el pcb_auxiliar esta como global
-	pcb_auxiliar.PID = pcb->PID;
-	pcb_auxiliar.quantum = pcb->quantum;
-	pcb_auxiliar.estado = pcb->estado;
-	pcb_auxiliar.registros.PC = pcb->registros.PC;
-	pcb_auxiliar.registros.AX = pcb->registros.AX;
-	pcb_auxiliar.registros.BX = pcb->registros.BX;
-	pcb_auxiliar.registros.CX = pcb->registros.CX;
-	pcb_auxiliar.registros.DI = pcb->registros.DI;
-	pcb_auxiliar.registros.DX = pcb->registros.DX;
-	pcb_auxiliar.registros.EAX = pcb->registros.EAX;
-	pcb_auxiliar.registros.EBX = pcb->registros.EBX;
-	pcb_auxiliar.registros.ECX = pcb->registros.ECX;
-	pcb_auxiliar.registros.EDX = pcb->registros.EDX;
-	pcb_auxiliar.registros.SI = pcb->registros.SI;
-}
-
 void iniciar_ciclo_instruccion(t_paquete pcb_empaquetado){ //hay que meter manejo de interrupciones y logs y semaforos y de todo lapu
-	t_pcb *pcb = deserializar_pcb(pcb_empaquetado); //el deserealizar devuelvo un pcb auxiliar
-	pcb->estado= RUNNING; // hacerlo en kernel
-	copiar_PCB(pcb); // no es necesario
-	//Mati dice de hacer un solo pcb global y fue
-	// aca  van semaforos 
+	pcb = deserializar_pcb(pcb_empaquetado);
+	// aca van semaforos 
 	while(1){ //habria que mandar el pi tambien, x que van a haber varios procesos en memoria
 		t_paquete *paquete_direccion_instruccion = crear_paquete(); //creamos el paquete para mandarle la dire de instruccion que queremos a memoria
-		agregar_a_paquete(paquete_direccion_instruccion, pcb_auxiliar->registros.PC, sizeof(__uint32_t));
+		agregar_a_paquete(paquete_direccion_instruccion, pcb->registros.PC, sizeof(__uint32_t));
 		serializar_paquete_instruccion(paquete_direccion_instruccion, sizeof(enum) + paquete_direccion_instruccion->buffer->size);
-		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion a memoria
+		enviar_paquete(paquete_direccion_instruccion, fd_memoria); //solicitmos la instruccion a memoria, vamos a tener que mandar tambien el id de proceso para que lo pueda buscaar
 		//aca deberiamos bloquear el proceso x que estamos esperando que nos lo traiga?
 	
 		atender_cpu_memoria();//acá se ejecuta la instrucción
 		//aca tiene que bloquearse x que tiene que esperar que se ejecuta le instruccion
 		//deberia haber un pc++ crep aca
-		
+		//tenemos que cazar los quilombos que haya y mandarselo a kernel-interrupt
 		}
 	//aca iria el camino feliz cuando termina el procesdo bien y le devuelve el nuevo pcb a kerrnel
 	
+	//agregar_a_paquete deberia meter en un buffer lo que queremos mandar, deberiamos hacerlo especifico para cada cosa.EJ: agregar_instruccion_a_paquete
+	//serializar_paquete tiene que recibir el buffer y nos devuelve el void* que vamos a mandar
+
+
 	pcb->estado= 4; //4 es exit, esto para mi va en el planificador /
 	t_paquete *paquete_pcb_actualizado = crear_paquete();
-	agregar_a_paquete(paquete_pcb_actualizado, pcb_auxiliar, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
+	agregar_a_paquete(paquete_pcb_actualizado, pcb, sizeof(t_pcb)); //tenemos que poner todo lo del nuevo pcb aca, x ahi un cargar pcb en paquete, tambien llamado serializarPCB
 	serializar_paquete_pcb(paquete_pcb_actualizado, (sizeof(enum)+ paquete_pcb_actualizado->buffer->size));
 	enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch);
 	
-	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch)){ //manejo de logs?
-		log_error(config_cpu)
+	if (!enviar_paquete(paquete_pcb_actualizado, fd_kernel_dispatch)) //manejo de logs?
+	{ 
+		log_error(config_cpu);
 	}
 	//liberar memoria hacer logs
-	
 }
 
-void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializado.
+/*void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializado.
 { 
 	//aca hay qye hacer cosas
 	switch (instruccion.op_cod) { //no mandas pc, vamos con el id del proceso y la instruccion que queremos leer, como reconocer los registros a los que acceder
@@ -203,12 +186,12 @@ void ejecutar_instruccion(t_instruccion* instruccion) // recibe el PCB serializa
 			break;
 
 		case 4: //IO_GEN_SLEEP
-		 break;*/
+		 break;
 		default: //tendria que haber un log aca de error, y una interrupcion
 		 break;
 	}
 }
-
+*/
 void ejecutar_SUM(t_instruccion* instruccion){ //supongo que si en los argumentos hay un registro habrá un numero que representará al valor del enum que se deba acceder
 	switch(*instruccion->argumentos->head->data){
 	    case 0: //AX

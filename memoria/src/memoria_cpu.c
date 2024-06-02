@@ -14,7 +14,7 @@ t_link_element ax = {&ax_value, &nro};
 t_list argsSet = {&ax, 2};
 
     // Inicialización de t_instruccion 'hardcode' con '0' como opcode y 'argsSet' como args
-t_instruccion hardcode = {0, argsSet};
+t_instruccion hardcode = {0, argsSet};//como el orto
 
 void atender_memoria_cpu(){
     int continuar = 1;

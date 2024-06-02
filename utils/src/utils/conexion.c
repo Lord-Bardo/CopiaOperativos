@@ -1,5 +1,5 @@
 #include "conexion.h"
-
+#include "so-commons-library"
 // CLIENTE
 
 int crear_conexion(char* ip, char* puerto){
@@ -59,11 +59,19 @@ void crear_buffer(t_paquete *paquete){
 	paquete->buffer->stream = NULL;
 }
 
-t_paquete *crear_paquete(void){
+t_paquete *crear_paquete(t_t_paquete op_code){
 	t_paquete *paquete = malloc(sizeof(t_paquete));
-	paquete->codigo_operacion = PAQUETE;
+	paquete->codigo_operacion = op_code;
 	crear_buffer(paquete);
 	return paquete;
+}
+
+void package_add(t_package* package, void* value, uint64_t* value_size) {
+    uint64_t offset = package->size;
+    package->size += sizeof(uint64_t) + *value_size;
+    package->buffer = realloc(package->buffer, package->size);
+    memcpy(package->buffer + offset, value_size, sizeof(uint64_t));
+    memcpy(package->buffer + offset + sizeof(uint64_t), value, *value_size);
 }
 
 void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio) // agrega al buffer del paquete lo recibido en "valor" que tiene un determinado "tamanio" de bytes
@@ -74,6 +82,11 @@ void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio) // agrega a
 	memcpy(paquete->buffer->stream + paquete->buffer->size + sizeof(int), valor, tamanio); // se copia valor dsp de tamanio (q colocamos recion)
 
 	paquete->buffer->size += tamanio + sizeof(int); // actualiza el tamaño del buffer
+}
+
+void *agregar_instruccion_paquete(t_paquete paquete, char* instruccion)
+{
+	agregar_a_paquete(paquete, instruccion, sizeof(length(instruccion)));
 }
 
 void *serializar_paquete(t_paquete *paquete, int bytes){
@@ -336,65 +349,4 @@ t_list *recibir_paquete(int socket_cliente)
 	return valores;
 }
 
-/*
-void serialize(MyStruct *input, void **output, size_t *size) {
-    // Calcular el tamaño necesario
-    *size = sizeof(input->num) + sizeof(input->value) + sizeof(input->inner.id) + sizeof(input->inner.name);
-    
-    // Asignar memoria para el stream
-    *output = malloc(*size);
-    if (*output == NULL) {
-        perror("Error allocating memory");
-        exit(EXIT_FAILURE);
-    }
 
-    // Copiar los datos al stream
-    void *ptr = *output;
-    memcpy(ptr, &(input->num), sizeof(input->num));
-    ptr += sizeof(input->num);
-    memcpy(ptr, &(input->value), sizeof(input->value));
-    ptr += sizeof(input->value);
-    memcpy(ptr, &(input->inner.id), sizeof(input->inner.id));
-    ptr += sizeof(input->inner.id);
-    memcpy(ptr, &(input->inner.name), sizeof(input->inner.name));
-}
-
-int main() {
-    MyStruct s = {42, 3.14, {1, "example"}};
-    void *stream;
-    size_t size;
-
-    serialize(&s, &stream, &size);
-
-    // Aquí puedes usar el stream como desees
-    printf("Serialized data size: %zu bytes\n", size);
-
-    // No olvides liberar la memoria cuando termines
-    free(stream);
-
-    return 0;
-}
-
-
-//shared-package
-void package_close(t_package* package) {
-	uint64_t package_size = sizeof(uint64_t) + sizeof(int32_t) + package->size;
-	void* stream = s_malloc(package_size);
-	uint64_t offset = 0;
-	memcpy(stream + offset, &(package->size), sizeof(uint64_t)); //operación esté destinada a serializar el dato size en un flujo de datos (stream) para su posterior transmisión o almacenamiento.
-	offset += sizeof(uint64_t);
-	memcpy(stream + offset, &(package->type), sizeof(int32_t));
-	offset += sizeof(int32_t);
-	memcpy(stream + offset, package->buffer, package->size);
-	package->type = SERIALIZED;
-	package->size = package_size;
-	free(package->buffer);
-	package->buffer = stream;
-}
-
-
-
-
-
-
-*/
