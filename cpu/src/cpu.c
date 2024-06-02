@@ -56,13 +56,14 @@ int main(int argc, char *argv[]) {
 	pthread_create(&hilo_kernel_interrupt,NULL, (void*)atender_cpu_kernel_interrupt, NULL);
 
 	// Atender los mensajes de MEMORIA
-	pthread_t hilo_memoria;
-	pthread_create(&hilo_memoria, NULL, (void*)atender_cpu_memoria, NULL); //no hacen falta hilos
+	// pthread_t hilo_memoria;
+	// pthread_create(&hilo_memoria, NULL, (void*)atender_cpu_memoria, NULL); //no hacen falta hilos
+	atender_cpu_memoria();
 
 	// Esperar a que los hilos finalicen su ejecucion
 	pthread_join(hilo_kernel_dispatch, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 	pthread_join(hilo_kernel_interrupt, NULL);
-	pthread_join(hilo_memoria, NULL);
+	// pthread_join(hilo_memoria, NULL);
 
 
 	// Finalizar CPU (liberar memoria usada)

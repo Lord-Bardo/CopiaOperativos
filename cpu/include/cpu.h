@@ -29,8 +29,6 @@ t_pcb *pcb;
 void leer_consola(t_log*);
 void paquete(int);
 void terminar_programa();
-void iniciar_ciclo_instruccion(t_pcb;
+void iniciar_ciclo_instruccion(t_pcb);
 
 #endif
-
-
