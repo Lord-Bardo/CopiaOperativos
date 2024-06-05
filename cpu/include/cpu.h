@@ -6,6 +6,7 @@
 #include "cpu_kernel_dispatch.h"
 #include "cpu_kernel_interrupt.h"
 #include "cpu_memoria.h"
+#include "cpu_utils.h"
 
 // VARIABLES GLOBALES
 t_log* cpu_logger;
@@ -30,5 +31,11 @@ void leer_consola(t_log*);
 void paquete(int);
 void terminar_programa();
 void iniciar_ciclo_instruccion(t_pcb);
+<<<<<<< HEAD
+
+#endif
+
+=======
+>>>>>>> 36fe3b811fb22fc0fd4980813174401221e1127b
 
 #endif

@@ -37,7 +37,7 @@ t_handshake recibir_handshake(int socket){
 void enviar_mensaje(char *mensaje, int socket_cliente){ // REVISAR SI ES NECESARIA
 	t_paquete *paquete = malloc(sizeof(t_paquete));
 
-	paquete->codigo_operacion = FETCH;
+	paquete->codigo_operacion = MENSAJE;
 	paquete->buffer = malloc(sizeof(t_buffer));
 	paquete->buffer->size = strlen(mensaje) + 1; // +1 para el \0
 	paquete->buffer->stream = malloc(paquete->buffer->size);
