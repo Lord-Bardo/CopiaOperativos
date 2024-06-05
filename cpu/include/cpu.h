@@ -31,11 +31,5 @@ void leer_consola(t_log*);
 void paquete(int);
 void terminar_programa();
 void iniciar_ciclo_instruccion(t_pcb);
-<<<<<<< HEAD
-
-#endif
-
-=======
->>>>>>> 36fe3b811fb22fc0fd4980813174401221e1127b
 
 #endif

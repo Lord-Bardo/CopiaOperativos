@@ -2,8 +2,6 @@
 #define CPU_UTILS_
 
 #include "cpu_gestor.h"
-<<<<<<< HEAD
-#include "instrucciones.h"
 
 void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion);
 void agregar_pcb_paquete(t_paquete *paquete, t_pcb *pcb);
@@ -23,7 +21,5 @@ bool son_registro_y_num(t_list *argumentos);
 bool between(float valor, float min, float max);
 int obtener_valor_registro(int reg);
 
-=======
->>>>>>> 36fe3b811fb22fc0fd4980813174401221e1127b
 
 #endif
