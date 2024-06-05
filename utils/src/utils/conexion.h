@@ -11,7 +11,7 @@
 #include<assert.h>
 #include<commons/log.h>
 #include<commons/collections/list.h>
-#include "planificadores.h"
+
 typedef enum{
     // KERNEL - MEMORIA
     SOLICITUD_INICIAR_PROCESO,
@@ -47,20 +47,18 @@ typedef struct{
 
 //CLIENTE
 int crear_conexion(char* ip, char* puerto);
+void enviar_handshake(int socket, t_handshake handshake);
+t_handshake recibir_handshake(int socket);
 void enviar_mensaje(char* mensaje, int socket_cliente);
+void crear_buffer(t_paquete *paquete);
 t_paquete* crear_paquete(t_codigo_operacion codigo);
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
-void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion);
-void enviar_paquete(t_paquete* paquete, int socket_cliente);
-void liberar_conexion(int socket_cliente);
 void *serializar_paquete(t_paquete *paquete, int bytes);
-void *deserializar(t_buffer* un_buffer);
+void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void eliminar_paquete(t_paquete* paquete);
+void liberar_conexion(int socket_cliente);
 
 // SERVIDOR
-int servidor(char* puerto);
-void iterator(char* value);
-
 int iniciar_servidor(char* puerto);
 int esperar_cliente(int socket_servidor);
 int recibir_operacion(int socket_cliente);

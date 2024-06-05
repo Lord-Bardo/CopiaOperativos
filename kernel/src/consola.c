@@ -39,7 +39,7 @@ void atender_comando(char *leido){
 	else if( strcmp(comando[0], "FINALIZAR_PROCESO") == 0 ){
 		// FINALIZAR_PROCESO [PID]
 		if( comando[1] ){
-			finalizar_proceso(comando[1]);
+			finalizar_proceso(atoi(comando[1]));
 		}
 		else{
 			log_error(kernel_logger, "Falta el PID para finalizar un proceso");

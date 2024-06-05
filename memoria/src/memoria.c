@@ -3,7 +3,7 @@
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de memoria (loggers y config)
 	inicializar_memoria();
-	atender_memoria_cpu();
+	//atender_memoria_cpu();
 	
 	// Inciar servidor de Memoria
 	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);

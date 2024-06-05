@@ -28,21 +28,28 @@ t_estado *crear_estado(t_nombre_estado nombre_estado){
 }
 
 void eliminar_estado(t_estado *estado){
-    if( list_is_empty(estado->lista_procesos) ){
-        list_destroy(estado->lista_procesos);
+    if( estado != NULL ){
+        if( list_is_empty(estado->lista_procesos) ){
+            list_destroy(estado->lista_procesos);
+        }
+        else{
+            list_destroy_and_destroy_elements(estado->lista_procesos, pcb_destroyer);
+        } 
+        free(estado->lista_procesos);
+
+        pthread_mutex_destroy(estado->mutex_estado);
+        free(estado->mutex_estado);
+
+        sem_destroy(estado->sem_estado);
+        free(estado->sem_estado);
+
+        free(estado);
     }
-    else{
-        list_destroy_and_destroy_elements(estado->lista_procesos);
-    } 
-    free(estado->lista_procesos);
+}
 
-    pthread_mutex_destroy(estado->mutex_estado);
-    free(estado->mutex_estado);
-
-    sem_destroy(estado->sem_estado);
-    free(estado->sem_estado);
-
-    free(estado);
+void pcb_destroyer(void *pcb){
+    t_pcb *temp_pcb = (t_pcb *)pcb;
+    eliminar_pcb(temp_pcb);
 }
 
 t_nombre_estado estado_get_nombre_estado(t_estado *estado){

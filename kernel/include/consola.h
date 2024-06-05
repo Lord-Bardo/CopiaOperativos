@@ -17,7 +17,7 @@ typedef enum{
 } comando;
 
 void iniciar_consola_interactiva(void);
-void atender_instruccion(char* comando);
+void atender_comando(char *leido);
 void ejecutar_script(char* path);
 void proceso_estado(void);
 

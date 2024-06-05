@@ -38,12 +38,13 @@ void inicializar_estructuras_pid(void){
 }
 
 void inicializar_semaforos(){
+    pthread_mutex_init(&mutex_grado_multiprogramacion, NULL);
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
     sem_init(&sem_socket_dispatch, 0, 1);
     pthread_mutex_init(&mutex_socket_memoria, NULL);
 }
 
-// // Mati: Para las siguientes 3 funciones: entiendo que la asignacion es atomica y no requiere uso de semaforo
+// Mati: Para las siguientes 2 funciones: entiendo que la asignacion es atomica y no requiere uso de semaforo
 void iniciar_planificacion(){
     estado_planificacion = ACTIVA;
 }
@@ -52,30 +53,34 @@ void detener_planificacion(){
     estado_planificacion = PAUSADA;
 }
 
-// REVISAR -> El semaforo controla si hay o no espacio y una vez que arranca ya se inicializa,
-// por lo que cambiando GRADO_MULTIPROGRAMACION solo no hacemos nada.
-// IDEA 1: Calcular la diferencia entre el grado anterior y el nuevo. En base a eso hacer la cantidad de post o waits necesarios.
-// IDEA 2: En lugar de un semaforo usar una variable que cuente la cantidad de procesos que hay en el sistema. El problema que le
-//         veo es que no sabria como hacer para que el planificador de largo plazo no entre en espera activa. Porq si usamos una
-//         variable quedaria algo como:
-//         while( estado_planificacion){
-//            if(procesos_activos < GRADO_MULTIPROGRAMACION){
-//               t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-//               estado_encolar_pcb(estado_ready, pcb); 
-//            }
-//         }
-//         Si estado_planificacion esta en ACTIVO va a ser un bucle infinito.
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
+    pthread_mutex_lock(&mutex_grado_multiprogramacion);
+    
+    int diferencia = nuevo_grado_multiprogramacion - GRADO_MULTIPROGRAMACION;
     GRADO_MULTIPROGRAMACION = nuevo_grado_multiprogramacion;
+    
+    if( diferencia > 0 ){
+        for(int i = 0; i < diferencia; i++){
+            sem_post(&sem_grado_multiprogramacion);
+        }
+    }
+    else if( diferencia < 0 ){
+        for (int i = 0; i < -diferencia; i++) {
+            sem_wait(&sem_grado_multiprogramacion);
+        }
+    }
+
+    pthread_mutex_unlock(&mutex_grado_multiprogramacion);
 }
 
+// El manejo de NEW -> READY habria que mandarlo a un hilo aparte
 void planificador_largo_plazo(){
     // Manejar NEW -> READY
-    // while( estado_planificacion ){
-    //     sem_wait(&sem_grado_multiprogramacion);
-    //     t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-    //     estado_encolar_pcb(estado_ready, pcb);
-    // }
+    while( estado_planificacion ){
+        sem_wait(&sem_grado_multiprogramacion);
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+        estado_encolar_pcb(estado_ready, pcb);
+    }
 
     // Manejar ESTADO -> EXIT
 
@@ -111,7 +116,7 @@ t_pcb *elegir_proceso_segun_fifo(){
     return estado_desencolar_primer_pcb(estado_ready);
 }
 
-void proceso_a_exec(pcb){
+void proceso_a_exec(t_pcb *pcb){
     pcb_cambiar_estado_a(pcb, EXEC);
     estado_encolar_pcb(estado_exec, pcb);
 }
@@ -130,11 +135,11 @@ void recibir_contexto_de_ejecucion_actualizado(){
 
 // INICIAR PROCESO
 // Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
-void iniciar_proceso(const char *path){
+void iniciar_proceso(char *path){
     t_pcb *pcb = crear_pcb();
     pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
     estado_encolar_pcb(estado_new, pcb);
-    log_creacion_proceso();
+    log_creacion_proceso(pcb);
 }
 
 void proceso_a_ready(t_pcb *pcb){
@@ -143,18 +148,18 @@ void proceso_a_ready(t_pcb *pcb){
     log_ingreso_ready();
 }
 
-void pedir_a_memoria_iniciar_proceso(int pid, const char *path){
+void pedir_a_memoria_iniciar_proceso(int pid, char *path){
     t_paquete *paquete = crear_paquete(SOLICITUD_INICIAR_PROCESO);
-    agregar_a_paquete(paquete, pid, sizeof(int));
+    agregar_a_paquete(paquete, &pid, sizeof(int));
     agregar_a_paquete(paquete, path, string_length(path)+1); // +1 para contar el '\0'
-    pthread_mutex_lock(mutex_socket_memoria);
+    pthread_mutex_lock(&mutex_socket_memoria);
     enviar_paquete(paquete, fd_memoria);
-    pthread_mutex_unlock(mutex_socket_memoria);
+    pthread_mutex_unlock(&mutex_socket_memoria);
     eliminar_paquete(paquete);
 }
 
 // FINALIZAR PROCESO
-void finalizar_proceso(){ // TERMINAR
+void finalizar_proceso(int pid){ // TERMINAR
     
 
 

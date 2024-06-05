@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	return 0; 
 }
 
-int conectar_a_memoria(){
+void conectar_a_memoria(){
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	enviar_handshake(fd_memoria, HANDSHAKE_KERNEL);
 	if( recibir_handshake(fd_memoria) == HANDSHAKE_OK ){
@@ -66,7 +66,7 @@ int conectar_a_memoria(){
 	}
 }
 
-int aceptar_conexion_entradasalida(){
+void aceptar_conexion_entradasalida(){
 	fd_entradasalida = esperar_cliente(fd_kernel);
 	if( recibir_handshake(fd_entradasalida) == HANDSHAKE_ENTRADASALIDA ){
 		enviar_handshake(fd_entradasalida, HANDSHAKE_OK);
@@ -75,29 +75,6 @@ int aceptar_conexion_entradasalida(){
 	else{
 		enviar_handshake(fd_entradasalida, HANDSHAKE_ERROR);
 	}
-
-
-void paquete(int conexion){
-	char *leido;
-	t_paquete *paquete;
-
-	// Creo el paquete
-	paquete = crear_paquete();
-
-	// Leo y agrego las lineas al paquete
-	leido = readline("> ");
-	while (leido[0] != '\0')
-	{
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		leido = readline("> ");
-	}
-
-	// Envio el paquete
-	enviar_paquete(paquete, conexion);
-
-	// Libero las lineas y el paquete
-	free(leido);
-	eliminar_paquete(paquete);
 }
 
 void terminar_programa(){

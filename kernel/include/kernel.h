@@ -7,6 +7,7 @@
 #include "kernel_memoria.h"
 #include "kernel_cpu_dispatch.h"
 #include "kernel_planificadores.h"
+#include "consola.h"
 
 // VARIABLES GLOBALES
 t_log* kernel_logger;
@@ -32,8 +33,8 @@ int fd_cpu_dispatch;
 int fd_cpu_interrupt;
 
 // FUNCIONES
-void leer_consola(t_log*);
-void paquete(int);
+void conectar_a_memoria(void);
+void aceptar_conexion_entradasalida(void);
 void terminar_programa();
 
 #endif
