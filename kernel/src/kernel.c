@@ -8,17 +8,19 @@ int main(int argc, char* argv[]) {
 	iniciar_planificadores();
 
 	// Conexion con MEMORIA
-	conectar_a_memoria();
+	fd_memoria = conectar_a_memoria();
 	// fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	// log_info(kernel_logger, "Conexion con MEMORIA establecida!");
 
 	// Conexion con CPU - DISPATCH
-	fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
-	log_info(kernel_logger, "Conexion con CPU DISPATCH establecida!");
+	conectar_a_cpu_dispatch();
+	// fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
+	// log_info(kernel_logger, "Conexion cSon CPU DISPATCH establecida!");
 
 	// Conexion con CPU - INTERRUPT
-	fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
-	log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
+	conectar_a_cpu_interrupt();
+	// fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
+	// log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
 
 	// Iniciar servidor de KERNEL
 	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
@@ -63,6 +65,28 @@ void conectar_a_memoria(){
 	}
 	else{
 		log_info(kernel_logger, "No se pudo establcer conexion con MEMORIA!");
+	}
+}
+
+void conectar_a_cpu_interrupt(){
+	fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
+	enviar_handshake(fd_cpu_interrupt, HANDSHAKE_KERNEL);
+	if( recibir_handshake(fd_cpu_interrupt) == HANDSHAKE_OK ){
+		log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
+	}
+	else{
+		log_info(kernel_logger, "No se pudo establcer conexion con CPU INTERRUPT!");
+	}
+}
+
+void conectar_a_cpu_dispatch(){
+	fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
+	enviar_handshake(fd_cpu_dispatch, HANDSHAKE_KERNEL);
+	if( recibir_handshake(fd_cpu_dispatch) == HANDSHAKE_OK ){
+		log_info(kernel_logger, "Conexion con CPU DISPATCH establecida!");
+	}
+	else{
+		log_info(kernel_logger, "No se pudo establcer conexion con CPU DISPATCH!");
 	}
 }
 

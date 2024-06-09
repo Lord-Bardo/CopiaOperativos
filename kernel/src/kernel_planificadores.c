@@ -76,14 +76,56 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
 // El manejo de NEW -> READY habria que mandarlo a un hilo aparte
 void planificador_largo_plazo(){
     // Manejar NEW -> READY
-    while( estado_planificacion ){
-        sem_wait(&sem_grado_multiprogramacion);
-        t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-        estado_encolar_pcb(estado_ready, pcb);
-    }
+    pthread_t hilo_new_ready;
+    pthread_create(&hilo_new_ready, NULL, (void *)manejador_new_ready, NULL);
+    pthread_detach(hilo_new_ready);
 
     // Manejar ESTADO -> EXIT
+    // Estas funciones se podrían unir en una sola y hacer un for, pero capaz queda mas simple hacer estas 4 funciones y listo
+    manejador_new_exit();
+    manejador_ready_exit();
+    manejador_exec_exit();
+    manejador_blocked_exit();
+}
 
+void manejador_new_ready() {
+    while (estado_planificacion) {
+        sem_wait(&sem_grado_multiprogramacion);
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+        proceso_a_ready(pcb);
+    }
+}
+
+void manejador_new_exit() {
+    while (estado_planificacion) {
+        sem_wait(estado_get_sem(estado_new)); 
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+        proceso_a_exit(pcb);
+    }
+}
+
+void manejador_ready_exit() {
+    while (estado_planificacion) {
+        sem_wait(estado_get_sem(estado_ready));
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_ready);
+        proceso_a_exit(pcb);
+    }
+}
+
+void manejador_exec_exit() {
+    while (estado_planificacion) {
+        sem_wait(estado_get_sem(estado_exec));
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_exec);
+        proceso_a_exit(pcb);
+    }
+}
+
+void manejador_blocked_exit() {
+    while (estado_planificacion) {
+        sem_wait(estado_get_sem(estado_blocked));
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_blocked);
+        proceso_a_exit(pcb);
+    }
 }
 
 void planificador_corto_plazo(){    
@@ -112,6 +154,8 @@ void planificador_corto_plazo_fifo(){
     }
 }
 
+// TODO: corto plazo RR y VRR
+
 t_pcb *elegir_proceso_segun_fifo(){
     return estado_desencolar_primer_pcb(estado_ready);
 }
@@ -121,10 +165,12 @@ void proceso_a_exec(t_pcb *pcb){
     estado_encolar_pcb(estado_exec, pcb);
 }
 
+// TODO
 void enviar_contexto_de_ejecucion(){
     // Manda a CPU el contexto de la ejecucion por el Dispatch
 }
 
+// TODO
 void recibir_contexto_de_ejecucion_actualizado(){
     // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
     // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
@@ -148,6 +194,13 @@ void proceso_a_ready(t_pcb *pcb){
     log_ingreso_ready();
 }
 
+void proceso_a_exit(t_pcb *pcb) {
+    pcb_cambiar_estado_a(pcb, EXIT);
+    estado_encolar_pcb(estado_exit, pcb);
+    finalizar_proceso(pcb_get_pid(pcb)); // Lucho: Todavia no está hecha
+    log_salida_exit(pcb_get_pid(pcb)); // Lucho: Cómo logeamos el motivo? - completar la función de log
+}
+
 void pedir_a_memoria_iniciar_proceso(int pid, char *path){
     t_paquete *paquete = crear_paquete(SOLICITUD_INICIAR_PROCESO);
     agregar_a_paquete(paquete, &pid, sizeof(int));
@@ -161,7 +214,7 @@ void pedir_a_memoria_iniciar_proceso(int pid, char *path){
 // FINALIZAR PROCESO
 void finalizar_proceso(int pid){ // TERMINAR
     
-
+    // Se deberia liberar la memoria asignada al proceso
 
     sem_post(&sem_grado_multiprogramacion);
 }

@@ -43,6 +43,11 @@ void log_ingreso_ready(){
     log_info(kernel_logger_min_y_obl, "Cola Ready READY: %s:", lista_pids_string(estado_ready)); // Mati: No se que poner en <COLA> -> Lo cambiamos por READY pero sigue la duda
 }
 
+// Finaliza el proceso <PID> - Motivo: <SUCCESS / INVALID_RESOURCE / INVALID_INTERFACE / OUT_OF_MEMORY / INTERRUPTED_BY_USER>
+void log_salida_exit(int pid){
+    log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d:" , pid , "- Motivo:", /* Acá iria el motivo en una variable (?) */); // Lucho: Completar
+}
+
 char *lista_pids_string(t_estado *estado){
     t_list *lista_pids = list_map(estado_get_lista_procesos(estado), pcb_get_pid_transformer);
 
