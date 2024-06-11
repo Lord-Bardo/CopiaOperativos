@@ -1,5 +1,7 @@
 #include "../include/cpu.h"
 
+t_p
+
 int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
 	inicializar_cpu();
