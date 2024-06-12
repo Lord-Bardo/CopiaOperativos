@@ -1,5 +1,7 @@
 #include "../include/kernel_utils.h"
 
+// LOGS OBLIGATORIOS ------------------------------------------------------------------
+
 void log_creacion_proceso(t_pcb *pcb){
     log_info(kernel_logger_min_y_obl, "Se crea el proceso %d en NEW", pcb_get_pid(pcb));
 }
@@ -77,7 +79,7 @@ char *lista_pids_string(t_estado *estado){
     return lista_pids_string;
 }
 
-void *pcb_get_pid_transformer(void* pcb) {
+void *pcb_get_pid_transformer(void* pcb){
     t_pcb *temp_pcb = (t_pcb*) pcb;
     int *pid = malloc(sizeof(int));
     if( pid == NULL ){
@@ -91,4 +93,52 @@ void *pcb_get_pid_transformer(void* pcb) {
 
 void pid_destroyer(void *pid){
     free(pid);
+}
+
+// MANEJO PAQUETE ------------------------------------------------------------------
+
+// Se podria generalizar a agregar_int_a_paquete(), pero me parecio mas representativo esto (pueden estar las dos de todas formas)
+void agregar_pid_a_paquete(t_paquete *paquete, int pid){
+    agregar_a_paquete(paquete, &pid, sizeof(pid));
+}
+
+void agregar_quantum_a_paquete(t_paquete *paquete, int quantum){
+    agregar_a_paquete(paquete, &quantum, sizeof(quantum));
+}
+
+void agregar_estado_a_paquete(t_paquete *paquete, t_nombre_estado estado){
+    agregar_a_paquete(paquete, &estado, sizeof(estado));
+}
+
+void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
+    agregar_a_paquete(paquete, &n, sizeof(uint32_t));
+}
+
+void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){
+    agregar_a_paquete(paquete, &n, sizeof(uint8_t));
+}
+
+void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros){
+    agregar_uint32_a_paquete(paquete, registros.PC);
+    agregar_uint8_a_paquete(paquete, registros.AX);
+    agregar_uint8_a_paquete(paquete, registros.BX);
+    agregar_uint8_a_paquete(paquete, registros.CX);
+    agregar_uint8_a_paquete(paquete, registros.DX);
+    agregar_uint32_a_paquete(paquete, registros.EAX);
+    agregar_uint32_a_paquete(paquete, registros.EBX);
+    agregar_uint32_a_paquete(paquete, registros.ECX);
+    agregar_uint32_a_paquete(paquete, registros.EDX);
+    agregar_uint32_a_paquete(paquete, registros.SI);
+    agregar_uint32_a_paquete(paquete, registros.DI);
+}
+
+void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb){
+    agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
+    agregar_quantum_a_paquete(paquete, pcb_get_quantum(pcb));
+    agregar_estado_a_paquete(paquete, pcb_get_estado(pcb));
+    agregar_registros_a_paquete(paquete, pcb_get_registros(pcb));
+}
+
+void agregar_string_a_paquete(t_paquete *paquete, char *string){
+    agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
 }

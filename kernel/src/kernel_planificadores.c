@@ -149,7 +149,7 @@ void planificador_corto_plazo_fifo(){
         // sem_wait(&sem_socket_dispatch); // Espera a que no hay ningun proceso ejecutando.
         t_pcb *pcb = elegir_proceso_segun_fifo();
         proceso_a_exec(pcb);
-        enviar_contexto_de_ejecucion();
+        enviar_contexto_de_ejecucion(pcb);
         recibir_contexto_de_ejecucion_actualizado(); // Si es bloqueante no deberia ser necesario usar el semaforo
     }
 }
@@ -165,9 +165,14 @@ void proceso_a_exec(t_pcb *pcb){
     estado_encolar_pcb(estado_exec, pcb);
 }
 
-// TODO
-void enviar_contexto_de_ejecucion(){
+void enviar_contexto_de_ejecucion(t_pcb *pcb){
     // Manda a CPU el contexto de la ejecucion por el Dispatch
+    t_paquete *paquete_contexto_de_ejecucion = crear_paquete(CONTEXTO_DE_EJECUCION);
+    agregar_pcb_a_paquete(paquete_contexto_de_ejecucion, pcb);
+    pthread_mutex_lock(&mutex_socket_memoria);
+    enviar_paquete(paquete_contexto_de_ejecucion, fd_memoria);
+    pthread_mutex_unlock(&mutex_socket_memoria);
+    eliminar_paquete(paquete_contexto_de_ejecucion);
 }
 
 // TODO
@@ -179,11 +184,17 @@ void recibir_contexto_de_ejecucion_actualizado(){
     // Si no se bloqueo entonces se lo encola en BLOCKED
 }
 
-// INICIAR PROCESO
 // Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
 void iniciar_proceso(char *path){
     t_pcb *pcb = crear_pcb();
     pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
+    // Mati: 2 opciones:
+    // 1: Meter el path en el PCB y que la peticion a memoria la haga el planificador de largo una vez q puede meter al proceso en Ready.
+    //    No me cierra que el PCB tenga el path, ni me cierra que el planificador de largo intente meter a ready un proceso cuyas estructuras
+    //    de memoria todavia no estan creadas (de igual forma podria tirar un error y reencolarlo al final de new, pasando a intentar meter el siguiente proceso en cola)
+    // 2: Hacer la comprobacion de que hay memoria suficiente aca. Si no hay disponible se deberia tirar un error de q no se pudo iniciar
+    //    el proceso. El problema es que no se podria volver a intentar, una vez q lo reboto ya esta.
+    // Extra: recien me di cuenta que lo va a manejar kernel_memoria() esto, pero igual habria que definir en que momento se lo pedimos 
     estado_encolar_pcb(estado_new, pcb);
     log_creacion_proceso(pcb);
 }
@@ -202,19 +213,18 @@ void proceso_a_exit(t_pcb *pcb) {
 }
 
 void pedir_a_memoria_iniciar_proceso(int pid, char *path){
-    t_paquete *paquete = crear_paquete(SOLICITUD_INICIAR_PROCESO);
-    agregar_a_paquete(paquete, &pid, sizeof(int));
-    agregar_a_paquete(paquete, path, string_length(path)+1); // +1 para contar el '\0'
+    t_paquete *paquete_solicitud_iniciar_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
+    agregar_pid_a_paquete(paquete_solicitud_iniciar_proceso, pid);
+    agregar_string_a_paquete(paquete_solicitud_iniciar_proceso, path);
     pthread_mutex_lock(&mutex_socket_memoria);
-    enviar_paquete(paquete, fd_memoria);
+    enviar_paquete(paquete_solicitud_iniciar_proceso, fd_memoria);
     pthread_mutex_unlock(&mutex_socket_memoria);
-    eliminar_paquete(paquete);
+    eliminar_paquete(paquete_solicitud_iniciar_proceso);
 }
 
-// FINALIZAR PROCESO
 void finalizar_proceso(int pid){ // TERMINAR
-    
     // Se deberia liberar la memoria asignada al proceso
+
 
     sem_post(&sem_grado_multiprogramacion);
 }

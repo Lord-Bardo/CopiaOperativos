@@ -40,12 +40,20 @@ void eliminar_pcb(t_pcb *pcb){
     }
 }
 
+int pcb_get_pid(t_pcb *pcb){
+    return pcb->PID;
+}
+
+int pcb_get_quantum(t_pcb *pcb){
+    return pcb->quantum;
+}
+
 t_nombre_estado pcb_get_estado(t_pcb *pcb){
     return pcb->estado;
 }
 
-int pcb_get_pid(t_pcb *pcb){
-    return pcb->PID;
+t_registros pcb_get_registros(t_pcb *pcb){
+    return pcb->registros;
 }
 
 void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado){

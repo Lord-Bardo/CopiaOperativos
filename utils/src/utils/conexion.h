@@ -15,6 +15,9 @@
 typedef enum{
     // KERNEL - MEMORIA
     SOLICITUD_INICIAR_PROCESO,
+    OUT_OF_MEMORY,
+    // KERNEL - CPU
+    CONTEXTO_DE_EJECUCION,
     // CPU
     MENSAJE,
     PAQUETE,
