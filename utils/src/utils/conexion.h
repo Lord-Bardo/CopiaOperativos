@@ -78,5 +78,8 @@ void enviar_paquete(t_paquete* paquete, int socket_cliente);
 void recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion);
 void recibir_buffer(int socket, t_buffer *buffer);
 void recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer *buffer);
+// Desempaquetar Buffer
+void buffer_actualizar(t_buffer *buffer, int bytes);
+void buffer_desempaquetar(t_buffer *buffer, void *destino);
 
 #endif

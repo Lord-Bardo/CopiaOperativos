@@ -195,22 +195,27 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){
     t_codigo_operacion motivo_desalojo;
     t_buffer *buffer = crear_buffer();
     pthread_mutex_lock(&mutex_socket_dispatch);
-    
+    recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
     pthread_mutex_unlock(&mutex_socket_dispatch);
 
-    recibir_pcb(fd_cpu_dispatch, pcb); // Modifica al pcb con lo que recibe -> asi no es necesario crear otro pcb
+    buffer_desempaquetar_pcb(buffer, pcb); // Modifica al pcb con lo que recibe -> asi no es necesario crear otro pcb
 
     switch(motivo_desalojo){
         case :
     }
+
+    eliminar_buffer(buffer);
 }
 
+void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // TERMINAR
+    int pid_recibido;
+    buffer_desempaquetar(buffer, &pid_recibido);
 
-void recibir_pcb(int socket, t_pcb* pcb){
-    if( recibir_pid(socket) != pcb_get_pid(pcb) ){
+    if( pid_recibido != pcb_get_pid(pcb) ){
         log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
     }
     // Mati: el quantum entiendo que cpu no lo modifica asi q deberia estar igual. Lo q no se es en que momento deberiamos modificarlo
+    
     pcb_set_registros(recibir_registros(socket));
 }
 

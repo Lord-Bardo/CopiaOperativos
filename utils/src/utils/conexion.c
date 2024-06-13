@@ -189,6 +189,46 @@ void recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer 
     recibir_buffer(socket, buffer);
 }
 
+// Desempaquetar Buffer
+void buffer_actualizar(t_buffer *buffer, int bytes){
+    // Actualizo el tamaño del buffer
+    buffer->size -= bytes;
+
+    // Muevo todo el contenido del stream posterior a los bytes leidos al principio del stream
+    // Por si no se entendio: stream = "4como5estas". Suponiendo que lo ultimo leido fue el 4 => me copio al principio del stream "como5estas", lo cual esta en la posicion stream + los bytes leidos (que en este caso seria el int)
+    memmove(buffer->stream, buffer->stream + bytes, buffer->size); // Uso memmove porq es mas seguro q memcpy cuando hay que solapar memoria
+
+    // Redimensiono el tamaño de memoria asignado al stream del buffer
+    void *new_stream = realloc(buffer->stream, buffer->size);
+    if( new_stream == NULL ){
+        perror("Error al redimensionar el buffer");
+        free(buffer->stream);
+        return;
+    }
+    buffer->stream = new_stream;
+}
+
+void buffer_desempaquetar(t_buffer *buffer, void *destino){
+    // Chequeo que el buffer tenga contenido para desempaquetar
+    if( buffer->stream == NULL || buffer->size == 0 ){
+        perror("Error al desempaquetar el buffer - No hay contenido a desempaquetar");
+        return;
+    }
+    
+    // Desempaqueto el tamaño del siguiente contenido
+    int bytes;
+    memcpy(&bytes, buffer->stream, sizeof(int));
+    buffer_actualizar(buffer, sizeof(int));
+    
+    destino = malloc(bytes);
+    if( destino == NULL){
+        perror("Error al asignar memoria para el contenido del buffer");
+        return;
+    }
+    memcpy(destino, buffer->stream, bytes);
+    buffer_actualizar(buffer, bytes);
+}
+
 
 
 // void crear_buffer(t_paquete *paquete){
