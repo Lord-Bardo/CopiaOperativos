@@ -16,8 +16,12 @@ typedef enum{
     // KERNEL - MEMORIA
     SOLICITUD_INICIAR_PROCESO,
     OUT_OF_MEMORY,
-    // KERNEL - CPU
+    // KERNEL - CPU DISPATCH
     CONTEXTO_DE_EJECUCION,
+    // Motivos desalojo
+    FINALIZACION,
+    SYSCALL,
+    INTERRUPCION,
     // CPU
     MENSAJE,
     PAQUETE,
@@ -64,7 +68,7 @@ void liberar_conexion(int socket_cliente);
 // SERVIDOR
 int iniciar_servidor(char* puerto);
 int esperar_cliente(int socket_servidor);
-int recibir_operacion(int socket_cliente);
+t_codigo_operacion recibir_codigo_operacion(int socket_cliente);
 void* recibir_buffer(int* size, int socket_cliente);
 void recibir_mensaje(int socket_cliente);
 t_list* recibir_paquete(int);

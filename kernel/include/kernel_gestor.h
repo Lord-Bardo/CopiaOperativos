@@ -60,12 +60,6 @@ typedef enum{
     ACTIVA = 1
 } t_estado_planificacion;
 
-typedef enum{
-    FINALIZACION,
-    SYSCALL,
-    INTERRUPCION
-} motivo_desalojo;
-
 // VARIABLES GLOBALES
 // Loggers y Config
 extern t_log* kernel_logger;
@@ -110,7 +104,8 @@ extern pthread_mutex_t mutex_pid;
 // Semaforos
 extern pthread_mutex_t mutex_grado_multiprogramacion;
 extern sem_t sem_grado_multiprogramacion;
-extern sem_t sem_socket_dispatch;
+extern sem_t sem_cpu_disponible;
+extern pthread_mutex_t mutex_socket_dispatch;
 extern pthread_mutex_t mutex_socket_memoria;
 
 #endif

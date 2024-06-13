@@ -25,7 +25,8 @@ pthread_mutex_t mutex_pid;
 // Semaforos
 pthread_mutex_t mutex_grado_multiprogramacion;
 sem_t sem_grado_multiprogramacion;
-sem_t sem_socket_dispatch;
+sem_t sem_cpu_disponible;
+pthread_mutex_t mutex_socket_dispatch;
 pthread_mutex_t mutex_socket_memoria;
 
 // FUNCIONES

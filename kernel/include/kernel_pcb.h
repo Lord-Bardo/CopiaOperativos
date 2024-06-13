@@ -7,7 +7,7 @@
 #include "kernel_estados.h"
 
 // FUNCIONES
-t_pcb *crear_pcb(void);
+t_pcb *crear_pcb(int pid);
 int generar_pid(void);
 void eliminar_pcb(t_pcb *pcb);
 int pcb_get_pid(t_pcb *pcb);

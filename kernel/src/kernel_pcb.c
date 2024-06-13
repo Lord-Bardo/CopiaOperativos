@@ -1,13 +1,13 @@
 #include "../include/kernel_pcb.h"
 
-t_pcb *crear_pcb(){
+t_pcb *crear_pcb(int pid){
     t_pcb *pcb = malloc(sizeof(t_pcb));
     if( pcb == NULL ){
         log_error(kernel_logger, "Error al asignar memoria para el PCB");
         return NULL;
     }
 
-    pcb->PID = generar_pid();
+    pcb->PID = pid;
     pcb->estado = NEW;
     pcb->quantum = QUANTUM;
     pcb->registros.PC = 0;
