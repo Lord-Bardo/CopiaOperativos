@@ -52,25 +52,31 @@ typedef struct{
 } t_paquete;
 
 
-//CLIENTE
+// CONEXION
+// Cliente
 int crear_conexion(char* ip, char* puerto);
+// Servidor
+int iniciar_servidor(char* puerto);
+int esperar_cliente(int socket_servidor);
+// Cliente y Servidor
+void liberar_conexion(int socket);
+// Handshake
 void enviar_handshake(int socket, t_handshake handshake);
 t_handshake recibir_handshake(int socket);
-void enviar_mensaje(char* mensaje, int socket_cliente);
-void crear_buffer(t_paquete *paquete);
+
+// PAQUETE Y BUFFER
+// Crear y Eliminar
+t_buffer *crear_buffer(void);
+void eliminar_buffer(t_buffer *buffer);
 t_paquete* crear_paquete(t_codigo_operacion codigo);
+void eliminar_paquete(t_paquete *paquete);
+// Enviar
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void *serializar_paquete(t_paquete *paquete, int bytes);
 void enviar_paquete(t_paquete* paquete, int socket_cliente);
-void eliminar_paquete(t_paquete* paquete);
-void liberar_conexion(int socket_cliente);
-
-// SERVIDOR
-int iniciar_servidor(char* puerto);
-int esperar_cliente(int socket_servidor);
-t_codigo_operacion recibir_codigo_operacion(int socket_cliente);
-void* recibir_buffer(int* size, int socket_cliente);
-void recibir_mensaje(int socket_cliente);
-t_list* recibir_paquete(int);
+// Recibir
+void recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion);
+void recibir_buffer(int socket, t_buffer *buffer);
+void recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer *buffer);
 
 #endif

@@ -78,27 +78,45 @@ t_handshake recibir_handshake(int socket){
 // PAQUETE Y BUFFER -----------------------------------------------------------------------------
 // Crear y Eliminar
 t_buffer *crear_buffer(){
-	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = 0;
-	buffer->stream = NULL;
+    t_buffer *buffer = malloc(sizeof(t_buffer));
+    if( buffer == NULL ){
+        perror("Error al asignar memoria al buffer");
+        return NULL;
+    }
+    buffer->size = 0;
+    buffer->stream = NULL;
+
     return buffer;
+}
+
+void eliminar_buffer(t_buffer *buffer){
+	if( buffer != NULL ){
+        free(buffer->stream);
+        free(buffer);
+    }
 }
 
 t_paquete *crear_paquete(t_codigo_operacion codigo){
 	t_paquete *paquete = malloc(sizeof(t_paquete));
+    if( paquete == NULL ){
+        perror("Error al asignar memoria al paquete");
+        return NULL;
+    }
 	paquete->codigo_operacion = codigo;
 	paquete->buffer = crear_buffer();
+	if( paquete->buffer == NULL ){
+        free(paquete);
+        return NULL;
+    }
+
 	return paquete;
 }
 
-void eliminar_buffer(t_buffer *buffer){
-	free(buffer->stream);
-	free(buffer);
-}
-
 void eliminar_paquete(t_paquete *paquete){
-	eliminar_buffer(paquete->buffer);
-	free(paquete);
+	if( paquete != NULL ){
+        eliminar_buffer(paquete->buffer);
+        free(paquete);
+    }
 }
 
 // Enviar
@@ -139,7 +157,7 @@ void enviar_paquete(t_paquete *paquete, int socket_cliente){
 // Recibir
 void recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion){
     if( recv(socket, &codigo_operacion, sizeof(t_codigo_operacion), MSG_WAITALL) != sizeof(t_codigo_operacion) ){
-        log_error(kernel_logger, "Error al recibir el codigo de operacion");
+        perror("Error al recibir el codigo de operacion");
         return;
     }
 }
@@ -147,21 +165,21 @@ void recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion){
 void recibir_buffer(int socket, t_buffer *buffer){
     // Recibo el tamaño
     if( recv(socket, &(buffer->size), sizeof(int), MSG_WAITALL) != sizeof(int) ){
-        log_error(kernel_logger, "Error al recibir el tamaño del buffer");
+        perror("Error al recibir el tamaño del buffer");
         return;
     }
 
     // Redimensiono el tamaño del buffer
     void* new_stream = realloc(buffer->stream, buffer->size);
     if( new_stream == NULL ){
-        log_error(kernel_logger, "Error al redimensionar el buffer");
+        perror("Error al redimensionar el buffer");
         return;
     }
     buffer->stream = new_stream;
 
     // Recibo el contenido
     if( recv(socket, buffer->stream, buffer->size, MSG_WAITALL) != buffer->size ){
-        log_error(kernel_logger, "Error al recibir el contenido del buffer");
+        perror("Error al recibir el contenido del buffer");
         return;
     }
 }
