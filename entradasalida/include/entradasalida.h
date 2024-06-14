@@ -24,8 +24,8 @@ int fd_kernel;
 int fd_memoria;
 
 //FUNCIONES
-void leer_consola(t_log*);
-void paquete(int);
+void conectar_a_kernel();
+void conectar_a_memoria();
 void terminar_programa();
 
 #endif

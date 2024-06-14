@@ -5,20 +5,20 @@ int main(int argc, char* argv[]) {
 	inicializar_entradasalida();
 
 	//Conexion con KERNEL
-	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
-	log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
+	conectar_a_kernel();
 
 	// Conexion con MEMORIA
-	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
-	log_info(entradasalida_logger, "Conexion con MEMORIA establecida!");
+	conectar_a_memoria();
 
-	//tengo que meter aca lo de los hilos
+	// Atender los mensajes de Memoria
 	pthread_t hilo_memoria;
 	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_memoria,NULL);
 
+	// Atender los mensajes de Kernel
 	pthread_t hilo_kernel;
-	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_kernel, NULL);
+	pthread_create(&hilo_kernel, NULL, (void*)atender_entradasalida_kernel, NULL);
 
+	// Espera a que los hilos finalicen su ejecución
 	pthread_join(hilo_kernel, NULL);
 	pthread_join(hilo_memoria, NULL);
 
@@ -27,49 +27,29 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+
+void conectar_a_kernel(){
+	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
+	enviar_handshake(fd_kernel, HANDSHAKE_ENTRADASALIDA);
+	if( recibir_handshake(fd_kernel) == HANDSHAKE_OK ){
+		log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
+	}
+	else{
+		log_info(entradasalida_logger, "No se pudo establecer conexion con KERNEL!");
+	}
+}
+
+void conectar_a_memoria(){
+	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
+	enviar_handshake(fd_memoria, HANDSHAKE_ENTRADASALIDA);
+	if( recibir_handshake(fd_memoria) == HANDSHAKE_OK ){
+		log_info(entradasalida_logger, "Conexion con MEMORIA establecida!");
+	}
+	else{
+		log_info(entradasalida_logger, "No se pudo establecer conexion con MEMORIA!");
+	}
+}
     
-void leer_consola(t_log *logger)
-{
-	char *leido;
-
-	// Leo la primer linea
-	leido = readline("> ");
-
-	// El resto, las voy leyendo y logueando hasta recibir un string vacío
-	while (leido[0] != '\0')
-	{
-		log_info(logger, "%s", leido);
-		leido = readline("> ");
-	}
-
-	// Libero las lineas
-	free(leido);
-}
-
-void paquete(int conexion)
-{
-	char *leido;
-	t_paquete *paquete;
-
-	// Creo el paquete
-	paquete = crear_paquete();
-
-	// Leo y agrego las lineas al paquete
-	leido = readline("> ");
-	while (leido[0] != '\0')
-	{
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		leido = readline("> ");
-	}
-
-	// Envio el paquete
-	enviar_paquete(paquete, conexion);
-
-	// Libero las lineas y el paquete
-	free(leido);
-	eliminar_paquete(paquete);
-}
-
 void terminar_programa(){
 	if(entradasalida_logger != NULL){
 		log_destroy(entradasalida_logger);

@@ -13,9 +13,12 @@ void iniciar_logger(){
 		exit(1);
 	}
 
-    // Se podrian iniciar todos los loggers que vayamos a usar en entradasalida aca
-    // Por ejemplo, se podria crear un logger exclusivo para los logs obligatorios (podria ser el entradasalida_logger directamente), otro para debuggear (de LOG_LEVEL_TRACE), etc.
-    // ...
+    // Creo el entradasalida_logger_min_y_obl
+    entradasalida_logger_min_y_obl = log_create("entradasalida_min_y_obl.log", "ENTRADASALIDA", 1, LOG_LEVEL_INFO);
+	if(entradasalida_logger_min_y_obl == NULL){
+		perror("No se pudo crear el logger.");
+		exit(1);
+	}
 }
 
 void iniciar_config(){
@@ -37,3 +40,14 @@ void iniciar_config(){
     BLOCK_SIZE = config_get_int_value (entradasalida_config, "BLOCK_SIZE");
     BLOCK_COUNT = config_get_int_value (entradasalida_config, "BLOCK_COUNT");
 }
+
+// Logs obligatorios
+/* Todos - Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>"
+DialFS - Crear Archivo: "PID: <PID> - Crear Archivo: <NOMBRE_ARCHIVO>"
+DialFS - Eliminar Archivo: "PID: <PID> - Eliminar Archivo: <NOMBRE_ARCHIVO>"
+DialFS - Truncar Archivo: "PID: <PID> - Truncar Archivo: <NOMBRE_ARCHIVO> - Tamaño: <TAMAÑO>"
+DialFS - Leer Archivo: "PID: <PID> - Leer Archivo: <NOMBRE_ARCHIVO> - Tamaño a Leer: <TAMAÑO> - Puntero Archivo: <PUNTERO_ARCHIVO>"
+DialFS - Escribir Archivo: "PID: <PID> - Escribir Archivo: <NOMBRE_ARCHIVO> - Tamaño a Escribir: <TAMAÑO> - Puntero Archivo: <PUNTERO_ARCHIVO>"
+DialFS - Inicio Compactación: "PID: <PID> - Inicio Compactación."
+DialFS - Fin Compactación: "PID: <PID> - Fin Compactación."
+ */
