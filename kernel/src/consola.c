@@ -4,7 +4,7 @@ void iniciar_consola_interactiva(){
 	char *leido;
 	leido = readline("> ");
 
-	while (leido[0] != '\0'){
+	while( leido[0] != '\0' ){
 		atender_comando(leido);
 
 		leido = readline("> ");

@@ -63,8 +63,8 @@ void inicializar_estructuras_pid(void){
 void inicializar_semaforos(){
     pthread_mutex_init(&mutex_grado_multiprogramacion, NULL);
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
-    sem_init(&sem_cpu_disponible, 0, 1);
-    pthread_mutex_init(&mutex_socket_dispatch, NULL);
+    sem_init(&sem_cpu_disponible, 0, 1); // CREO Q NO ES NECESARIO, RECIBIR_CONTEXTO ESPERA A Q TERMINE EL Q ESTA EJECUTANDO
+    pthread_mutex_init(&mutex_socket_dispatch, NULL); // CREO Q NO ES NECESARIO, NO ES POSIBLE QUE SE USE A LA VEZ
     pthread_mutex_init(&mutex_socket_memoria, NULL);
 }
 
@@ -99,10 +99,10 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
 
 // El manejo de NEW -> READY habria que mandarlo a un hilo aparte
 void planificador_largo_plazo(){
-    // // Manejar NEW -> READY
-    // pthread_t hilo_new_ready;
-    // pthread_create(&hilo_new_ready, NULL, (void *)manejador_new_ready, NULL);
-    // pthread_detach(hilo_new_ready);
+    // Manejar NEW -> READY
+    pthread_t hilo_new_ready;
+    pthread_create(&hilo_new_ready, NULL, (void *)planificador_largo_plazo_new_ready, NULL);
+    pthread_detach(hilo_new_ready);
 
     // // Manejar ESTADO -> EXIT
     // // Estas funciones se podrían unir en una sola y hacer un for, pero capaz queda mas simple hacer estas 4 funciones y listo
@@ -112,13 +112,22 @@ void planificador_largo_plazo(){
     // manejador_blocked_exit();
 }
 
-// void manejador_new_ready() {
-//     while (estado_planificacion) {
-//         sem_wait(&sem_grado_multiprogramacion);
-//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-//         proceso_a_ready(pcb);
-//     }
-// }
+void planificador_largo_plazo_new_ready(){
+    while( estado_planificacion ){
+        sem_wait(&sem_grado_multiprogramacion);
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
+        // Mati: 2 opciones:
+        // 1: Meter el path en el PCB y que la peticion a memoria la haga el planificador de largo una vez q puede meter al proceso en Ready.
+        //    No me cierra que el PCB tenga el path, ni me cierra que el planificador de largo intente meter a ready un proceso cuyas estructuras
+        //    de memoria todavia no estan creadas (de igual forma podria tirar un error y reencolarlo al final de new, pasando a intentar meter el siguiente proceso en cola)
+        // 2: Hacer la comprobacion de que hay memoria suficiente aca. Si no hay disponible se deberia tirar un error de q no se pudo iniciar
+        //    el proceso. El problema es que no se podria volver a intentar, una vez q lo reboto ya esta.
+        // Extra: recien me di cuenta que lo va a manejar kernel_memoria() esto, pero igual habria que definir en que momento se lo pedimos 
+        // Creo q lo mejor es que esto lo haga el plani de largo plazo y una vez que recibe la confirmacion pasa al proceso a ready (obvio si hay lugar)
+        proceso_a_ready(pcb);
+    }
+}
 
 // void manejador_new_exit() {
 //     while (estado_planificacion) {
@@ -171,11 +180,11 @@ void planificador_corto_plazo(){
 void planificador_corto_plazo_fifo(){
     while( estado_planificacion ){
         // sem_wait(&sem_cpu_disponible); // Espera a que no haya ningun proceso ejecutando. (deberiamos hacer el post cuando cpu nos devuelve el pcb actualizado)
+        // Si recibir_contexto es bloqueante no deberia ser necesario usar el semaforo
         t_pcb *pcb = elegir_proceso_segun_fifo();
         proceso_a_exec(pcb);
         enviar_contexto_de_ejecucion(pcb);
         recibir_contexto_de_ejecucion_actualizado(pcb); // Modifica directo al pcb con lo que recibe 
-        // Si es bloqueante no deberia ser necesario usar el semaforo
         // Tal vez kernel_cpu_dispatch.c no es necesario, porq conviene manejarlo aca el recibir este mensaje
     }
 }
@@ -210,50 +219,61 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb){
 
 // TODO
 void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){
-    // // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
-    // // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
-    // // En cualquier caso se lo debe desencolar de EXEC
-    // // Si puede seguir ejecutando se lo encola en READY
-    // // Si no se bloqueo entonces se lo encola en BLOCKED
-    // t_codigo_operacion motivo_desalojo;
-    // t_buffer *buffer = crear_buffer();
-    // pthread_mutex_lock(&mutex_socket_dispatch);
-    // recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
-    // pthread_mutex_unlock(&mutex_socket_dispatch);
+    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
+    // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
+    // En cualquier caso se lo debe desencolar de EXEC
+    // Si puede seguir ejecutando se lo encola en READY
+    // Si no se bloqueo entonces se lo encola en BLOCKED
+    t_codigo_operacion motivo_desalojo;
+    t_buffer *buffer = crear_buffer();
+    pthread_mutex_lock(&mutex_socket_dispatch);
+    recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
+    pthread_mutex_unlock(&mutex_socket_dispatch);
 
-    // buffer_desempaquetar_pcb(buffer, pcb); // Modifica al pcb con lo que recibe -> asi no es necesario crear otro pcb
+    buffer_desempaquetar_pcb(buffer, pcb); // Modifica al pcb con lo que recibe
 
     // switch(motivo_desalojo){
     //     case :
     // }
 
-    // eliminar_buffer(buffer);
+    eliminar_buffer(buffer);
 }
 
-void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // TERMINAR
-    // int pid_recibido;
-    // buffer_desempaquetar(buffer, &pid_recibido);
+void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
+    buffer_desempaquetar(buffer, &(registros->PC));
+    buffer_desempaquetar(buffer, &(registros->AX));
+    buffer_desempaquetar(buffer, &(registros->BX));
+    buffer_desempaquetar(buffer, &(registros->CX));
+    buffer_desempaquetar(buffer, &(registros->DX));
+    buffer_desempaquetar(buffer, &(registros->EAX));
+    buffer_desempaquetar(buffer, &(registros->EBX));
+    buffer_desempaquetar(buffer, &(registros->ECX));
+    buffer_desempaquetar(buffer, &(registros->EDX));
+    buffer_desempaquetar(buffer, &(registros->SI));
+    buffer_desempaquetar(buffer, &(registros->DI));
+}
 
-    // if( pid_recibido != pcb_get_pid(pcb) ){
-    //     log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
-    // }
-    // // Mati: el quantum entiendo que cpu no lo modifica asi q deberia estar igual. Lo q no se es en que momento deberiamos modificarlo
+void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // REVISAR
+    int pid_recibido;
+    buffer_desempaquetar(buffer, &pid_recibido);
+    if( pid_recibido != pcb_get_pid(pcb) ){
+        log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
+    }
+
+    // El quantum y el nombre_estado no se si es necesario que se lo pasemos, pero bueno lo recibo y dsp veo
+    int quantum_recibido;
+    buffer_desempaquetar(buffer, &quantum_recibido);
+
+    t_nombre_estado nombre_estado_recibido;
+    buffer_desempaquetar(buffer, &nombre_estado_recibido);
     
-    // pcb_set_registros(recibir_registros(socket));
+    buffer_desempaquetar_registros(buffer, &(pcb->registros));
 }
 
 // Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
 void iniciar_proceso(char *path){
     int pid = generar_pid();
     t_pcb *pcb = crear_pcb(pid);
-    pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
-    // Mati: 2 opciones:
-    // 1: Meter el path en el PCB y que la peticion a memoria la haga el planificador de largo una vez q puede meter al proceso en Ready.
-    //    No me cierra que el PCB tenga el path, ni me cierra que el planificador de largo intente meter a ready un proceso cuyas estructuras
-    //    de memoria todavia no estan creadas (de igual forma podria tirar un error y reencolarlo al final de new, pasando a intentar meter el siguiente proceso en cola)
-    // 2: Hacer la comprobacion de que hay memoria suficiente aca. Si no hay disponible se deberia tirar un error de q no se pudo iniciar
-    //    el proceso. El problema es que no se podria volver a intentar, una vez q lo reboto ya esta.
-    // Extra: recien me di cuenta que lo va a manejar kernel_memoria() esto, pero igual habria que definir en que momento se lo pedimos 
     estado_encolar_pcb(estado_new, pcb);
     log_creacion_proceso(pcb);
 }

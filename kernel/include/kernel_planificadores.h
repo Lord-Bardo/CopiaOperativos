@@ -16,6 +16,7 @@ void iniciar_planificacion(void);
 void detener_planificacion(void);
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion);
 void planificador_largo_plazo(void);
+void planificador_largo_plazo_new_ready(void);
 void planificador_corto_plazo(void);
 void planificador_corto_plazo_fifo(void);
 void planificador_corto_plazo_rr(void);
