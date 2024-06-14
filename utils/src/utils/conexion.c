@@ -190,11 +190,13 @@ void recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer 
 }
 
 // Desempaquetar Buffer
-void buffer_actualizar(t_buffer *buffer, int bytes){
-    // Actualizo el tamaño del buffer
-    buffer->size -= bytes;
+void buffer_actualizar_size(t_buffer *buffer, int bytes){
+	// Actualizo el tamaño del buffer
+	buffer->size -= bytes;
+}
 
-    // Muevo todo el contenido del stream posterior a los bytes leidos al principio del stream
+void buffer_actualizar_stream(t_buffer *buffer, int bytes){
+	// Muevo todo el contenido del stream posterior a los bytes leidos al principio del stream
     // Por si no se entendio: stream = "4como5estas". Suponiendo que lo ultimo leido fue el 4 => me copio al principio del stream "como5estas", lo cual esta en la posicion stream + los bytes leidos (que en este caso seria el int)
     memmove(buffer->stream, buffer->stream + bytes, buffer->size); // Uso memmove porq es mas seguro q memcpy cuando hay que solapar memoria
 
@@ -202,10 +204,18 @@ void buffer_actualizar(t_buffer *buffer, int bytes){
     void *new_stream = realloc(buffer->stream, buffer->size);
     if( new_stream == NULL ){
         perror("Error al redimensionar el buffer");
-        free(buffer->stream);
         return;
     }
     buffer->stream = new_stream;
+}
+
+void buffer_actualizar(t_buffer *buffer, int bytes){
+	buffer_actualizar_size(buffer, bytes);
+	// Compruebo que el size sea mayor a 0 porq sino el realloc de buffer_actualizar_stream va a devolver NULL (por su implementacion, no porque haya fallado la asignacion de memoria)
+	// Ademas, si size = 0 es porque ya no quedan elementos en el buffer, no hay necesidad de actualizar.
+	if( buffer->size > 0 ){
+		buffer_actualizar_stream(buffer, bytes);
+	}
 }
 
 void buffer_desempaquetar(t_buffer *buffer, void *destino){
@@ -215,18 +225,14 @@ void buffer_desempaquetar(t_buffer *buffer, void *destino){
         return;
     }
     
-    // Desempaqueto el tamaño del siguiente contenido
+    // Desempaqueto el tamaño del siguiente contenido y lo guardo en bytes
     int bytes;
     memcpy(&bytes, buffer->stream, sizeof(int));
     buffer_actualizar(buffer, sizeof(int));
     
-    destino = malloc(bytes);
-    if( destino == NULL){
-        perror("Error al asignar memoria para el contenido del buffer");
-        return;
-    }
+	// Desempaqueto el contenido y lo guardo en destino
     memcpy(destino, buffer->stream, bytes);
-    buffer_actualizar(buffer, bytes);
+	buffer_actualizar(buffer, bytes);
 }
 
 
@@ -342,7 +348,7 @@ void agregar_pcb_paquete(t_paquete *paquete, t_pcb *pcb){
 	agregar_a_paquete(paquete, pcb->registros.DI, 8);
 }
 
-*\
+*/
 
 
 // creamos el paquete, agregar_instruccion_a_paquete(paquete,puntero instruccion,queremos guardarlo sin padding), serializar_paquete_completo(agrega el op_code y al buffer a un void * y lo devuelve)

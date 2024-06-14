@@ -1,5 +1,28 @@
 #include "../include/kernel_planificadores.h"
 
+// VARIABLES GLOBALES
+// Planificacion
+t_estado_planificacion estado_planificacion;
+
+// Estados
+t_estado *estado_new;
+t_estado *estado_ready;
+t_estado *estado_ready_plus;
+t_estado *estado_exec;
+t_estado *estado_blocked;
+t_estado *estado_exit;
+
+// PID
+int pid_actual;
+pthread_mutex_t mutex_pid;
+
+// Semaforos
+pthread_mutex_t mutex_grado_multiprogramacion;
+sem_t sem_grado_multiprogramacion;
+sem_t sem_cpu_disponible;
+pthread_mutex_t mutex_socket_dispatch;
+pthread_mutex_t mutex_socket_memoria;
+
 void iniciar_planificadores(){
     // Estructuras
     inicializar_estructuras();
@@ -76,58 +99,58 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
 
 // El manejo de NEW -> READY habria que mandarlo a un hilo aparte
 void planificador_largo_plazo(){
-    // Manejar NEW -> READY
-    pthread_t hilo_new_ready;
-    pthread_create(&hilo_new_ready, NULL, (void *)manejador_new_ready, NULL);
-    pthread_detach(hilo_new_ready);
+    // // Manejar NEW -> READY
+    // pthread_t hilo_new_ready;
+    // pthread_create(&hilo_new_ready, NULL, (void *)manejador_new_ready, NULL);
+    // pthread_detach(hilo_new_ready);
 
-    // Manejar ESTADO -> EXIT
-    // Estas funciones se podrían unir en una sola y hacer un for, pero capaz queda mas simple hacer estas 4 funciones y listo
-    manejador_new_exit();
-    manejador_ready_exit();
-    manejador_exec_exit();
-    manejador_blocked_exit();
+    // // Manejar ESTADO -> EXIT
+    // // Estas funciones se podrían unir en una sola y hacer un for, pero capaz queda mas simple hacer estas 4 funciones y listo
+    // manejador_new_exit();
+    // manejador_ready_exit();
+    // manejador_exec_exit();
+    // manejador_blocked_exit();
 }
 
-void manejador_new_ready() {
-    while (estado_planificacion) {
-        sem_wait(&sem_grado_multiprogramacion);
-        t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-        proceso_a_ready(pcb);
-    }
-}
+// void manejador_new_ready() {
+//     while (estado_planificacion) {
+//         sem_wait(&sem_grado_multiprogramacion);
+//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+//         proceso_a_ready(pcb);
+//     }
+// }
 
-void manejador_new_exit() {
-    while (estado_planificacion) {
-        sem_wait(estado_get_sem(estado_new)); 
-        t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-        proceso_a_exit(pcb);
-    }
-}
+// void manejador_new_exit() {
+//     while (estado_planificacion) {
+//         sem_wait(estado_get_sem(estado_new)); 
+//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
+//         proceso_a_exit(pcb);
+//     }
+// }
 
-void manejador_ready_exit() {
-    while (estado_planificacion) {
-        sem_wait(estado_get_sem(estado_ready));
-        t_pcb *pcb = estado_desencolar_primer_pcb(estado_ready);
-        proceso_a_exit(pcb);
-    }
-}
+// void manejador_ready_exit() {
+//     while (estado_planificacion) {
+//         sem_wait(estado_get_sem(estado_ready));
+//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_ready);
+//         proceso_a_exit(pcb);
+//     }
+// }
 
-void manejador_exec_exit() {
-    while (estado_planificacion) {
-        sem_wait(estado_get_sem(estado_exec));
-        t_pcb *pcb = estado_desencolar_primer_pcb(estado_exec);
-        proceso_a_exit(pcb);
-    }
-}
+// void manejador_exec_exit() {
+//     while (estado_planificacion) {
+//         sem_wait(estado_get_sem(estado_exec));
+//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_exec);
+//         proceso_a_exit(pcb);
+//     }
+// }
 
-void manejador_blocked_exit() {
-    while (estado_planificacion) {
-        sem_wait(estado_get_sem(estado_blocked));
-        t_pcb *pcb = estado_desencolar_primer_pcb(estado_blocked);
-        proceso_a_exit(pcb);
-    }
-}
+// void manejador_blocked_exit() {
+//     while (estado_planificacion) {
+//         sem_wait(estado_get_sem(estado_blocked));
+//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_blocked);
+//         proceso_a_exit(pcb);
+//     }
+// }
 
 void planificador_corto_plazo(){    
     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
@@ -181,42 +204,42 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb){
     agregar_pcb_a_paquete(paquete_contexto_de_ejecucion, pcb);
     pthread_mutex_lock(&mutex_socket_dispatch);
     enviar_paquete(paquete_contexto_de_ejecucion, fd_cpu_dispatch);
-    pthread_mutex_unlock(&mutex_socket_dispatch;
+    pthread_mutex_unlock(&mutex_socket_dispatch);
     eliminar_paquete(paquete_contexto_de_ejecucion);
 }
 
 // TODO
 void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){
-    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
-    // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
-    // En cualquier caso se lo debe desencolar de EXEC
-    // Si puede seguir ejecutando se lo encola en READY
-    // Si no se bloqueo entonces se lo encola en BLOCKED
-    t_codigo_operacion motivo_desalojo;
-    t_buffer *buffer = crear_buffer();
-    pthread_mutex_lock(&mutex_socket_dispatch);
-    recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
-    pthread_mutex_unlock(&mutex_socket_dispatch);
+    // // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
+    // // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
+    // // En cualquier caso se lo debe desencolar de EXEC
+    // // Si puede seguir ejecutando se lo encola en READY
+    // // Si no se bloqueo entonces se lo encola en BLOCKED
+    // t_codigo_operacion motivo_desalojo;
+    // t_buffer *buffer = crear_buffer();
+    // pthread_mutex_lock(&mutex_socket_dispatch);
+    // recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
+    // pthread_mutex_unlock(&mutex_socket_dispatch);
 
-    buffer_desempaquetar_pcb(buffer, pcb); // Modifica al pcb con lo que recibe -> asi no es necesario crear otro pcb
+    // buffer_desempaquetar_pcb(buffer, pcb); // Modifica al pcb con lo que recibe -> asi no es necesario crear otro pcb
 
-    switch(motivo_desalojo){
-        case :
-    }
+    // switch(motivo_desalojo){
+    //     case :
+    // }
 
-    eliminar_buffer(buffer);
+    // eliminar_buffer(buffer);
 }
 
 void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // TERMINAR
-    int pid_recibido;
-    buffer_desempaquetar(buffer, &pid_recibido);
+    // int pid_recibido;
+    // buffer_desempaquetar(buffer, &pid_recibido);
 
-    if( pid_recibido != pcb_get_pid(pcb) ){
-        log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
-    }
-    // Mati: el quantum entiendo que cpu no lo modifica asi q deberia estar igual. Lo q no se es en que momento deberiamos modificarlo
+    // if( pid_recibido != pcb_get_pid(pcb) ){
+    //     log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
+    // }
+    // // Mati: el quantum entiendo que cpu no lo modifica asi q deberia estar igual. Lo q no se es en que momento deberiamos modificarlo
     
-    pcb_set_registros(recibir_registros(socket));
+    // pcb_set_registros(recibir_registros(socket));
 }
 
 // Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
@@ -241,11 +264,11 @@ void proceso_a_ready(t_pcb *pcb){
     log_ingreso_ready();
 }
 
-void proceso_a_exit(t_pcb *pcb) {
+void proceso_a_exit(t_pcb *pcb){ // REVISAR
     pcb_cambiar_estado_a(pcb, EXIT);
     estado_encolar_pcb(estado_exit, pcb);
     finalizar_proceso(pcb_get_pid(pcb)); // Lucho: Todavia no está hecha
-    log_salida_exit(pcb_get_pid(pcb)); // Lucho: Cómo logeamos el motivo? - completar la función de log
+    //log_salida_exit(pcb_get_pid(pcb)); // Lucho: Cómo logeamos el motivo? - completar la función de log
 }
 
 void pedir_a_memoria_iniciar_proceso(int pid, char *path){

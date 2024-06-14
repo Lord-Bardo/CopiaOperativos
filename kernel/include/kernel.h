@@ -34,6 +34,8 @@ int fd_cpu_interrupt;
 
 // FUNCIONES
 void conectar_a_memoria(void);
+void conectar_a_cpu_dispatch(void);
+void conectar_a_cpu_interrupt(void);
 void aceptar_conexion_entradasalida(void);
 void terminar_programa();
 

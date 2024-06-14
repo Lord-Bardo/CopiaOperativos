@@ -6,8 +6,9 @@ void log_creacion_proceso(t_pcb *pcb){
     log_info(kernel_logger_min_y_obl, "Se crea el proceso %d en NEW", pcb_get_pid(pcb));
 }
 
+// Finaliza el proceso <PID> - Motivo: <SUCCESS / INVALID_RESOURCE / INVALID_INTERFACE / OUT_OF_MEMORY / INTERRUPTED_BY_USER>
 void log_fin_proceso(){
-
+    //log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d - Motivo: " , pid , /* Acá iria el motivo en una variable (?) */); // Lucho: Completar
 }
 
 void log_cambio_estado(t_pcb *pcb, t_nombre_estado estado_anterior, t_nombre_estado nuevo_estado){
@@ -43,11 +44,6 @@ void log_fin_quantum(){
 
 void log_ingreso_ready(){
     log_info(kernel_logger_min_y_obl, "Cola Ready READY: %s:", lista_pids_string(estado_ready)); // Mati: No se que poner en <COLA> -> Lo cambiamos por READY pero sigue la duda
-}
-
-// Finaliza el proceso <PID> - Motivo: <SUCCESS / INVALID_RESOURCE / INVALID_INTERFACE / OUT_OF_MEMORY / INTERRUPTED_BY_USER>
-void log_salida_exit(int pid){
-    log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d:" , pid , "- Motivo:", /* Acá iria el motivo en una variable (?) */); // Lucho: Completar
 }
 
 char *lista_pids_string(t_estado *estado){

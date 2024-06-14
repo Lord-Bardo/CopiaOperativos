@@ -8,19 +8,13 @@ int main(int argc, char* argv[]) {
 	iniciar_planificadores();
 
 	// Conexion con MEMORIA
-	fd_memoria = conectar_a_memoria();
-	// fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
-	// log_info(kernel_logger, "Conexion con MEMORIA establecida!");
+	conectar_a_memoria();
 
 	// Conexion con CPU - DISPATCH
 	conectar_a_cpu_dispatch();
-	// fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
-	// log_info(kernel_logger, "Conexion cSon CPU DISPATCH establecida!");
 
 	// Conexion con CPU - INTERRUPT
 	conectar_a_cpu_interrupt();
-	// fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
-	// log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
 
 	// Iniciar servidor de KERNEL
 	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
@@ -28,8 +22,6 @@ int main(int argc, char* argv[]) {
 
 	// Esperar conexion de ENTRADASALIDA
 	aceptar_conexion_entradasalida();
-	// fd_entradasalida = esperar_cliente(fd_kernel);
-	// log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
 
 	// Atender los mensajes de ENTRADASALIDA 
 	pthread_t hilo_entradasalida;
@@ -68,17 +60,6 @@ void conectar_a_memoria(){
 	}
 }
 
-void conectar_a_cpu_interrupt(){
-	fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
-	enviar_handshake(fd_cpu_interrupt, HANDSHAKE_KERNEL);
-	if( recibir_handshake(fd_cpu_interrupt) == HANDSHAKE_OK ){
-		log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
-	}
-	else{
-		log_info(kernel_logger, "No se pudo establcer conexion con CPU INTERRUPT!");
-	}
-}
-
 void conectar_a_cpu_dispatch(){
 	fd_cpu_dispatch = crear_conexion(IP_CPU, PUERTO_CPU_DISPATCH);
 	enviar_handshake(fd_cpu_dispatch, HANDSHAKE_KERNEL);
@@ -87,6 +68,17 @@ void conectar_a_cpu_dispatch(){
 	}
 	else{
 		log_info(kernel_logger, "No se pudo establcer conexion con CPU DISPATCH!");
+	}
+}
+
+void conectar_a_cpu_interrupt(){
+	fd_cpu_interrupt = crear_conexion(IP_CPU, PUERTO_CPU_INTERRUPT);
+	enviar_handshake(fd_cpu_interrupt, HANDSHAKE_KERNEL);
+	if( recibir_handshake(fd_cpu_interrupt) == HANDSHAKE_OK ){
+		log_info(kernel_logger, "Conexion con CPU INTERRUPT establecida!");
+	}
+	else{
+		log_info(kernel_logger, "No se pudo establcer conexion con CPU INTERRUPT!");
 	}
 }
 
