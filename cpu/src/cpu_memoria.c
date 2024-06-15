@@ -3,10 +3,10 @@
 void atender_cpu_memoria(){
     int continuar = 1;
 	while(continuar){
-		t_codigo_operacion *cod_op=NULL;
+		t_codigo_operacion cod_op;
 		t_buffer * buffer = crear_buffer();
-		recibir_paquete(fd_memoria,cod_op,buffer);
-		switch(*cod_op){
+		recibir_paquete(fd_memoria,&cod_op,buffer);
+		switch(cod_op){
 			case INSTRUCCION: // ... aca hay que recibir bb recive_buffer size instruccion
 				
 				//contemplar interrupciones?
@@ -14,13 +14,13 @@ void atender_cpu_memoria(){
 			case DATO:
 			    //recibir_dato(fd_memoria);
 			
-			case PCB:
-                t_pcb pcb_recibido;
+			case CONTEXTO_DE_EJECUCION:
+                t_pcb *pcb_recibido;
 	            inicializarPCB(&pcb);
                 //inicializarPCBAleatorio(&pcb_recibido);
                 mostrarPCB(pcb);
 
-				buffer_desempaquetar_pcb(buffer,&pcb_recibido);
+				buffer_desempaquetar_pcb(buffer,pcb_recibido); //esto recibe todo el paquete desde kernel
 
 				iniciar_ciclo_instruccion(pcb_recibido);
 

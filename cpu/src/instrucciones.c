@@ -155,6 +155,6 @@ t_instruccion* pedidoAMemoria(int pid, int pc) {
         return NULL;
     }
      printf("Op Code PEDIDOmemoria: %d\n", SUM);
-    inicializarInstruccion(instr, JNZ, args);
+    inicializarInstruccion(instr, SET, args);
     return instr;
 }
