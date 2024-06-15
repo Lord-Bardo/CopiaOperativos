@@ -77,6 +77,7 @@ char *lista_pids_string(t_estado *estado){
 
 void *pcb_get_pid_transformer(void* pcb){
     t_pcb *temp_pcb = (t_pcb*) pcb;
+    // Reservo memoria para persistir fuera de esta funcion al pid. Con malloc se va a alojar en el header y voy a poder usar el puntero en lista_pids_string(). En cambio, si lo declaro solo como int pid, se va a guardar en el stack de la funcion y al salir de esta funcion se va a perder el puntero.
     int *pid = malloc(sizeof(int));
     if( pid == NULL ){
         log_error(kernel_logger, "Error al reservar memoria para el PID");
@@ -128,13 +129,19 @@ void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros){
     agregar_uint32_a_paquete(paquete, registros.DI);
 }
 
+void agregar_string_a_paquete(t_paquete *paquete, char *string){
+    agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
+}
+
 void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb){
     agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
     agregar_quantum_a_paquete(paquete, pcb_get_quantum(pcb));
     agregar_estado_a_paquete(paquete, pcb_get_estado(pcb));
     agregar_registros_a_paquete(paquete, pcb_get_registros(pcb));
+    agregar_string_a_paquete(paquete, pcb_get_path(pcb));
 }
 
-void agregar_string_a_paquete(t_paquete *paquete, char *string){
-    agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
+void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb){
+    agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
+    agregar_registros_a_paquete(paquete, pcb_get_registros(pcb));
 }

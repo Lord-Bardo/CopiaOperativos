@@ -48,10 +48,11 @@ typedef struct{
 } t_registros;
 
 typedef struct{
-    int PID;
+    int pid;
     int quantum;
     t_nombre_estado estado;
     t_registros registros;
+    char *path;
 } t_pcb;
 
 // Planificacion

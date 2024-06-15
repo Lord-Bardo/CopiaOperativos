@@ -83,5 +83,6 @@ void buffer_actualizar_size(t_buffer *buffer, int bytes);
 void buffer_actualizar_stream(t_buffer *buffer, int bytes);
 void buffer_actualizar(t_buffer *buffer, int bytes);
 void buffer_desempaquetar(t_buffer *buffer, void *destino);
+char *buffer_desempaquetar_string(t_buffer *buffer);
 
 #endif

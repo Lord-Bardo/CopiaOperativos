@@ -89,7 +89,7 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
         }
     }
     else if( diferencia < 0 ){
-        for (int i = 0; i < -diferencia; i++) {
+        for(int i = 0; i < -diferencia; i++){
             sem_wait(&sem_grado_multiprogramacion);
         }
     }
@@ -116,7 +116,7 @@ void planificador_largo_plazo_new_ready(){
     while( estado_planificacion ){
         sem_wait(&sem_grado_multiprogramacion);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
+        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb)); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
         // Mati: 2 opciones:
         // 1: Meter el path en el PCB y que la peticion a memoria la haga el planificador de largo una vez q puede meter al proceso en Ready.
         //    No me cierra que el PCB tenga el path, ni me cierra que el planificador de largo intente meter a ready un proceso cuyas estructuras
@@ -208,18 +208,17 @@ void proceso_a_exec(t_pcb *pcb){
 }
 
 void enviar_contexto_de_ejecucion(t_pcb *pcb){
-    // Manda a CPU el contexto de la ejecucion por el Dispatch
+    // Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
     t_paquete *paquete_contexto_de_ejecucion = crear_paquete(CONTEXTO_DE_EJECUCION);
-    agregar_pcb_a_paquete(paquete_contexto_de_ejecucion, pcb);
+    agregar_contexto_ejecucion_a_paquete(paquete_contexto_de_ejecucion, pcb);
     pthread_mutex_lock(&mutex_socket_dispatch);
     enviar_paquete(paquete_contexto_de_ejecucion, fd_cpu_dispatch);
     pthread_mutex_unlock(&mutex_socket_dispatch);
     eliminar_paquete(paquete_contexto_de_ejecucion);
 }
 
-// TODO
-void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){
-    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
+void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
+    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros)
     // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
     // En cualquier caso se lo debe desencolar de EXEC
     // Si puede seguir ejecutando se lo encola en READY
@@ -230,7 +229,7 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){
     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
     pthread_mutex_unlock(&mutex_socket_dispatch);
 
-    buffer_desempaquetar_pcb(buffer, pcb); // Modifica al pcb con lo que recibe
+    buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
     // switch(motivo_desalojo){
     //     case :
@@ -253,27 +252,20 @@ void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
     buffer_desempaquetar(buffer, &(registros->DI));
 }
 
-void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // REVISAR
+void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){ // REVISAR
     int pid_recibido;
     buffer_desempaquetar(buffer, &pid_recibido);
     if( pid_recibido != pcb_get_pid(pcb) ){
         log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
     }
-
-    // El quantum y el nombre_estado no se si es necesario que se lo pasemos, pero bueno lo recibo y dsp veo
-    int quantum_recibido;
-    buffer_desempaquetar(buffer, &quantum_recibido);
-
-    t_nombre_estado nombre_estado_recibido;
-    buffer_desempaquetar(buffer, &nombre_estado_recibido);
     
     buffer_desempaquetar_registros(buffer, &(pcb->registros));
 }
 
-// Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
+// Crea el pcb y lo encola en new
 void iniciar_proceso(char *path){
     int pid = generar_pid();
-    t_pcb *pcb = crear_pcb(pid);
+    t_pcb *pcb = crear_pcb(pid, path);
     estado_encolar_pcb(estado_new, pcb);
     log_creacion_proceso(pcb);
 }

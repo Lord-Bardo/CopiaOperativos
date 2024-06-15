@@ -3,7 +3,7 @@
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de KERNEL (loggers y config)
 	inicializar_kernel();
-
+	
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 

@@ -235,6 +235,54 @@ void buffer_desempaquetar(t_buffer *buffer, void *destino){
 	buffer_actualizar(buffer, bytes);
 }
 
+char *buffer_desempaquetar_string(t_buffer *buffer){
+	// Chequeo que el buffer tenga contenido para desempaquetar
+    if( buffer->stream == NULL || buffer->size == 0 ){
+        perror("Error al desempaquetar el buffer - No hay contenido a desempaquetar");
+        return "";
+    }
+
+    // Desempaqueto el tamaño del siguiente string y lo guardo en bytes
+    int bytes;
+    memcpy(&bytes, buffer->stream, sizeof(int));
+    buffer_actualizar(buffer, sizeof(int));
+    
+	// Desempaqueto el string y lo guardo en destino
+    char *string = malloc(bytes);
+	if( string == NULL ){
+		perror("Error al asginar memoria para el STRING");
+		return "";
+	}
+	memcpy(string, buffer->stream, bytes);
+	buffer_actualizar(buffer, bytes);
+
+	return string;
+}
+
+// Otra opcion de desempaquetar que sirve para todo, pero es mas quilombo recibir -> Ejemplo de uso: int pid = *(int *)buffer_desempaquetar(buffer);
+// void *buffer_desempaquetar(t_buffer *buffer){
+//     // Chequeo que el buffer tenga contenido para desempaquetar
+//     if( buffer->stream == NULL || buffer->size == 0 ){
+//         perror("Error al desempaquetar el buffer - No hay contenido a desempaquetar");
+//         return "";
+//     }
+    
+//     // Desempaqueto el tamaño del siguiente contenido y lo guardo en bytes
+//     int bytes;
+//     memcpy(&bytes, buffer->stream, sizeof(int));
+//     buffer_actualizar(buffer, sizeof(int));
+    
+//     void *contenido = malloc(bytes);
+//     if( contenido == NULL ){
+//         perror("Error al asignar memoria para el contenido del buffer");
+//         return NULL;
+//     }
+//     memcpy(contenido, buffer->stream, bytes);
+//     buffer_actualizar(buffer, bytes);
+
+//     return contenido;
+// }
+
 
 
 // void crear_buffer(t_paquete *paquete){
