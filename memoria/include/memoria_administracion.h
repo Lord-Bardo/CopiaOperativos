@@ -11,8 +11,20 @@
 
 //VARIABLES GLOBALES
 void* espacio_usuario; // supongo que con un malloc se puede inicializar y supongo que es donde estarán los frames con las páginas.
-u_int32_t tabla_de_pags[]; // a cada proceso se le asignará una tabla en donde estarán todas sus páginas (supongo la cantidad de pags se lee del archivo de pseudocodigo). Se sabe que cada pag ocupa 32 bytes por eso usamos un array de u_int32_t.
-t_instruccion proceso[]; // se almacenan, por cada proceso, sus instrucciones y, supongo, se los guarda en memoria (¿Las páginas deberían ser un array de instrucciones?)
+void* puntero_espacio_usuario;
+typedef struct {
+    char* path_pseudocodigo;
+    int pid;
+} t_pcb_memoria;
+typedef struct {
+    int frame;
+    void *frame_pointer;
+    bool presencia;
+} t_pagina;
+typedef struct { //para las tablas entrar al dictionary.h para ver la estructura de t_config
+    int pid;
+    pagina_t *paginas;
+} t_tabla_paginas;
 
 //FUNCIONES
 

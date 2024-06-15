@@ -14,14 +14,11 @@
 #include "memoria_kernel.h"
 #include "memoria_cpu.h"
 
-
-#define TAM_MEMORIA 4096 //habría que ver el tema de la memoria cual tamaño
-#define TAM_PAGINA 32 //y esto también
-
 // Estructura para las tablas de páginas
 typedef struct {
     int marco;
-    int presente;
+    void* frame
+    bool presencia;
 } t_pagina;
 
 typedef struct { //para las tablas entrar al dictionary.h para ver la estructura de t_config
@@ -30,10 +27,10 @@ typedef struct { //para las tablas entrar al dictionary.h para ver la estructura
 } t_tabla_paginas;
 
 
-
-void inicializar_memoria(void *memoria, int tam_memoria) {
-    memoria = malloc(tam_memoria);
-    memset(memoria, 0, tam_memoria);
+void inicializar_tamanio_memoria() {
+    espacio_de_usuario = malloc(TAM_MEMORIA);
+    memset(espacio_de_usuario, 0, TAM_MEMORIA);
+    puntero_espacio_usuario = espacio_usuario; //pun
 }
 
 t_tabla_paginas *crear_tabla_paginas(int pid, int cantidad_paginas) {
