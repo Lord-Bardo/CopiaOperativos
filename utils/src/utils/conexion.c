@@ -239,7 +239,7 @@ void buffer_desempaquetar(t_buffer *buffer, void *destino){
 	buffer_actualizar(buffer, bytes);
 }
 
-char *buffer_desempaquetar_string(t_buffer *buffer){
+char *buffer_desempaquetar_string(t_buffer *buffer){ 
 	// Chequeo que el buffer tenga contenido para desempaquetar
     if( buffer->stream == NULL || buffer->size == 0 ){
         perror("Error al desempaquetar el buffer - No hay contenido a desempaquetar");

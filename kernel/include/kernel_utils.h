@@ -29,8 +29,4 @@ void agregar_string_a_paquete(t_paquete *paquete, char *string);
 void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb);
 void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb);
 
-// Manejo buffer
-void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros);
-void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb);
-
 #endif
