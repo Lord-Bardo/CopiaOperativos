@@ -48,7 +48,7 @@ void leer_configuracion(const char *archivo_configuracion) {//función lee un ar
 }//ya está hecha
 
 void leer_pseudocodigo(const char *archivo_pseudocodigo, t_pcb_memoria*pcb_memoria) { //primera parte que pide el tp
-    FILE *archivo = fopen(path_config + path_pseudocodigo, "r");
+    FILE *archivo = fopen(path_config + path_pseudocodigo, "r"); //probablemente la suma no funcione, revisar string.c en commons que podría haber alguna función útil para concatenar
     if (!archivo) {
         perror("No se pudo abrir el archivo de pseudocódigo");
         exit(EXIT_FAILURE);
