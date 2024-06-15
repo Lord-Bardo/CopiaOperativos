@@ -28,7 +28,7 @@ typedef struct{
 }t_registros;
 
 typedef struct{
-    int PID;
+    int pid;
     int quantum;
     t_estado estado;
     t_registros registros;

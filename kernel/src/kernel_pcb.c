@@ -1,13 +1,13 @@
 #include "../include/kernel_pcb.h"
 
-t_pcb *crear_pcb(int pid){
+t_pcb *crear_pcb(int pid, char* path){
     t_pcb *pcb = malloc(sizeof(t_pcb));
     if( pcb == NULL ){
         log_error(kernel_logger, "Error al asignar memoria para el PCB");
         return NULL;
     }
 
-    pcb->PID = pid;
+    pcb->pid = pid;
     pcb->estado = NEW;
     pcb->quantum = QUANTUM;
     pcb->registros.PC = 0;
@@ -21,6 +21,12 @@ t_pcb *crear_pcb(int pid){
     pcb->registros.EDX = 0;
     pcb->registros.SI = 0;
     pcb->registros.DI = 0;
+    pcb->path = string_new();
+    if( pcb->path == NULL ){
+        log_error(kernel_logger, "Error al asignar memoria para el PATH");
+        return NULL;
+    }
+    string_append(&(pcb->path), path);
 
     return pcb;
 }
@@ -36,12 +42,15 @@ int generar_pid(){
 
 void eliminar_pcb(t_pcb *pcb){
     if( pcb != NULL ){
+        if( pcb->path != NULL ){
+            free(pcb->path);
+        }
         free(pcb);
     }
 }
 
 int pcb_get_pid(t_pcb *pcb){
-    return pcb->PID;
+    return pcb->pid;
 }
 
 int pcb_get_quantum(t_pcb *pcb){
@@ -54,6 +63,10 @@ t_nombre_estado pcb_get_estado(t_pcb *pcb){
 
 t_registros pcb_get_registros(t_pcb *pcb){
     return pcb->registros;
+}
+
+char* pcb_get_path(t_pcb *pcb){
+    return pcb->path;
 }
 
 void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado){

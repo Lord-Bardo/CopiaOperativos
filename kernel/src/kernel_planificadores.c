@@ -63,9 +63,6 @@ void inicializar_estructuras_pid(void){
 void inicializar_semaforos(){
     pthread_mutex_init(&mutex_grado_multiprogramacion, NULL);
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
-    sem_init(&sem_cpu_disponible, 0, 1); // CREO Q NO ES NECESARIO, RECIBIR_CONTEXTO ESPERA A Q TERMINE EL Q ESTA EJECUTANDO
-    pthread_mutex_init(&mutex_socket_dispatch, NULL); // CREO Q NO ES NECESARIO, NO ES POSIBLE QUE SE USE A LA VEZ
-    pthread_mutex_init(&mutex_socket_memoria, NULL);
 }
 
 // Mati: Para las siguientes 2 funciones: entiendo que la asignacion es atomica y no requiere uso de semaforo
@@ -89,7 +86,7 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
         }
     }
     else if( diferencia < 0 ){
-        for (int i = 0; i < -diferencia; i++) {
+        for(int i = 0; i < -diferencia; i++){
             sem_wait(&sem_grado_multiprogramacion);
         }
     }
@@ -116,17 +113,39 @@ void planificador_largo_plazo_new_ready(){
     while( estado_planificacion ){
         sem_wait(&sem_grado_multiprogramacion);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), path); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
-        // Mati: 2 opciones:
-        // 1: Meter el path en el PCB y que la peticion a memoria la haga el planificador de largo una vez q puede meter al proceso en Ready.
-        //    No me cierra que el PCB tenga el path, ni me cierra que el planificador de largo intente meter a ready un proceso cuyas estructuras
-        //    de memoria todavia no estan creadas (de igual forma podria tirar un error y reencolarlo al final de new, pasando a intentar meter el siguiente proceso en cola)
-        // 2: Hacer la comprobacion de que hay memoria suficiente aca. Si no hay disponible se deberia tirar un error de q no se pudo iniciar
-        //    el proceso. El problema es que no se podria volver a intentar, una vez q lo reboto ya esta.
-        // Extra: recien me di cuenta que lo va a manejar kernel_memoria() esto, pero igual habria que definir en que momento se lo pedimos 
-        // Creo q lo mejor es que esto lo haga el plani de largo plazo y una vez que recibe la confirmacion pasa al proceso a ready (obvio si hay lugar)
+        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb)); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
+        recibir_confirmacion_memoria_proceso_iniciado();
         proceso_a_ready(pcb);
     }
+}
+
+void pedir_a_memoria_iniciar_proceso(int pid, char *path){
+    t_paquete *paquete_solicitud_iniciar_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
+    agregar_pid_a_paquete(paquete_solicitud_iniciar_proceso, pid);
+    agregar_string_a_paquete(paquete_solicitud_iniciar_proceso, path);
+    enviar_paquete(fd_memoria, paquete_solicitud_iniciar_proceso);
+    eliminar_paquete(paquete_solicitud_iniciar_proceso);
+}
+
+void recibir_confirmacion_memoria_proceso_iniciado(){
+    t_codigo_operacion codigo_operacion;
+    recibir_codigo_operacion(fd_memoria, &codigo_operacion);
+    switch(codigo_operacion){
+        case CONFIRMACION_PROCESO_INICIADO:
+            break;
+        case OUT_OF_MEMORY:
+            break;
+        default:
+            
+    }
+}
+
+// Crea el pcb y lo encola en new
+void iniciar_proceso(char *path){
+    int pid = generar_pid();
+    t_pcb *pcb = crear_pcb(pid, path);
+    estado_encolar_pcb(estado_new, pcb);
+    log_creacion_proceso(pcb);
 }
 
 // void manejador_new_exit() {
@@ -208,18 +227,15 @@ void proceso_a_exec(t_pcb *pcb){
 }
 
 void enviar_contexto_de_ejecucion(t_pcb *pcb){
-    // Manda a CPU el contexto de la ejecucion por el Dispatch
+    // Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
     t_paquete *paquete_contexto_de_ejecucion = crear_paquete(CONTEXTO_DE_EJECUCION);
-    agregar_pcb_a_paquete(paquete_contexto_de_ejecucion, pcb);
-    pthread_mutex_lock(&mutex_socket_dispatch);
-    enviar_paquete(paquete_contexto_de_ejecucion, fd_cpu_dispatch);
-    pthread_mutex_unlock(&mutex_socket_dispatch);
+    agregar_contexto_ejecucion_a_paquete(paquete_contexto_de_ejecucion, pcb);
+    enviar_paquete(fd_cpu_dispatch, paquete_contexto_de_ejecucion);
     eliminar_paquete(paquete_contexto_de_ejecucion);
 }
 
-// TODO
-void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){
-    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso
+void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
+    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros)
     // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
     // En cualquier caso se lo debe desencolar de EXEC
     // Si puede seguir ejecutando se lo encola en READY
@@ -230,7 +246,7 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){
     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
     pthread_mutex_unlock(&mutex_socket_dispatch);
 
-    buffer_desempaquetar_pcb(buffer, pcb); // Modifica al pcb con lo que recibe
+    buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
     // switch(motivo_desalojo){
     //     case :
@@ -253,30 +269,17 @@ void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
     buffer_desempaquetar(buffer, &(registros->DI));
 }
 
-void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // REVISAR
+void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){ // REVISAR
     int pid_recibido;
     buffer_desempaquetar(buffer, &pid_recibido);
     if( pid_recibido != pcb_get_pid(pcb) ){
         log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
     }
-
-    // El quantum y el nombre_estado no se si es necesario que se lo pasemos, pero bueno lo recibo y dsp veo
-    int quantum_recibido;
-    buffer_desempaquetar(buffer, &quantum_recibido);
-
-    t_nombre_estado nombre_estado_recibido;
-    buffer_desempaquetar(buffer, &nombre_estado_recibido);
     
     buffer_desempaquetar_registros(buffer, &(pcb->registros));
 }
 
-// Crea el pcb, lo encola en new y le pide a memoria q cree las estructuras
-void iniciar_proceso(char *path){
-    int pid = generar_pid();
-    t_pcb *pcb = crear_pcb(pid);
-    estado_encolar_pcb(estado_new, pcb);
-    log_creacion_proceso(pcb);
-}
+// ACA VA INICIAR_PROCESO
 
 void proceso_a_ready(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY);
@@ -289,16 +292,6 @@ void proceso_a_exit(t_pcb *pcb){ // REVISAR
     estado_encolar_pcb(estado_exit, pcb);
     finalizar_proceso(pcb_get_pid(pcb)); // Lucho: Todavia no está hecha
     //log_salida_exit(pcb_get_pid(pcb)); // Lucho: Cómo logeamos el motivo? - completar la función de log
-}
-
-void pedir_a_memoria_iniciar_proceso(int pid, char *path){
-    t_paquete *paquete_solicitud_iniciar_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
-    agregar_pid_a_paquete(paquete_solicitud_iniciar_proceso, pid);
-    agregar_string_a_paquete(paquete_solicitud_iniciar_proceso, path);
-    pthread_mutex_lock(&mutex_socket_memoria);
-    enviar_paquete(paquete_solicitud_iniciar_proceso, fd_memoria);
-    pthread_mutex_unlock(&mutex_socket_memoria);
-    eliminar_paquete(paquete_solicitud_iniciar_proceso);
 }
 
 void finalizar_proceso(int pid){ // TERMINAR

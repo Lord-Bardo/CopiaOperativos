@@ -15,6 +15,7 @@
 typedef enum{
     // KERNEL - MEMORIA
     SOLICITUD_INICIAR_PROCESO,
+    CONFIRMACION_PROCESO_INICIADO,
     OUT_OF_MEMORY,
     // KERNEL - CPU DISPATCH
     CONTEXTO_DE_EJECUCION,
@@ -74,7 +75,8 @@ void eliminar_paquete(t_paquete *paquete);
 // Enviar
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void *serializar_paquete(t_paquete *paquete, int bytes);
-void enviar_paquete(t_paquete* paquete, int socket_cliente);
+void enviar_paquete(int socket, t_paquete* paquete);
+void enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion);
 // Recibir
 void recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion);
 void recibir_buffer(int socket, t_buffer *buffer);
@@ -84,5 +86,6 @@ void buffer_actualizar_size(t_buffer *buffer, int bytes);
 void buffer_actualizar_stream(t_buffer *buffer, int bytes);
 void buffer_actualizar(t_buffer *buffer, int bytes);
 void buffer_desempaquetar(t_buffer *buffer, void *destino);
+char *buffer_desempaquetar_string(t_buffer *buffer);
 
 #endif
