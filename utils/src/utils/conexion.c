@@ -145,18 +145,22 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
 	return magic; //por qué magic?????
 }
 
-void enviar_paquete(t_paquete *paquete, int socket_cliente){
+void enviar_paquete(int socket, t_paquete *paquete){
 	int bytes = paquete->buffer->size + 2 * sizeof(int); // tamaño del stream del buffer + un int para el codigo de operacion + un int para el tamaño del buffer
 	void *a_enviar = serializar_paquete(paquete, bytes);
 
-	send(socket_cliente, a_enviar, bytes, 0);
+	send(socket, a_enviar, bytes, 0);
 
 	free(a_enviar);
 }
 
+void enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion){
+	send(socket, &codigo_operacion, sizeof(t_codigo_operacion), 0);
+}
+
 // Recibir
 void recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion){
-    if( recv(socket, &codigo_operacion, sizeof(t_codigo_operacion), MSG_WAITALL) != sizeof(t_codigo_operacion) ){
+    if( recv(socket, codigo_operacion, sizeof(t_codigo_operacion), MSG_WAITALL) != sizeof(t_codigo_operacion) ){
         perror("Error al recibir el codigo de operacion");
         return;
     }

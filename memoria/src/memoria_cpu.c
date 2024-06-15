@@ -18,7 +18,7 @@ void atender_memoria_cpu(){
 				agregar_a_paquete(paquete_instruccion, hardcode, (string_length(hardcode)+1+ sizeof(int)) );//me hace ruido el tamaño
 				//void *enviar = serializar_paquete(paquete_instruccion, sizeof(int)+ paquete_instruccion->buffer->size);
 				// si no hay quilombo con el paquete devolver la instrucicon
-				enviar_paquete(paquete_instruccion, fd_cpu);
+				enviar_paquete(fd_cpu, paquete_instruccion);
 			
 				break;
             case DATO: 	

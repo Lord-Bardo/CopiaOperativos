@@ -77,7 +77,7 @@ void paquete(int conexion){
 		leido = readline("> ");
 	}
 	// Envio el paquete
-	enviar_paquete(paquete, conexion);
+	enviar_paquete(conexion, paquete);
 
 	// Libero las lineas y el paquete
 	free(leido);
