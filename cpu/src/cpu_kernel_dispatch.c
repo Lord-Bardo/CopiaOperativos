@@ -3,8 +3,10 @@
 void atender_cpu_kernel_dispatch(){
     int continuar = 1;
 	while( continuar ){
-		int cod_op = recibir_operacion(fd_kernel_dispatch); // pese a q esto es un while(1) NO es un bucle que esta todo el tiempo usando el recurso del procesador, porq recibir_operacion usa recv que es una sys bloqueante y ahi corta la ejecucion hasta recibir algo
-		switch(cod_op){
+		t_codigo_operacion *cod_op=NULL;
+		t_buffer * buffer = crear_buffer();
+		recibir_paquete(fd_memoria,cod_op,buffer);
+		switch(*cod_op){
 			case INSTRUCCION: // ... aca hay que recibir bb recive_buffer size instruccion
 				
 				break;

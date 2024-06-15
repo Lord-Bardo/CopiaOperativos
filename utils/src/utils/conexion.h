@@ -27,7 +27,8 @@ typedef enum{
     PAQUETE,
     FETCH,
     INSTRUCCION,
-    DATO, //usado para mov_in y mov_out
+    DATO, 
+    PCB//usado para mov_in y mov_out
     // ...
 } t_codigo_operacion;
 

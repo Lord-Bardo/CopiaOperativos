@@ -5,20 +5,60 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <readline/readline.h>
+#include <time.h>
 
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
 
+
 #include <utils/conexion.h>
-#include <utils/planificadores.h>
+
+typedef struct {
+	int pc;
+	int ax;
+	int bx;
+	int cx;
+	int dx;
+	int eax;
+	int ebx;
+	int ecx;
+	int edx;
+	int di;
+	int si;
+}t_registros;
+
+typedef struct {
+	int pid;
+	t_registros registros;
+}t_pcb;
+
+typedef enum{
+	SET,
+	SUM,
+    SUB,
+    JNZ,
+    IO_GEN_SLEEP,
+    MOV_IN, 
+    MOV_OUT, 
+    RESIZE, 
+    COPY_STRING, 
+    IO_STDIN_READ, 
+    IO_STDOUT_WRITE
+} t_instr_code;
+
+typedef struct {
+	t_instr_code instr_code;
+	char* argumentos[5];
+}t_instruccion;
 
 
 // VARIABLES GLOBALES
 extern t_log* cpu_logger;
 extern t_config* cpu_config;
-
+extern t_pcb pcb;
+//HABIRA QUE PONER EL PCB ACA CREO
 extern char* IP_MEMORIA;
 extern char* PUERTO_MEMORIA;
 extern char* PUERTO_ESCUCHA_DISPATCH;
@@ -32,4 +72,8 @@ extern int fd_kernel_dispatch;
 extern int fd_kernel_interrupt;
 extern int fd_memoria;
 
+
+// VARIABLES GLOBALES
+
+ //el que vamos a editar
 #endif

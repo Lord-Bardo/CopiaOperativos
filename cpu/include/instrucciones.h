@@ -1,20 +1,19 @@
-#ifndef UTILS_INSTRUCCIONES_H_
-#define UTILS_INSTRUCCIONES_H_
+#ifndef INSTRUCCIONES_H_
+#define INSTRUCCIONES_H_
 
 
 #include "cpu_gestor.h"
+#include "procesos.h"
 
-typedef struct {
-    int ins_code;
-    t_list* argumentos;
-}t_instruccion;
-
-typedef enum{
-    SET,
-    SUM, 
-    SUB,
-    JNZ,
-    IO_GEN_SLEEP,
-}ins_code;
+void inicializarInstruccion(t_instruccion* instr, t_instr_code code, char* args[5]);
+void liberarInstruccion(t_instruccion* instr);
+void mostrarInstruccion(t_instruccion instr);
+t_instruccion* fetch(int pid, int pc);
+void execute(t_instruccion *instruccion);
+void ejecutarSet(char * registro_string, char * valor_string);
+void ejecutarSum(char * registro_destino, char * registro_origen);
+void ejecutarSub(char * registro_destino, char * registro_origen);
+void ejecutarJnz(char * registro_string, char * nro_instruccion_string);
+t_instruccion* pedidoAMemoria(int pid, int pc);
 
 #endif

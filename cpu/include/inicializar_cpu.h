@@ -7,4 +7,6 @@ void inicializar_cpu(void);
 void iniciar_logger(void);
 void iniciar_config(void);
 
+ // Obtengo valores del archivo cpu.config
+
 #endif

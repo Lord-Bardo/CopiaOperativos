@@ -2,7 +2,8 @@
 #define CPU_KERNEL_DISPATCH_H_
 
 #include "cpu_gestor.h"
-#include "cpu.h"
+#include "instrucciones.h"
+#include "procesos.h"
 
 void atender_cpu_kernel_dispatch(void);
 
