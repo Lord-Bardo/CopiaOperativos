@@ -21,12 +21,21 @@ typedef struct {
     int cantidad_instrucciones; // Número de instrucciones cargadas en el array instrucciones
 } t_memoria_instrucciones;
 
-typedef struct {
-    int retardo; // Retardo en milisegundos
-} Configuracion; //
+// typedef struct {
+//     int retardo; // Retardo en milisegundos
+//     uint32_t tamanio_memoria;
+//     uint32_t tamanio_pagina;
+//     char* path
+// } Configuracion;
 
-Configuracion leer_configuracion(const char *archivo_configuracion) {//función lee un archivo de configuración para obtener el valor del retardo y lo devuelve en una struct Configuracion.
-    Configuracion config;
+typedef struct 
+{
+    char* path_pseudocodigo;
+    int pid;
+} t_pcb_memoria;
+
+
+void leer_configuracion(const char *archivo_configuracion) {//función lee un archivo de configuración para obtener el valor del retardo y lo devuelve en una struct Configuracion.
     FILE *archivo = fopen(archivo_configuracion, "r");
     if (!archivo) {
         perror("No se pudo abrir el archivo de configuración");
@@ -36,31 +45,44 @@ Configuracion leer_configuracion(const char *archivo_configuracion) {//función 
     fscanf(archivo, "retardo=%d", &config.retardo);
     fclose(archivo);
     return config;
-}
+}//ya está hecha
 
-void leer_pseudocodigo(const char *archivo_pseudocodigo, t_pcb *pcb ) { //primera parte que pide el tp
-    FILE *archivo = fopen(archivo_pseudocodigo, "r");
+void leer_pseudocodigo(const char *archivo_pseudocodigo, t_pcb_memoria*pcb_memoria) { //primera parte que pide el tp
+    FILE *archivo = fopen(path_config + path_pseudocodigo, "r");
     if (!archivo) {
         perror("No se pudo abrir el archivo de pseudocódigo");
         exit(EXIT_FAILURE);
     }
-    pcb->instrucciones = malloc(MAX_INSTRUCCIONES * sizeof(char *));
-    pcb->cantidad_instrucciones= 0;
+
+    // Leer el contenido del archivo línea por línea
+    char* linea = NULL;
+    size_t longitud = 0;
+    ssize_t leido;
+    while ((leido = getline(&linea, &longitud, archivo)) != -1) {
+        printf("%s", linea);
+    }
+
+    // Liberar la memoria y cerrar el archivo
+    free(linea);
+    fclose(archivo); //hasta acá esta copiado, hay que acomodar y revisar si anda la concatenacion de los path
+
+    pcb_memoria->instrucciones = malloc(MAX_INSTRUCCIONES * sizeof(char *));
+    pcb_memoria->cantidad_instrucciones= 0;
 
     char linea[MAX_LINEA];
     while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        pcb->instrucciones[pcb->cantidad_instrucciones] = strdup(linea);
-        pcb->cantidad_instrucciones++;
+        pcb_memoria->instrucciones[pcb->cantidad_instrucciones] = strdup(linea);
+        pcb_memoria->cantidad_instrucciones++;
     }
     fclose(archivo);
 }
 
-char *obtener_instruccion(t_pcb *pcb, Configuracion config) {
-    if (pcb->program_counter >= pcb->cantidad_instrucciones {
+char *obtener_instruccion(t_pcb_memoria *pcb_memoria, Configuracion config) {
+    if (pcb_memoria->program_counter >= pcb_memoria->cantidad_instrucciones {
         return NULL; // No hay más instrucciones
     }
     usleep(config.retardo * 1000); // Aplicar retardo en milisegundos
-    return pcb->instrucciones[pcb->program_counter++];
+    return pcb_memoria->instrucciones[pcb_memoria->program_counter++];
 }
 
 t_memoria_instrucciones *cargar_instrucciones(const char *nombre_archivo) {
@@ -85,17 +107,15 @@ t_memoria_instrucciones *cargar_instrucciones(const char *nombre_archivo) {
 }
 
 int main() {
-    Configuracion config = leer_configuracion("config.txt");
-    t_memoria_instrucciones *memoria = cargar_instrucciones("pseudocodigo.txt");
+    Configuracion config = leer_configuracion("config.txt");// kernel pasa la ruta del config
+    t_memoria_instrucciones *memoria = cargar_instrucciones("pseudocodigo.txt");//ruta del kernel tambien
     if (!memoria) {
         return 1;
     }
 
     t_pcb proceso;
     proceso.PID = 1;
-    proceso.quantum = 5;
-    proceso.estado = NUEVO;
-    proceso.registros.PC = 0;
+    proceso.registros.PC = 0;//faltaría el path
 
     char *instruccion;
     while ((instruccion = obtener_instruccion(memoria, proceso.registros.PC, config.retardo)) != NULL) {
@@ -112,3 +132,5 @@ int main() {
 
     return 0;
 }
+
+//falta iniciar proceso
