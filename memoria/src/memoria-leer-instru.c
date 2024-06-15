@@ -28,6 +28,25 @@ typedef struct {
 //     char* path
 // } Configuracion;
 
+typedef struct 
+{
+    char* path_pseudocodigo;
+    int pid;
+} t_pcb_memoria;
+
+
+void leer_configuracion(const char *archivo_configuracion) {//función lee un archivo de configuración para obtener el valor del retardo y lo devuelve en una struct Configuracion.
+    FILE *archivo = fopen(archivo_configuracion, "r");
+    if (!archivo) {
+        perror("No se pudo abrir el archivo de configuración");
+        exit(EXIT_FAILURE);
+    }
+
+    fscanf(archivo, "retardo=%d", &config.retardo);
+    fclose(archivo);
+    return config;
+}//ya está hecha
+
 void leer_pseudocodigo(const char *archivo_pseudocodigo, t_pcb_memoria*pcb_memoria) { //primera parte que pide el tp
     FILE *archivo = fopen(path_config + path_pseudocodigo, "r"); //probablemente la suma no funcione, revisar string.c en commons que podría haber alguna función útil para concatenar
     if (!archivo) {

@@ -65,7 +65,6 @@ void inicializar_semaforos(){
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
 }
 
-// Mati: Para las siguientes 2 funciones: entiendo que la asignacion es atomica y no requiere uso de semaforo
 void iniciar_planificacion(){
     estado_planificacion = ACTIVA;
 }
@@ -92,6 +91,87 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
     }
 
     pthread_mutex_unlock(&mutex_grado_multiprogramacion);
+}
+
+// PLANIFICADOR CORTO PLAZO
+void planificador_corto_plazo(){    
+    if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
+        planificador_corto_plazo_fifo();
+    }
+    else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
+        planificador_corto_plazo_rr();
+    }
+    else if( strcmp(ALGORITMO_PLANIFICACION, "VRR") == 0 ){
+        planificador_corto_plazo_vrr();
+    }
+    else{
+        log_error(kernel_logger, "Algoritmo de planificacion invalido!");
+    }
+}
+
+void planificador_corto_plazo_fifo(){
+    while( estado_planificacion ){
+        t_pcb *pcb = elegir_proceso_segun_fifo();
+        proceso_a_exec(pcb);
+        enviar_contexto_de_ejecucion(pcb);
+        recibir_contexto_de_ejecucion_actualizado(pcb); // Modifica directo al pcb con lo que recibe
+    }
+}
+
+t_pcb *elegir_proceso_segun_fifo(){
+    return estado_desencolar_primer_pcb(estado_ready);
+}
+
+// TODO: corto plazo RR y VRR
+void planificador_corto_plazo_rr(){
+    // TODO
+}
+
+void planificador_corto_plazo_vrr(){
+    // TODO
+    // Tener en cuenta READY_PLUS
+}
+
+// Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
+void enviar_contexto_de_ejecucion(t_pcb *pcb){
+    t_paquete *paquete_contexto_de_ejecucion = crear_paquete(CONTEXTO_DE_EJECUCION);
+    agregar_contexto_ejecucion_a_paquete(paquete_contexto_de_ejecucion, pcb);
+    enviar_paquete(fd_cpu_dispatch, paquete_contexto_de_ejecucion);
+    eliminar_paquete(paquete_contexto_de_ejecucion);
+}
+
+void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
+    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros)
+    // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
+    // En cualquier caso se lo debe desencolar de EXEC
+    // Si puede seguir ejecutando se lo encola en READY
+    // Si no se bloqueo entonces se lo encola en BLOCKED
+    t_codigo_operacion motivo_desalojo;
+    t_buffer *buffer = crear_buffer();
+    recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
+    buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
+
+    // switch(motivo_desalojo){
+    //     case :
+    // }
+
+    eliminar_buffer(buffer);
+}
+
+// PLANIFICADOR LARGO PLAZO
+// Crea el pcb y lo encola en new
+void iniciar_proceso(char *path){
+    int pid = generar_pid();
+    t_pcb *pcb = crear_pcb(pid, path);
+    estado_encolar_pcb(estado_new, pcb);
+    log_creacion_proceso(pcb);
+}
+
+void finalizar_proceso(int pid){ // TERMINAR
+    // Se deberia liberar la memoria asignada al proceso
+
+
+    sem_post(&sem_grado_multiprogramacion);
 }
 
 // El manejo de NEW -> READY habria que mandarlo a un hilo aparte
@@ -140,14 +220,6 @@ void recibir_confirmacion_memoria_proceso_iniciado(){
     }
 }
 
-// Crea el pcb y lo encola en new
-void iniciar_proceso(char *path){
-    int pid = generar_pid();
-    t_pcb *pcb = crear_pcb(pid, path);
-    estado_encolar_pcb(estado_new, pcb);
-    log_creacion_proceso(pcb);
-}
-
 // void manejador_new_exit() {
 //     while (estado_planificacion) {
 //         sem_wait(estado_get_sem(estado_new)); 
@@ -180,45 +252,11 @@ void iniciar_proceso(char *path){
 //     }
 // }
 
-void planificador_corto_plazo(){    
-    if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
-        planificador_corto_plazo_fifo();
-    }
-    else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
-        planificador_corto_plazo_rr();
-    }
-    else if( strcmp(ALGORITMO_PLANIFICACION, "VRR") == 0 ){
-        // TODO
-        // Tener en cuenta READY_PLUS
-    }
-    else{
-        log_error(kernel_logger, "Algoritmo de planificacion invalido!");
-    }
-}
-
-void planificador_corto_plazo_fifo(){
-    while( estado_planificacion ){
-        // sem_wait(&sem_cpu_disponible); // Espera a que no haya ningun proceso ejecutando. (deberiamos hacer el post cuando cpu nos devuelve el pcb actualizado)
-        // Si recibir_contexto es bloqueante no deberia ser necesario usar el semaforo
-        t_pcb *pcb = elegir_proceso_segun_fifo();
-        proceso_a_exec(pcb);
-        enviar_contexto_de_ejecucion(pcb);
-        recibir_contexto_de_ejecucion_actualizado(pcb); // Modifica directo al pcb con lo que recibe 
-        // Tal vez kernel_cpu_dispatch.c no es necesario, porq conviene manejarlo aca el recibir este mensaje
-    }
-}
-
-// TODO: corto plazo RR y VRR
-void planificador_corto_plazo_rr(){
-    // TODO
-}
-
-void planificador_corto_plazo_vrr(){
-    // TODO
-}
-
-t_pcb *elegir_proceso_segun_fifo(){
-    return estado_desencolar_primer_pcb(estado_ready);
+// PROCESO A ...
+void proceso_a_ready(t_pcb *pcb){
+	pcb_cambiar_estado_a(pcb, READY);
+	estado_encolar_pcb(estado_ready, pcb);
+    log_ingreso_ready();
 }
 
 void proceso_a_exec(t_pcb *pcb){
@@ -226,65 +264,9 @@ void proceso_a_exec(t_pcb *pcb){
     estado_encolar_pcb(estado_exec, pcb);
 }
 
-void enviar_contexto_de_ejecucion(t_pcb *pcb){
-    // Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
-    t_paquete *paquete_contexto_de_ejecucion = crear_paquete(CONTEXTO_DE_EJECUCION);
-    agregar_contexto_ejecucion_a_paquete(paquete_contexto_de_ejecucion, pcb);
-    enviar_paquete(fd_cpu_dispatch, paquete_contexto_de_ejecucion);
-    eliminar_paquete(paquete_contexto_de_ejecucion);
-}
-
-void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
-    // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros)
-    // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
-    // En cualquier caso se lo debe desencolar de EXEC
-    // Si puede seguir ejecutando se lo encola en READY
-    // Si no se bloqueo entonces se lo encola en BLOCKED
-    t_codigo_operacion motivo_desalojo;
-    t_buffer *buffer = crear_buffer();
-    pthread_mutex_lock(&mutex_socket_dispatch);
-    recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
-    pthread_mutex_unlock(&mutex_socket_dispatch);
-
-    buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
-
-    // switch(motivo_desalojo){
-    //     case :
-    // }
-
-    eliminar_buffer(buffer);
-}
-
-void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
-    buffer_desempaquetar(buffer, &(registros->PC));
-    buffer_desempaquetar(buffer, &(registros->AX));
-    buffer_desempaquetar(buffer, &(registros->BX));
-    buffer_desempaquetar(buffer, &(registros->CX));
-    buffer_desempaquetar(buffer, &(registros->DX));
-    buffer_desempaquetar(buffer, &(registros->EAX));
-    buffer_desempaquetar(buffer, &(registros->EBX));
-    buffer_desempaquetar(buffer, &(registros->ECX));
-    buffer_desempaquetar(buffer, &(registros->EDX));
-    buffer_desempaquetar(buffer, &(registros->SI));
-    buffer_desempaquetar(buffer, &(registros->DI));
-}
-
-void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){ // REVISAR
-    int pid_recibido;
-    buffer_desempaquetar(buffer, &pid_recibido);
-    if( pid_recibido != pcb_get_pid(pcb) ){
-        log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
-    }
-    
-    buffer_desempaquetar_registros(buffer, &(pcb->registros));
-}
-
-// ACA VA INICIAR_PROCESO
-
-void proceso_a_ready(t_pcb *pcb){
-	pcb_cambiar_estado_a(pcb, READY);
-	estado_encolar_pcb(estado_ready, pcb);
-    log_ingreso_ready();
+void proceso_a_blocked(t_pcb *pcb){
+    pcb_cambiar_estado_a(pcb, BLOCKED);
+    estado_encolar_pcb(estado_blocked, pcb);
 }
 
 void proceso_a_exit(t_pcb *pcb){ // REVISAR
@@ -292,11 +274,4 @@ void proceso_a_exit(t_pcb *pcb){ // REVISAR
     estado_encolar_pcb(estado_exit, pcb);
     finalizar_proceso(pcb_get_pid(pcb)); // Lucho: Todavia no está hecha
     //log_salida_exit(pcb_get_pid(pcb)); // Lucho: Cómo logeamos el motivo? - completar la función de log
-}
-
-void finalizar_proceso(int pid){ // TERMINAR
-    // Se deberia liberar la memoria asignada al proceso
-
-
-    sem_post(&sem_grado_multiprogramacion);
 }

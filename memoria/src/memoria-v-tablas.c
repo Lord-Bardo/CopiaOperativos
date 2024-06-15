@@ -14,6 +14,25 @@
 #include "memoria_kernel.h"
 #include "memoria_cpu.h"
 
+// Estructura para las tablas de páginas
+typedef struct {
+    int marco;
+    void* frame
+    bool presencia;
+} t_pagina;
+
+typedef struct { //para las tablas entrar al dictionary.h para ver la estructura de t_config
+    int pid;
+    pagina_t *paginas;
+} t_tabla_paginas;
+
+
+void inicializar_tamanio_memoria() {
+    espacio_de_usuario = malloc(TAM_MEMORIA);
+    memset(espacio_de_usuario, 0, TAM_MEMORIA);
+    puntero_espacio_usuario = espacio_usuario; //pun
+}
+
 t_tabla_paginas *crear_tabla_paginas(int pid, int cantidad_paginas) {
     tabla_paginas_t *tabla = malloc(sizeof(t_tabla_paginas));
     tabla->pid = pid;

@@ -13,6 +13,8 @@ int main(int argc, char* argv[]) {
 	// Conexion con CPU - DISPATCH
 	conectar_a_cpu_dispatch();
 
+	iniciar_consola_interactiva();
+
 	// Conexion con CPU - INTERRUPT
 	conectar_a_cpu_interrupt();
 

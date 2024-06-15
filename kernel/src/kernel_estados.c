@@ -16,6 +16,7 @@ t_estado *crear_estado(t_nombre_estado nombre_estado){
         return NULL;
     }
     pthread_mutex_init(mutex, NULL);
+    estado->mutex_estado = mutex;
 
     sem_t *sem = malloc(sizeof(sem_t));
     if( sem == NULL ){
@@ -23,6 +24,7 @@ t_estado *crear_estado(t_nombre_estado nombre_estado){
         return NULL;
     }
     sem_init(sem, 0, 0); // La lista arranca vacia
+    estado->sem_estado = sem;
 
     return estado;
 }

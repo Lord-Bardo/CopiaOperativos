@@ -22,7 +22,7 @@ void atender_cpu_memoria(){
 
 				buffer_desempaquetar_pcb(buffer,pcb_recibido); //esto recibe todo el paquete desde kernel
 
-				iniciar_ciclo_instruccion(pcb_recibido);
+				iniciar_ciclo_instruccion(*pcb_recibido);
 
 			case 8:
 				log_error(cpu_logger, "Se perdio la conexion con MEMORIA!");
