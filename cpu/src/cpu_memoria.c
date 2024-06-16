@@ -1,5 +1,5 @@
 #include "../include/cpu_memoria.h"
-#include "../include/cpu_utils.h"
+
 void atender_cpu_memoria(){
     int continuar = 1;
 	while(continuar){
@@ -38,22 +38,16 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	copiarContexto(pcb_recibido);
 	mostrarPCB(pcb);
 	t_instruccion* instr = fetch(pcb.pid, pcb.registros.pc);
-    t_paquete *paquete_pcb = crear_paquete(FINALIZACION);
-    
-   
     //aca deberiamos mandarle a memoria un pc y pid para que nos devuelva una instruccion.
 	
 	if (instr != NULL) {
         mostrarInstruccion(*instr);
         execute(instr);
         liberarInstruccion(instr);
-        //devolder a kernel
-        
     } else {
         printf("Error al obtener la instrucción de memoria\n");
     }
-	agregar_contexto_ejecucion_a_paquete(paquete_pcb,&pcb);
-    enviar_paquete(fd_cpu_dispatch,paquete_pcb);
+	//hacer el switch
 }
 void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
     buffer_desempaquetar(buffer, &(registros->pc));

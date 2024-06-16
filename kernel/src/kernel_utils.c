@@ -43,7 +43,7 @@ void log_fin_quantum(){
 }
 
 void log_ingreso_ready(){
-    log_info(kernel_logger_min_y_obl, "Cola Ready READY: %s:", lista_pids_string(estado_ready)); // Mati: No se que poner en <COLA> -> Lo cambiamos por READY pero sigue la duda
+    log_info(kernel_logger_min_y_obl, "Cola Ready READY: %s", lista_pids_string(estado_ready)); // Mati: No se que poner en <COLA> -> Lo cambiamos por READY pero sigue la duda
 }
 
 char *lista_pids_string(t_estado *estado){
@@ -144,4 +144,29 @@ void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb){
 void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb){
     agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
     agregar_registros_a_paquete(paquete, pcb_get_registros(pcb));
+}
+
+// MANEJO BUFFER
+void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
+    buffer_desempaquetar(buffer, &(registros->PC));
+    buffer_desempaquetar(buffer, &(registros->AX));
+    buffer_desempaquetar(buffer, &(registros->BX));
+    buffer_desempaquetar(buffer, &(registros->CX));
+    buffer_desempaquetar(buffer, &(registros->DX));
+    buffer_desempaquetar(buffer, &(registros->EAX));
+    buffer_desempaquetar(buffer, &(registros->EBX));
+    buffer_desempaquetar(buffer, &(registros->ECX));
+    buffer_desempaquetar(buffer, &(registros->EDX));
+    buffer_desempaquetar(buffer, &(registros->SI));
+    buffer_desempaquetar(buffer, &(registros->DI));
+}
+
+void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){
+    int pid_recibido;
+    buffer_desempaquetar(buffer, &pid_recibido);
+    if( pid_recibido != pcb_get_pid(pcb) ){
+        log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
+    }
+    
+    buffer_desempaquetar_registros(buffer, &(pcb->registros));
 }

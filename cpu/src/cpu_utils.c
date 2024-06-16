@@ -7,37 +7,24 @@
 	t_pcb pcb;
 	
 }*/
-void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion){
+void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion)
+{
 	agregar_a_paquete(paquete, instruccion, string_length(instruccion));
 }
 
-void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb){
-    agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
-    agregar_registros_a_paquete(paquete, pcb_get_registros(pcb));
-}
-void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint32_t));
-}
-
-void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint8_t));
-}
-
-void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros){
-    agregar_uint32_a_paquete(paquete, registros.PC);
-    agregar_uint8_a_paquete(paquete, registros.AX);
-    agregar_uint8_a_paquete(paquete, registros.BX);
-    agregar_uint8_a_paquete(paquete, registros.CX);
-    agregar_uint8_a_paquete(paquete, registros.DX);
-    agregar_uint32_a_paquete(paquete, registros.EAX);
-    agregar_uint32_a_paquete(paquete, registros.EBX);
-    agregar_uint32_a_paquete(paquete, registros.ECX);
-    agregar_uint32_a_paquete(paquete, registros.EDX);
-    agregar_uint32_a_paquete(paquete, registros.SI);
-    agregar_uint32_a_paquete(paquete, registros.DI);
-}
-void agregar_pid_a_paquete(t_paquete *paquete, int pid){
-    agregar_a_paquete(paquete, &pid, sizeof(pid));
+void agregar_pcb_paquete(t_paquete *paquete, t_pcb *pcb) {
+	agregar_a_paquete(paquete, &(pcb->pid), sizeof(int));
+	agregar_a_paquete(paquete, &(pcb->registros.pc), 8);
+	agregar_a_paquete(paquete, &(pcb->registros.ax), 2);
+	agregar_a_paquete(paquete, &(pcb->registros.bx), 2);
+	agregar_a_paquete(paquete, &(pcb->registros.cx), 2);
+	agregar_a_paquete(paquete, &(pcb->registros.dx), 2);
+	agregar_a_paquete(paquete, &(pcb->registros.eax), 8);
+	agregar_a_paquete(paquete, &(pcb->registros.ebx), 8);
+	agregar_a_paquete(paquete, &(pcb->registros.ecx), 8);
+	agregar_a_paquete(paquete, &(pcb->registros.edx), 8);
+	agregar_a_paquete(paquete, &(pcb->registros.si), 8);
+	agregar_a_paquete(paquete, &(pcb->registros.di), 8);
 }
 
 /*char* recibir_instruccion(int socket_cliente) //no se quien hizo esto pero tiene que retornar un char* y no retorna nada

@@ -16,17 +16,17 @@
 #include <utils/conexion.h>
 
 typedef struct {
-	__uint32_t pc;
-    __uint8_t ax;
-    __uint8_t bx;
-    __uint8_t cx;
-    __uint8_t dx;
-    __uint32_t eax;
-    __uint32_t ebx;
-    __uint32_t ecx;
-    __uint32_t edx;
-    __uint32_t si; //contiene la direccion logica de memoria de origen desde donde se va a copir un string
-    __uint32_t di; //contiene la direccion logica de memoria de destino desde donde se va a copir un string
+	int pc;
+	int ax;
+	int bx;
+	int cx;
+	int dx;
+	int eax;
+	int ebx;
+	int ecx;
+	int edx;
+	int di;
+	int si;
 }t_registros;
 
 typedef struct {
