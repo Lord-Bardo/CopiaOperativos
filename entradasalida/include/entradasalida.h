@@ -5,9 +5,11 @@
 #include "inicializar_entradasalida.h"
 #include "entradasalida_memoria.h"
 #include "entradasalida_kernel.h"
+#include "entradasalida_interfaces.h"
 
 // VARIABLES GLOBALES
 t_log *entradasalida_logger;
+t_log *entradasalida_logger_min_y_obl;
 t_config *entradasalida_config;
 
 char* TIPO_INTERFAZ;
@@ -19,6 +21,7 @@ char* PUERTO_MEMORIA;
 char* PATH_BASE_DIALFS;
 int BLOCK_SIZE;
 int BLOCK_COUNT;
+int RETRASO_COMPACTACION;
 
 int fd_kernel;
 int fd_memoria;

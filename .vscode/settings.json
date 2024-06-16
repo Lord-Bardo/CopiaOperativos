@@ -8,6 +8,8 @@
         "planificadores.h": "c",
         "consola.h": "c",
         "limits": "c",
-        "memoria_entradasalida.h": "c"
+        "memoria_entradasalida.h": "c",
+        "inicializar_kernel.h": "c",
+        "kernel_pcb.h": "c"
     }
 }
