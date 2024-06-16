@@ -14,6 +14,7 @@
 
 // VARIABLES GLOBALES
 extern t_log* entradasalida_logger;
+extern t_log *entradasalida_logger_min_y_obl;
 extern t_config* entradasalida_config;
 
 extern char* TIPO_INTERFAZ;
@@ -30,5 +31,6 @@ extern int RETRASO_COMPACTACION;
 
 extern int fd_kernel;
 extern int fd_memoria;
+extern int fd_entradasalida;
 
 #endif

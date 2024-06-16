@@ -1,7 +1,7 @@
 #ifndef IO_INTERFACE_H
 #define IO_INTERFACE_H
 
-#include <pthread.h>
+#include "./entradasalida_gestor.h"
 
 typedef enum {
     GENERICA,

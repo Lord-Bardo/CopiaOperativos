@@ -3,6 +3,7 @@
 void inicializar_entradasalida(){
     iniciar_logger();
     iniciar_config();
+    // En realidad voy a tener que inicializar los 4 config de cada interfaz
 }
 
 void iniciar_logger(){

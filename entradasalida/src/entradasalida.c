@@ -6,6 +6,7 @@ int main(int argc, char* argv[]) {
 
 	// Conexion con KERNEL
 	conectar_a_kernel();
+	atender_entradasalida_kernel(); // Puesto para probar, en realidad tiene que ejecutarse en hilo
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();
@@ -27,10 +28,6 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
-
-/* void iniciar_interfaz(char* nombre, t_config *archivo_configuracion){
-
-} */
 
 void conectar_a_kernel(){
 	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
@@ -68,5 +65,5 @@ void terminar_programa(){
 	}
 
 	liberar_conexion(fd_kernel);
-	liberar_conexion(fd_memoria)
+	liberar_conexion(fd_memoria);
 }

@@ -1,11 +1,10 @@
 #ifndef ENTRADASALIDA_H_
 #define ENTRADASALIDA_H_
 
-#include "entradasalida_gestor.h"
-#include "inicializar_entradasalida.h"
-#include "entradasalida_memoria.h"
-#include "entradasalida_kernel.h"
-#include "entradasalida_interfaces.h"
+#include "./entradasalida_gestor.h"
+#include "./inicializar_entradasalida.h"
+#include "./entradasalida_memoria.h"
+#include "./entradasalida_kernel.h"
 
 // VARIABLES GLOBALES
 t_log *entradasalida_logger;
@@ -25,6 +24,7 @@ int RETRASO_COMPACTACION;
 
 int fd_kernel;
 int fd_memoria;
+int fd_entradasalida;
 
 //FUNCIONES
 void conectar_a_kernel();
