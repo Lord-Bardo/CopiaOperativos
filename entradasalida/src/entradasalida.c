@@ -4,7 +4,7 @@ int main(int argc, char* argv[]) {
     // Inicializar estructuras de entradasalida (loggers y config)
 	inicializar_entradasalida();
 
-	//Conexion con KERNEL
+	// Conexion con KERNEL
 	conectar_a_kernel();
 
 	// Conexion con MEMORIA
@@ -27,6 +27,10 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
+
+/* void iniciar_interfaz(char* nombre, t_config *archivo_configuracion){
+
+} */
 
 void conectar_a_kernel(){
 	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
@@ -53,6 +57,10 @@ void conectar_a_memoria(){
 void terminar_programa(){
 	if(entradasalida_logger != NULL){
 		log_destroy(entradasalida_logger);
+	}
+
+	if(entradasalida_logger_min_y_obl != NULL){
+		log_destroy(entradasalida_logger_min_y_obl);
 	}
 
 	if(entradasalida_config != NULL){
