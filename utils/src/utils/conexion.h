@@ -19,10 +19,12 @@ typedef enum{
     // KERNEL - CPU DISPATCH
     CONTEXTO_DE_EJECUCION,
     // Motivos desalojo
+    OUT_OF_MEMORY,
     FINALIZACION,
     SYSCALL,
     INTERRUPCION,
-    OUT_OF_MEMORY,
+    // KERNEL - ENTRADASALIDA
+    IO_GEN_SLEEP,
     // CPU
     MENSAJE,
     PAQUETE,

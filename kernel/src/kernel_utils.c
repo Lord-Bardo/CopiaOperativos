@@ -7,8 +7,26 @@ void log_creacion_proceso(t_pcb *pcb){
 }
 
 // Finaliza el proceso <PID> - Motivo: <SUCCESS / INVALID_RESOURCE / INVALID_INTERFACE / OUT_OF_MEMORY / INTERRUPTED_BY_USER>
-void log_fin_proceso(){
-    //log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d - Motivo: " , pid , /* Acá iria el motivo en una variable (?) */); // Lucho: Completar
+void log_fin_proceso(t_pcb *pcb, t_codigo_operacion motivo_fin_proceso){
+    log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d - Motivo: %s" , pcb_get_pid(pcb), motivo_fin_proceso_get_string(motivo_fin_proceso));
+}
+
+// Otra opcion es hacer varios #define FINALIZACION_SUCCESS "SUCCESS", total no lo necesito tener como codigo_operacion se lo mando directo como char* a terminar proceso y fue
+char *motivo_fin_proceso_get_string(t_codigo_operacion motivo_fin_proceso){
+    switch(motivo_fin_proceso){
+        case SUCCESS:
+            return "SUCCESS";
+        case INVALID_RESOURCE:
+            return "INVALID_RESOURCE";
+        case INVALID_INTERFACE:
+            return "INVALID_INTERFACE";
+        case OUT_OF_MEMORY:
+            return "OUT_OF_MEMORY";
+        case INTERRUPTED_BY_USER:
+            return "INTERRUPTED_BY_USER";
+        default:
+            return "";
+    }
 }
 
 void log_cambio_estado(t_pcb *pcb, t_nombre_estado estado_anterior, t_nombre_estado nuevo_estado){

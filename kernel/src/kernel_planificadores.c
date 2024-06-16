@@ -133,7 +133,7 @@ void planificador_corto_plazo_vrr(){
 }
 
 // Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
-void enviar_contexto_de_ejecucion(t_pcb *pcb){
+void enviar_contexto_de_ejecucion_a_cpu(t_pcb *pcb){
     t_paquete *paquete_contexto_de_ejecucion = crear_paquete(CONTEXTO_DE_EJECUCION);
     agregar_contexto_ejecucion_a_paquete(paquete_contexto_de_ejecucion, pcb);
     enviar_paquete(fd_cpu_dispatch, paquete_contexto_de_ejecucion);
@@ -151,9 +151,12 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
-    // switch(motivo_desalojo){
-    //     case :
-    // }
+    estado_desencolar_primer_pcb(estado_exec);
+    switch(motivo_desalojo){
+        case OUT_OF_MEMORY:
+            finalizar_proceso(pcb_get_pid(pcb)); // REVISAR
+            break;
+    }
 
     eliminar_buffer(buffer);
 }
