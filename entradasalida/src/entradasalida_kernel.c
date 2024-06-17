@@ -1,33 +1,25 @@
 #include "../include/entradasalida_kernel.h"
 
+// DUDA: cuando tengo que interactuar con memoria y cuando con kernel?
 void atender_entradasalida_kernel(){
-    int continuar = 1;
-	while( continuar ){
-		int cod_op = recibir_operacion(fd_kernel);
-		switch(cod_op){
-			case MENSAJE_OK:
-				// ...
-				break;
-			case MENSAJE_FLAW: //NO SE A QUE SE REFIERE CON FLAW
-				
+    while (1) {
+        t_codigo_operacion instruccion;
+        t_buffer *buffer = crear_buffer();
 
-				break;
-			case MENSAJE_LISTO:
-				// ...
-				break;
-			case INSTRUCCION: // ... aca hay que recibir bb recive_buffer size instruccion
-				
-				break;
-			case PCB:
-				// ..
-				break;
-			case -1:
-				log_error(entradasalida_logger, "Se perdio la conexion con KERNEL!");
-				continuar = 0;
-				break;
-			default:
-				log_warning(entradasalida_logger, "ENTRADASALIDA: Operacion desconocida recibida de KERNEL");
-				break;
-		}
-	}
+        recibir_paquete(fd_kernel, &instruccion, buffer);
+
+        int cant_unidades_trabajo;
+        buffer_desempaquetar(buffer,&cant_unidades_trabajo);
+    
+        switch (instruccion){
+            case IO_GEN_SLEEP:
+                interfaz_generica(cant_unidades_trabajo);
+                break;
+            default:
+                log_info(entradasalida_logger, "Instruccion desconocida");
+        } 
+
+        eliminar_buffer(buffer);
+
+    }
 }

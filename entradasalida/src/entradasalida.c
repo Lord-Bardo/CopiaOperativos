@@ -4,8 +4,9 @@ int main(int argc, char* argv[]) {
     // Inicializar estructuras de entradasalida (loggers y config)
 	inicializar_entradasalida();
 
-	//Conexion con KERNEL
+	// Conexion con KERNEL
 	conectar_a_kernel();
+	atender_entradasalida_kernel(); // Puesto para probar, en realidad tiene que ejecutarse en hilo
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();
@@ -55,10 +56,14 @@ void terminar_programa(){
 		log_destroy(entradasalida_logger);
 	}
 
+	if(entradasalida_logger_min_y_obl != NULL){
+		log_destroy(entradasalida_logger_min_y_obl);
+	}
+
 	if(entradasalida_config != NULL){
 		config_destroy(entradasalida_config);
 	}
 
 	liberar_conexion(fd_kernel);
-	liberar_conexion(fd_memoria)
+	liberar_conexion(fd_memoria);
 }
