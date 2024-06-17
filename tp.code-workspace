@@ -17,10 +17,10 @@
 			"path": "memoria"
 		},
 		{
-			"path": "entradasalida"
+			"path": "utils"
 		},
 		{
-			"path": "utils"
+			"path": "../Desktop/entradasalida/entradasalida"
 		}
 	]
 }

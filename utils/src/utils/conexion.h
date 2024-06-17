@@ -25,6 +25,15 @@ typedef enum{
     SYSCALL,
     INTERRUPCION,
     OUT_OF_MEMORY,
+    // KERNEL - ENTRADASALIDA (manejo de interfaces)
+    IO_GEN_SLEEP,
+    IO_STDIN_READ,
+    IO_STDOUT_WRITE,
+    IO_FS_CREATE,
+    IO_FS_DELETE,
+    IO_FS_TRUNCATE,
+    IO_FS_WRITE,
+    IO_FS_READ,
     // CPU
     MENSAJE,
     PAQUETE,
@@ -33,6 +42,7 @@ typedef enum{
     DATO, 
     PCB//usado para mov_in y mov_out
     // ...
+
 } t_codigo_operacion;
 
 typedef enum{
