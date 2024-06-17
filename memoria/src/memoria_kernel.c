@@ -44,7 +44,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     // Abro el archivo
     FILE *archivo = fopen(ruta_completa, "r");
     if (archivo == NULL) {
-        enviar_codigo_operacion(fd_kernel, PROCESO_VACIO);
+        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
         perror("Error al abrir el archivo");
         free(ruta_completa);
         exit(EXIT_FAILURE);
@@ -67,10 +67,7 @@ void crear_proceso(t_pcb_memoria *proceso)
         num_lineas++;
     }
     agregar_proceso_a_procesos(*proceso); // Función hecha en utils de memoria.
-    enviar_codigo_operacion(fd_kernel, CONFIRM_PROCESO_CREADO);
-
-    // Aca podría ir la lógica en donde le envío mensaje de confirmación a kernel de que
-    // el proceso fue creado con éxito (aunque no sé si hay que mandar una confirmación).
+    enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO);
 
     // Cerrar el archivo
     fclose(archivo);
