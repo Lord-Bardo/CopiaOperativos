@@ -169,9 +169,12 @@ void iniciar_proceso(char *path){
 
 void finalizar_proceso(int pid){ // TERMINAR
     // Se deberia liberar la memoria asignada al proceso
+    // list_remove_by_condition();
+    // proceso_a_exit();
+    // sem_post(&sem_grado_multiprogramacion);
 
-
-    sem_post(&sem_grado_multiprogramacion);
+    // Pseudocodigo
+    // detener_planificacion(); -> tiene que frenar las transiciones?
 }
 
 // El manejo de NEW -> READY habria que mandarlo a un hilo aparte
@@ -193,9 +196,13 @@ void planificador_largo_plazo_new_ready(){
     while( estado_planificacion ){
         sem_wait(&sem_grado_multiprogramacion);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb)); // Mati: calculo que memoria tendra una tabla con PIDs y sus path asociados 
-        recibir_confirmacion_memoria_proceso_iniciado();
-        proceso_a_ready(pcb);
+        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb));
+        if( recibir_confirmacion_memoria_proceso_iniciado() == CONFIRMACION_PROCESO_INICIADO ){
+            proceso_a_ready(pcb);
+        }
+        else{
+            finalizar_proceso(pcb_get_pid(pcb));
+        } 
     }
 }
 
@@ -207,17 +214,10 @@ void pedir_a_memoria_iniciar_proceso(int pid, char *path){
     eliminar_paquete(paquete_solicitud_iniciar_proceso);
 }
 
-void recibir_confirmacion_memoria_proceso_iniciado(){
+t_codigo_operacion recibir_confirmacion_memoria_proceso_iniciado(){
     t_codigo_operacion codigo_operacion;
     recibir_codigo_operacion(fd_memoria, &codigo_operacion);
-    switch(codigo_operacion){
-        case CONFIRMACION_PROCESO_INICIADO:
-            break;
-        case OUT_OF_MEMORY:
-            break;
-        default:
-            
-    }
+    return codigo_operacion;
 }
 
 // void manejador_new_exit() {
@@ -272,6 +272,4 @@ void proceso_a_blocked(t_pcb *pcb){
 void proceso_a_exit(t_pcb *pcb){ // REVISAR
     pcb_cambiar_estado_a(pcb, EXIT);
     estado_encolar_pcb(estado_exit, pcb);
-    finalizar_proceso(pcb_get_pid(pcb)); // Lucho: Todavia no está hecha
-    //log_salida_exit(pcb_get_pid(pcb)); // Lucho: Cómo logeamos el motivo? - completar la función de log
 }

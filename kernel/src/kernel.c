@@ -7,13 +7,17 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
+	t_pcb* pcb = crear_pcb(0, "PATH");
+	pcb_set_registro_ax(pcb, "AB");
+	pcb_set_registro_eax(pcb, "ABCD");
+	log_info(kernel_logger, "AX: %s", pcb_get_registro_ax(pcb));
+	log_info(kernel_logger, "EAX: %s", pcb_get_registro_eax(pcb));
+
 	// Conexion con MEMORIA
 	conectar_a_memoria();
 
 	// Conexion con CPU - DISPATCH
 	conectar_a_cpu_dispatch();
-
-	iniciar_consola_interactiva();
 
 	// Conexion con CPU - INTERRUPT
 	conectar_a_cpu_interrupt();

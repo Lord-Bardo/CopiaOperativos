@@ -111,29 +111,32 @@ void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
     agregar_a_paquete(paquete, &n, sizeof(uint32_t));
 }
 
-void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint8_t));
+void agregar_pc_a_paquete(t_paquete *paquete, uint32_t pc){
+    agregar_uint32_a_paquete(paquete, pc);
 }
 
-void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros){
-    agregar_uint32_a_paquete(paquete, registros.PC);
-    agregar_uint8_a_paquete(paquete, registros.AX);
-    agregar_uint8_a_paquete(paquete, registros.BX);
-    agregar_uint8_a_paquete(paquete, registros.CX);
-    agregar_uint8_a_paquete(paquete, registros.DX);
-    agregar_uint32_a_paquete(paquete, registros.EAX);
-    agregar_uint32_a_paquete(paquete, registros.EBX);
-    agregar_uint32_a_paquete(paquete, registros.ECX);
-    agregar_uint32_a_paquete(paquete, registros.EDX);
-    agregar_uint32_a_paquete(paquete, registros.SI);
-    agregar_uint32_a_paquete(paquete, registros.DI);
+void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){ // NO SE USA
+    agregar_a_paquete(paquete, &n, sizeof(uint8_t));
 }
 
 void agregar_string_a_paquete(t_paquete *paquete, char *string){
     agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
 }
 
-void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb){
+void agregar_registros_a_paquete(t_paquete *paquete, t_registros *registros){
+    agregar_string_a_paquete(paquete, registros->AX);
+    agregar_string_a_paquete(paquete, registros->BX);
+    agregar_string_a_paquete(paquete, registros->CX);
+    agregar_string_a_paquete(paquete, registros->DX);
+    agregar_string_a_paquete(paquete, registros->EAX);
+    agregar_string_a_paquete(paquete, registros->EBX);
+    agregar_string_a_paquete(paquete, registros->ECX);
+    agregar_string_a_paquete(paquete, registros->EDX);
+    agregar_string_a_paquete(paquete, registros->SI);
+    agregar_string_a_paquete(paquete, registros->DI);
+}
+
+void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb){ // NO SE USA
     agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
     agregar_quantum_a_paquete(paquete, pcb_get_quantum(pcb));
     agregar_estado_a_paquete(paquete, pcb_get_estado(pcb));
@@ -143,22 +146,22 @@ void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb){
 
 void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb){
     agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
+    agregar_pc_a_paquete(paquete, pcb_get_pc(pcb));
     agregar_registros_a_paquete(paquete, pcb_get_registros(pcb));
 }
 
 // MANEJO BUFFER
 void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
-    buffer_desempaquetar(buffer, &(registros->PC));
-    buffer_desempaquetar(buffer, &(registros->AX));
-    buffer_desempaquetar(buffer, &(registros->BX));
-    buffer_desempaquetar(buffer, &(registros->CX));
-    buffer_desempaquetar(buffer, &(registros->DX));
-    buffer_desempaquetar(buffer, &(registros->EAX));
-    buffer_desempaquetar(buffer, &(registros->EBX));
-    buffer_desempaquetar(buffer, &(registros->ECX));
-    buffer_desempaquetar(buffer, &(registros->EDX));
-    buffer_desempaquetar(buffer, &(registros->SI));
-    buffer_desempaquetar(buffer, &(registros->DI));
+    registros->AX = buffer_desempaquetar_string(buffer);
+    registros->BX = buffer_desempaquetar_string(buffer);
+    registros->CX = buffer_desempaquetar_string(buffer);
+    registros->DX = buffer_desempaquetar_string(buffer);
+    registros->EAX = buffer_desempaquetar_string(buffer);
+    registros->EBX = buffer_desempaquetar_string(buffer);
+    registros->ECX = buffer_desempaquetar_string(buffer);
+    registros->EDX = buffer_desempaquetar_string(buffer);
+    registros->SI = buffer_desempaquetar_string(buffer);
+    registros->DI = buffer_desempaquetar_string(buffer);
 }
 
 void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){
@@ -168,5 +171,6 @@ void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){
         log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
     }
     
-    buffer_desempaquetar_registros(buffer, &(pcb->registros));
+    buffer_desempaquetar(buffer, &(pcb->PC));
+    buffer_desempaquetar_registros(buffer, pcb_get_registros(pcb));
 }

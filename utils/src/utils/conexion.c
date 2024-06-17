@@ -243,7 +243,7 @@ char *buffer_desempaquetar_string(t_buffer *buffer){
 	// Chequeo que el buffer tenga contenido para desempaquetar
     if( buffer->stream == NULL || buffer->size == 0 ){
         perror("Error al desempaquetar el buffer - No hay contenido a desempaquetar");
-        return "";
+        return NULL;
     }
 
     // Desempaqueto el tamaño del siguiente string y lo guardo en bytes
@@ -255,7 +255,7 @@ char *buffer_desempaquetar_string(t_buffer *buffer){
     char *string = malloc(bytes);
 	if( string == NULL ){
 		perror("Error al asginar memoria para el STRING");
-		return "";
+		return NULL;
 	}
 	memcpy(string, buffer->stream, bytes);
 	buffer_actualizar(buffer, bytes);
@@ -263,7 +263,7 @@ char *buffer_desempaquetar_string(t_buffer *buffer){
 	return string;
 }
 
-// Otra opcion de desempaquetar que sirve para todo, pero es mas quilombo recibir -> Ejemplo de uso: int pid = *(int *)buffer_desempaquetar(buffer);
+// Otra opcion de desempaquetar que sirve para todo, pero es mas quilombo recibir -> Ejemplo de uso: int pid = *(int *)buffer_desempaquetar(buffer); || int *pid = buffer_desempaquetar(buffer);
 // void *buffer_desempaquetar(t_buffer *buffer){
 //     // Chequeo que el buffer tenga contenido para desempaquetar
 //     if( buffer->stream == NULL || buffer->size == 0 ){

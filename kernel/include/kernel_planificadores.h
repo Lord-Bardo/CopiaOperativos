@@ -28,6 +28,7 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb);
 void iniciar_proceso(char *path);
 void proceso_a_ready(t_pcb *pcb);
 void pedir_a_memoria_iniciar_proceso(int pid, char *path);
+t_codigo_operacion recibir_confirmacion_memoria_proceso_iniciado(void);
 void finalizar_proceso(int pid);
 
 #endif

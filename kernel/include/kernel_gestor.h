@@ -34,24 +34,24 @@ typedef struct{
 
 // PCB
 typedef struct{
-    __uint32_t PC;
-    __uint8_t AX;
-    __uint8_t BX;
-    __uint8_t CX;
-    __uint8_t DX;
-    __uint32_t EAX;
-    __uint32_t EBX;
-    __uint32_t ECX;
-    __uint32_t EDX;
-    __uint32_t SI; //contiene la direccion logica de memoria de origen desde donde se va a copir un string
-    __uint32_t DI; //contiene la direccion logica de memoria de destino desde donde se va a copir un string
+    char *AX;
+    char *BX;
+    char *CX;
+    char *DX;
+    char *EAX;
+    char *EBX;
+    char *ECX;
+    char *EDX;
+    char *SI; //contiene la direccion logica de memoria de origen desde donde se va a copir un string
+    char *DI; //contiene la direccion logica de memoria de destino desde donde se va a copir un string
 } t_registros;
 
 typedef struct{
     int pid;
     int quantum;
     t_nombre_estado estado;
-    t_registros registros;
+    uint32_t PC;
+    t_registros *registros;
     char *path;
 } t_pcb;
 
