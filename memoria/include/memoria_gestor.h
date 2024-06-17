@@ -12,6 +12,20 @@
 
 #include <utils/conexion.h>
 #include <utils/planificadores.h>
+
+// ESTRUCTURAS
+typedef struct {
+    int pid;
+    char* path;
+    t_pagina tabla_paginas[TAM_MEMORIA/TAM_PAGINA]; 
+    char* memoria_de_instrucciones[TAM_MEMORIA]; //en realidad la cant. máx. de instrucciones que un proceso puede tener debe calcularse como el cociente entre el tamaño de memoria y el tamaño máximo de lo que se guardaré en ella (que no será el tamaño del string leido por cada archivo) por el momento uso char considerando 1byte como tamaño minimo.
+} t_pcb_memoria;
+typedef struct {
+    int num_frame;
+    void *frame_pointer; //recorre todo un frame.
+    bool presencia;
+} t_pagina; 
+
 //VARIABLES GLOBALES
 extern t_log* memoria_logger;
 extern t_config* memoria_config;
@@ -27,29 +41,9 @@ extern int fd_kernel;
 extern int fd_entradasalida;
 extern int fd_memoria;
 
-void* espacio_usuario; 
-void* puntero_espacio_usuario;
-size_t num_lineas = 0; // Número de líneas leídas de un archivo de pseudocodigo.
-typedef struct {
-    int pid;
-    t_tabla_paginas tabla_de_pags; 
-    char** memoria_de_instrucciones;
-} t_pcb_memoria procesos[TAM_MEMORIA/TAM_PAGINA]; // En este array voy a ir colocando todos mis procesos.
-typedef struct {
-    int frame;
-    void *frame_pointer;
-    bool presencia;
-} t_pagina;
-typedef struct { //para las tablas entrar al dictionary.h para ver la estructura de t_config
-    int pid;
-    pagina_t *paginas;
-} t_tabla_paginas; 
-typedef struct {
-    int pid;
-    char* path_pseudocodigo;
-    t_tabla_paginas *tabla_de_pags; //puntero a su tabla de paginas
-    char** memoria_de_instrucciones;
-} t_pcb_memoria;
-
+extern void* espacio_usuario; 
+extern void* puntero_espacio_usuario;
+extern t_pcb_memoria procesos[TAM_MEMORIA/TAM_PAGINA]; // En este array voy a ir colocando todos mis procesos.
+extern size_t num_lineas = 0; // Número de líneas leídas de un archivo de pseudocodigo.
 
 #endif

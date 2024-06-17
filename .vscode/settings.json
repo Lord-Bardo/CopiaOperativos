@@ -8,6 +8,7 @@
         "planificadores.h": "c",
         "consola.h": "c",
         "limits": "c",
-        "memoria_entradasalida.h": "c"
+        "memoria_entradasalida.h": "c",
+        "dictionary.h": "c"
     }
 }
