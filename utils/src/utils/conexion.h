@@ -14,8 +14,9 @@
 
 typedef enum{
     // KERNEL - MEMORIA
-    SOLICITUD_INICIAR_PROCESO,
-    CONFIRMACION_PROCESO_INICIADO,
+    INICIAR_PROCESO,
+    CONFIRMACION_PROCESO_INICIADO, // este mensaje para qué lo necesita kernel? con qué info debería enviarse?
+    FINALIZAR_PROCESO,
     // KERNEL - CPU DISPATCH
     CONTEXTO_DE_EJECUCION,
     // Motivos desalojo
