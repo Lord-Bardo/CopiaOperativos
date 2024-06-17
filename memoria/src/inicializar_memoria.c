@@ -36,7 +36,6 @@ void iniciar_variables()
 	espacio_de_usuario = malloc(TAM_MEMORIA);
     memset(espacio_de_usuario, 0, TAM_MEMORIA);
     puntero_espacio_usuario = espacio_usuario; //puntero hacia el primer frame.
-    
     for(int i=0; i<(TAM_MEMORIA/TAM_PAGINA); i++)
         procesos[i].id = -1; // Inicializo mi array de procesos con procesos con PID = -1 para indicar que las celdas del array están vacías
 }
