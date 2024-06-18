@@ -34,37 +34,49 @@ void crear_proceso(t_pcb_memoria *proceso)
     char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + 1); // Ruta completa empieza vacía.
     if (ruta_completa == NULL) {
         perror("Error al asignar memoria");
+        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
         exit(EXIT_FAILURE);
     }
     strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo.
 
-    // Concateno el nombre del archivo a la ruta completa usando string_append.
+    // Concateno la ruta al archivo con la ruta completa usando string_append.
     string_append(&ruta_completa, proceso->path); 
 
     // Abro el archivo
     FILE *archivo = fopen(ruta_completa, "r");
     if (archivo == NULL) {
-        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
         perror("Error al abrir el archivo");
         free(ruta_completa);
+        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
         exit(EXIT_FAILURE);
     }
 
-	// Leer el archivo línea por línea
-    char linea[TAM_MEMORIA];
-    while (fgets(linea, sizeof(linea), archivo) != NULL) {
-        // Eliminar el salto de línea al final de cada línea
-        linea[strcspn(linea, "\n")] = '\0';
+	// Leer el archivo instruccion por instruccion.
+    char instruccion[TAM_MEMORIA];
+    while (fgets(instruccion, sizeof(instruccion), archivo) != NULL) 
+    {
+        // Eliminar el salto de línea al final de cada instruccion
+        instruccion[strcspn(instruccion, "\n")] = '\0';
 
-        // Almacenar la línea en memoria_de_instrucciones
-        proceso->memoria_de_instrucciones[num_lineas] = strdup(linea);
-        if (proceso->memoria_de_instrucciones[num_lineas] == NULL) {
+        // Valido si lo leido es una instrucción válida.
+        if (!instruccion_valida(instruccion)) {
+            perror("Instrucción inválida en el archivo");
+            fclose(archivo);
+            free(ruta_completa);
+            enviar_codigo_operacion(ERROR_CREACION_PROCESO);
+            exit(EXIT_FAILURE);
+        }
+
+        // Almacenar la instruccion en memoria_de_instrucciones
+        proceso->memoria_de_instrucciones[num_instruccion] = strdup(instruccion);
+        if (proceso->memoria_de_instrucciones[num_instruccion] == NULL) {
             perror("Error al duplicar la cadena");
             fclose(archivo);
             free(ruta_completa);
+            enviar_codigo_operacion(ERROR_CREACION_PROCESO);
             exit(EXIT_FAILURE);
         }
-        num_lineas++;
+        num_instruccion++;
     }
     agregar_proceso_a_procesos(*proceso); // Función hecha en utils de memoria.
     enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO);

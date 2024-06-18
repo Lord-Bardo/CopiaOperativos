@@ -44,6 +44,6 @@ extern int fd_memoria;
 extern void* espacio_usuario; 
 extern void* puntero_espacio_usuario;
 extern t_pcb_memoria procesos[TAM_MEMORIA/TAM_PAGINA]; // En este array voy a ir colocando todos mis procesos.
-extern size_t num_lineas = 0; // Número de líneas leídas de un archivo de pseudocodigo.
+extern size_t num_instruccion = 0; // Número de instrucciones leídas de un archivo de pseudocodigo.
 
 #endif
