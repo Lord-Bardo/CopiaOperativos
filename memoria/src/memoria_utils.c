@@ -11,7 +11,7 @@ int agregar_proceso_a_procesos(t_pcb_memoria proceso) // Podría poner esto en u
     return 0; // Error, no hay celdas vacías (supongo que la máxima cant. de procesos que puede haber será TAM_MEMORIA/TAM_PAGINA, es decir procesos de una sola pág.)
 }
 
-bool instruccion_valida(const char* instruccion)
+bool instruccion_valida(const char* instruccion) // Nos dice si la instruccion leida del archivo de pseudocodigo comienza con alguno de estos strings.
 {
     return strstr(instruccion, "SET") == instruccion ||
            strstr(instruccion, "SUM") == instruccion ||
