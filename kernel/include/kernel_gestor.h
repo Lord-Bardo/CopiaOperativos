@@ -13,6 +13,7 @@
 #include <commons/collections/list.h>
 
 #include <utils/conexion.h>
+#include <utils/registros.h>
 
 // ESTRUCTURAS
 // Estado
@@ -33,19 +34,6 @@ typedef struct{
 } t_estado;
 
 // PCB
-typedef struct{
-    char *AX;
-    char *BX;
-    char *CX;
-    char *DX;
-    char *EAX;
-    char *EBX;
-    char *ECX;
-    char *EDX;
-    char *SI; //contiene la direccion logica de memoria de origen desde donde se va a copir un string
-    char *DI; //contiene la direccion logica de memoria de destino desde donde se va a copir un string
-} t_registros;
-
 typedef struct{
     int pid;
     int quantum;

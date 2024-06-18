@@ -7,11 +7,54 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
-	t_pcb* pcb = crear_pcb(0, "PATH");
+	t_pcb *pcb = crear_pcb(0, "PATH");
+	if(pcb->registros->BX == NULL){
+		log_info(kernel_logger, "HOLA SOY NULL");
+	}
+	else{
+		log_info(kernel_logger, "HOLA NO SOY NULL");
+	}
+	pcb->PC = 4;
 	pcb_set_registro_ax(pcb, "AB");
 	pcb_set_registro_eax(pcb, "ABCD");
 	log_info(kernel_logger, "AX: %s", pcb_get_registro_ax(pcb));
 	log_info(kernel_logger, "EAX: %s", pcb_get_registro_eax(pcb));
+	log_info(kernel_logger, "EBX: %s", pcb_get_registro_ebx(pcb));
+
+	if(pcb->registros->AX == NULL){
+		log_info(kernel_logger, "HOLA SOY NULL");
+	}
+	else{
+		log_info(kernel_logger, "HOLA NO SOY NULL");
+	}
+
+	t_paquete *paquete = crear_paquete(CONTEXTO_DE_EJECUCION);
+	agregar_contexto_ejecucion_a_paquete(paquete, pcb);
+
+	t_pcb *pcb2 = crear_pcb(5, "hola");
+	pcb_set_registro_ebx(pcb2, "1234");
+	log_info(kernel_logger, "AX: %s", pcb_get_registro_ax(pcb2));
+	log_info(kernel_logger, "EAX: %s", pcb_get_registro_eax(pcb2));
+	log_info(kernel_logger, "EBX: %s", pcb_get_registro_ebx(pcb2));
+	buffer_desempaquetar_contexto_ejecucion(paquete->buffer, pcb2);
+
+	// char *string = malloc(1);
+	// void *stream = "\0";
+	// memcpy(string, stream, 1);
+	if(pcb2->registros->BX == NULL){
+		log_info(kernel_logger, "HOLA SOY NULL");
+	}
+	else{
+		log_info(kernel_logger, "HOLA NO SOY NULL");
+	}
+
+	log_info(kernel_logger, "AX: %s", pcb_get_registro_ax(pcb2));
+	log_info(kernel_logger, "EAX: %s", pcb_get_registro_eax(pcb2));
+	log_info(kernel_logger, "EBX: %s", pcb_get_registro_ebx(pcb2));
+	pcb_set_registro_ebx(pcb2, "");
+	log_info(kernel_logger, "EBX: %s", pcb_get_registro_ebx(pcb2));
+
+
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();

@@ -251,7 +251,7 @@ char *buffer_desempaquetar_string(t_buffer *buffer){
     memcpy(&bytes, buffer->stream, sizeof(int));
     buffer_actualizar(buffer, sizeof(int));
     
-	// Desempaqueto el string y lo guardo en destino
+	// Desempaqueto el string.
     char *string = malloc(bytes);
 	if( string == NULL ){
 		perror("Error al asginar memoria para el STRING");

@@ -25,6 +25,9 @@ t_pcb *crear_pcb(int pid, char* path){
 
 void eliminar_pcb(t_pcb *pcb){
     if( pcb != NULL ){
+        if( pcb->registros != NULL ){
+            eliminar_registros(pcb->registros);
+        }
         if( pcb->path != NULL ){
             free(pcb->path);
         }
@@ -39,27 +42,6 @@ int generar_pid(){
 	pthread_mutex_unlock(&mutex_pid);
 
 	return pid_proceso;
-}
-
-t_registros *crear_registros(){
-    t_registros *registros = malloc(sizeof(t_registros));
-    if( registros == NULL ){
-        log_error(kernel_logger, "Error al asignar memoria para los REGISTROS");
-        return NULL;
-    }
-    
-    registros->AX = NULL;
-    registros->BX = NULL;
-    registros->CX = NULL;
-    registros->DX = NULL;
-    registros->EAX = NULL;
-    registros->EBX = NULL;
-    registros->ECX = NULL;
-    registros->EDX = NULL;
-    registros->SI = NULL;
-    registros->DI = NULL;
-
-    return registros;
 }
 
 int pcb_get_pid(t_pcb *pcb){
@@ -82,100 +64,88 @@ t_registros *pcb_get_registros(t_pcb *pcb){
     return pcb->registros;
 }
 
-// FORMA 1: ---------------------------
-char *get_registro(char *registro, int bytes_registro){
-    // Devuelvo un string para que su manejo sea mas sencillo    
-    char* registro_string;
-
-    // Si es NULL => no se le seteo ningun valor => retorno un string vacio
-    if( registro == NULL ){
-        registro_string = malloc(1);
-        if( registro_string == NULL ){
-            log_error(kernel_logger, "Error al asignar memoria para el REGISTRO STRING");
-            return NULL;
-        }
-        registro_string[0] = '\0';
-    }
-    else{
-        registro_string = malloc(bytes_registro + 1);
-        if( registro_string == NULL ){
-            log_error(kernel_logger, "Error al asignar memoria para el REGISTRO STRING");
-            return NULL;
-        }
-        memcpy(registro_string, registro, bytes_registro);
-        registro_string[bytes_registro] = '\0';
-    }
-
-    return registro_string;
+char *pcb_get_registro_ax(t_pcb *pcb){
+    return registros_get_registro_ax(pcb->registros);
 }
 
-char *pcb_get_registro_ax(t_pcb *pcb){
-    return get_registro(pcb->registros->AX, 1);
+char *pcb_get_registro_bx(t_pcb *pcb){
+    return registros_get_registro_bx(pcb->registros);
+}
+
+char *pcb_get_registro_cx(t_pcb *pcb){
+    return registros_get_registro_cx(pcb->registros);
+}
+
+char *pcb_get_registro_dx(t_pcb *pcb){
+    return registros_get_registro_dx(pcb->registros);
 }
 
 char *pcb_get_registro_eax(t_pcb *pcb){
-    return get_registro(pcb->registros->EAX, 4);
+    return registros_get_registro_eax(pcb->registros);
 }
 
-void set_registro(char **registro, char* valor, int bytes_registro){
-    // Si el string esta vacio => se deja el registro como NULL
-    if( string_is_empty(valor) ) return;
-    
-    // Si el string tiene contenido, pero el registro esta en NULL => se le asigna memoria
-    if( *registro == NULL ){
-        *registro = malloc(bytes_registro * sizeof(char));
-        if( *registro == NULL ){
-            log_error(kernel_logger, "Error al asignar memoria para el REGISTRO");
-            return;
-        }
-    }
-
-    // Se le asigna el valor al registro
-    memmove(*registro, valor, bytes_registro);
+char *pcb_get_registro_ebx(t_pcb *pcb){
+    return registros_get_registro_ebx(pcb->registros);
 }
 
-// FORMA 2: ---------------------------
-// t_registros *crear_registros(){
-//     t_registros *registros = malloc(sizeof(t_registros));
-//     if( registros == NULL ){
-//         log_error(kernel_logger, "Error al asignar memoria para los REGISTROS");
-//         return NULL;
-//     }
-    
-//     registros->AX = string_new();
-//     registros->BX = string_new();
-//     registros->CX = string_new();
-//     registros->DX = string_new();
-//     registros->EAX = string_new();
-//     registros->EBX = string_new();
-//     registros->ECX = string_new();
-//     registros->EDX = string_new();
-//     registros->SI = string_new();
-//     registros->DI = string_new();
+char *pcb_get_registro_ecx(t_pcb *pcb){
+    return registros_get_registro_ecx(pcb->registros);
+}
 
-//     return registros;
-// }
+char *pcb_get_registro_edx(t_pcb *pcb){
+    return registros_get_registro_edx(pcb->registros);
+}
 
-// char *pcb_get_registro_ax(t_pcb *pcb){
-//     return pcb->registros->AX;
-// }
+char *pcb_get_registro_si(t_pcb *pcb){
+    return registros_get_registro_si(pcb->registros);
+}
 
-// char *pcb_get_registro_eax(t_pcb *pcb){
-//     return pcb->registros->EAX;
-// }
+char *pcb_get_registro_di(t_pcb *pcb){
+    return registros_get_registro_di(pcb->registros);
+}
 
-// void set_registro(char **registro, char* valor, int bytes_registro){
-//     // Se le asigna el valor al registro
-//     memmove(*registro, valor, bytes_registro);
-//     memmove(*registro + bytes_registro, "\0", 1);
-// }
+void pcb_set_registros(t_pcb *pcb, t_registros *registros){
+    pcb->registros = registros;
+}
 
 void pcb_set_registro_ax(t_pcb *pcb, char *valor){
-    set_registro(&(pcb->registros->AX), valor, 1);
+    registros_set_registro_ax(pcb->registros, valor);
+}
+
+void pcb_set_registro_bx(t_pcb *pcb, char *valor){
+    registros_set_registro_bx(pcb->registros, valor);
+}
+
+void pcb_set_registro_cx(t_pcb *pcb, char *valor){
+    registros_set_registro_cx(pcb->registros, valor);
+}
+
+void pcb_set_registro_dx(t_pcb *pcb, char *valor){
+    registros_set_registro_dx(pcb->registros, valor);
 }
 
 void pcb_set_registro_eax(t_pcb *pcb, char *valor){
-    set_registro(&(pcb->registros->EAX), valor, 4);
+    registros_set_registro_eax(pcb->registros, valor);
+}
+
+void pcb_set_registro_ebx(t_pcb *pcb, char *valor){
+    registros_set_registro_ebx(pcb->registros, valor);
+}
+
+void pcb_set_registro_ecx(t_pcb *pcb, char *valor){
+    registros_set_registro_ecx(pcb->registros, valor);
+}
+
+void pcb_set_registro_edx(t_pcb *pcb, char *valor){
+    registros_set_registro_edx(pcb->registros, valor);
+}
+
+void pcb_set_registro_si(t_pcb *pcb, char *valor){
+    registros_set_registro_si(pcb->registros, valor);
+}
+
+void pcb_set_registro_di(t_pcb *pcb, char *valor){
+    registros_set_registro_di(pcb->registros, valor);
 }
 
 char* pcb_get_path(t_pcb *pcb){

@@ -99,7 +99,7 @@ void agregar_pid_a_paquete(t_paquete *paquete, int pid){
     agregar_a_paquete(paquete, &pid, sizeof(pid));
 }
 
-void agregar_quantum_a_paquete(t_paquete *paquete, int quantum){
+void agregar_quantum_a_paquete(t_paquete *paquete, int quantum){ // NO SE USA
     agregar_a_paquete(paquete, &quantum, sizeof(quantum));
 }
 
@@ -124,16 +124,45 @@ void agregar_string_a_paquete(t_paquete *paquete, char *string){
 }
 
 void agregar_registros_a_paquete(t_paquete *paquete, t_registros *registros){
-    agregar_string_a_paquete(paquete, registros->AX);
-    agregar_string_a_paquete(paquete, registros->BX);
-    agregar_string_a_paquete(paquete, registros->CX);
-    agregar_string_a_paquete(paquete, registros->DX);
-    agregar_string_a_paquete(paquete, registros->EAX);
-    agregar_string_a_paquete(paquete, registros->EBX);
-    agregar_string_a_paquete(paquete, registros->ECX);
-    agregar_string_a_paquete(paquete, registros->EDX);
-    agregar_string_a_paquete(paquete, registros->SI);
-    agregar_string_a_paquete(paquete, registros->DI);
+    char *ax = registros_get_registro_ax(registros);
+    agregar_string_a_paquete(paquete, ax);
+    free(ax);
+
+    char *bx = registros_get_registro_bx(registros);
+    agregar_string_a_paquete(paquete, bx);
+    free(bx);
+
+    char *cx = registros_get_registro_cx(registros);
+    agregar_string_a_paquete(paquete, cx);
+    free(cx);
+
+    char *dx = registros_get_registro_dx(registros);
+    agregar_string_a_paquete(paquete, dx);
+    free(dx);
+
+    char *eax = registros_get_registro_eax(registros);
+    agregar_string_a_paquete(paquete, eax);
+    free(eax);
+
+    char *ebx = registros_get_registro_ebx(registros);
+    agregar_string_a_paquete(paquete, ebx);
+    free(ebx);
+
+    char *ecx = registros_get_registro_ecx(registros);
+    agregar_string_a_paquete(paquete, ecx);
+    free(ecx);
+
+    char *edx = registros_get_registro_edx(registros);
+    agregar_string_a_paquete(paquete, edx);
+    free(edx);
+
+    char *si = registros_get_registro_si(registros);
+    agregar_string_a_paquete(paquete, si);
+    free(si);
+
+    char *di = registros_get_registro_di(registros);
+    agregar_string_a_paquete(paquete, di);
+    free(di);
 }
 
 void agregar_pcb_a_paquete(t_paquete *paquete, t_pcb* pcb){ // NO SE USA
@@ -152,16 +181,17 @@ void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb){
 
 // MANEJO BUFFER
 void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
-    registros->AX = buffer_desempaquetar_string(buffer);
-    registros->BX = buffer_desempaquetar_string(buffer);
-    registros->CX = buffer_desempaquetar_string(buffer);
-    registros->DX = buffer_desempaquetar_string(buffer);
-    registros->EAX = buffer_desempaquetar_string(buffer);
-    registros->EBX = buffer_desempaquetar_string(buffer);
-    registros->ECX = buffer_desempaquetar_string(buffer);
-    registros->EDX = buffer_desempaquetar_string(buffer);
-    registros->SI = buffer_desempaquetar_string(buffer);
-    registros->DI = buffer_desempaquetar_string(buffer);
+    // Si buffer_desempaquetar_string lee "\0", en registros_set_registro se va a dejar al registro como estaba -> Si estaba en NULL queda en NULL y sino quedara con lo q ya tenga
+    registros_set_registro_ax(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_bx(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_cx(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_dx(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_eax(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_ebx(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_ecx(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_edx(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_si(registros, buffer_desempaquetar_string(buffer));
+    registros_set_registro_di(registros, buffer_desempaquetar_string(buffer));
 }
 
 void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){
