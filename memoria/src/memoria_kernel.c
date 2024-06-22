@@ -8,9 +8,20 @@ void atender_memoria_kernel(){
 		recibir_paquete(fd_kernel, &cod_op, buffer);
 		switch(cod_op){
 			case SOLICITUD_CREAR_PROCESO:
+                // Inicializo tabla y lista de instrucciones del proceso recibido.
 			    t_pcb_memoria *proceso_recibido;
-                proceso_recibido->tabla_de_pags = {0}; // lleno la tabla con paginas inicializadas en {0, NULL, false} para indicar que está vacía
-                proceso_recibido->memoria_de_instrucciones = NULL;
+                proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
+                proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
+
+                for (int i = 0; i < TAM_MEMORIA; i++) 
+                    pcb->memoria_de_instrucciones[i] = malloc(sizeof(char));
+
+                // Verificar si la asignación de memoria fue exitosa
+                if (pcb->tabla_paginas == NULL || pcb->memoria_de_instrucciones == NULL) {
+                    // Manejar el error de asignación de memoria
+                    fprintf(stderr, "Error al asignar memoria\n");
+                    exit(EXIT_FAILURE);
+                }
 
 				buffer_desempaquetar_proceso(buffer, proceso_recibido); // función hecha en utils de memoria.
 
@@ -52,7 +63,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     }
 
 	// Leer el archivo instruccion por instruccion.
-    char instruccion[TAM_MEMORIA];
+    char instruccion[256];
     while (fgets(instruccion, sizeof(instruccion), archivo) != NULL) 
     {
         // Eliminar el salto de línea al final de cada instruccion
@@ -63,6 +74,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Instrucción inválida en el archivo");
             fclose(archivo);
             free(ruta_completa);
+            liberar_pcb_memoria(proceso);
             enviar_codigo_operacion(ERROR_CREACION_PROCESO);
             exit(EXIT_FAILURE);
         }
@@ -73,6 +85,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Error al duplicar la cadena");
             fclose(archivo);
             free(ruta_completa);
+            liberar_pcb_memoria(proceso);
             enviar_codigo_operacion(ERROR_CREACION_PROCESO);
             exit(EXIT_FAILURE);
         }

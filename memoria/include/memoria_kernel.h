@@ -7,7 +7,7 @@
 //VARIABLES GLOBALES
 void* espacio_usuario; 
 void* puntero_espacio_usuario;
-t_pcb_memoria procesos[TAM_MEMORIA/TAM_PAGINA]; // En este array voy a ir colocando todos mis procesos.
+t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
 size_t num_instruccion = 0; // Número de instrucciones leídas de un archivo de pseudocodigo.
 
 //FUNCIONES

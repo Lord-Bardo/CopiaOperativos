@@ -34,6 +34,15 @@ bool instruccion_valida(const char* instruccion) // Nos dice si la instruccion l
            strstr(instruccion, "IO_STDOUT_WRITE") == instruccion;
 }
 
+void liberar_pcb_memoria(t_pcb_memoria* proceso)
+{
+    for (int i = 0; i < TAM_MEMORIA; i++) 
+        free(pcb->memoria_de_instrucciones[i]);
+        
+    free(pcb->memoria_de_instrucciones);
+    free(pcb->tabla_paginas);
+}
+
 // MANEJO DE BUFFER.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria *proceso)
 {
