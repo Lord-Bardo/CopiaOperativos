@@ -13,8 +13,6 @@
 #include <utils/conexion.h>
 #include <utils/planificadores.h>
 
-#include "memoria.h"
-
 // ESTRUCTURAS
 typedef struct {
     int num_frame;

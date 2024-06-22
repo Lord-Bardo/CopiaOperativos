@@ -7,17 +7,17 @@ void atender_memoria_kernel(){
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_kernel, &cod_op, buffer);
 		switch(cod_op){
-			case SOLICITUD_CREAR_PROCESO:
+			case SOLICITUD_INICIAR_PROCESO:
                 // Inicializo tabla y lista de instrucciones del proceso recibido.
 			    t_pcb_memoria *proceso_recibido;
                 proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
                 proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
 
                 for (int i = 0; i < TAM_MEMORIA; i++) 
-                    pcb->memoria_de_instrucciones[i] = malloc(sizeof(char));
+                    proceso_recibido->memoria_de_instrucciones[i] = malloc(sizeof(char));
 
                 // Verificar si la asignación de memoria fue exitosa
-                if (pcb->tabla_paginas == NULL || pcb->memoria_de_instrucciones == NULL) {
+                if (proceso_recibido->tabla_paginas == NULL || proceso_recibido->memoria_de_instrucciones == NULL) {
                     // Manejar el error de asignación de memoria
                     fprintf(stderr, "Error al asignar memoria\n");
                     exit(EXIT_FAILURE);
@@ -26,6 +26,7 @@ void atender_memoria_kernel(){
 				buffer_desempaquetar_proceso(buffer, proceso_recibido); // función hecha en utils de memoria.
 
 				crear_proceso(proceso_recibido);
+                break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
                 //TODO
@@ -39,6 +40,7 @@ void atender_memoria_kernel(){
 		}
 	}
 }
+
 void crear_proceso(t_pcb_memoria *proceso)
 {
     // Inicializo la cadena de ruta completa.
@@ -75,7 +77,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             fclose(archivo);
             free(ruta_completa);
             liberar_pcb_memoria(proceso);
-            enviar_codigo_operacion(ERROR_CREACION_PROCESO);
+            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
             exit(EXIT_FAILURE);
         }
 
@@ -86,7 +88,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             fclose(archivo);
             free(ruta_completa);
             liberar_pcb_memoria(proceso);
-            enviar_codigo_operacion(ERROR_CREACION_PROCESO);
+            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
             exit(EXIT_FAILURE);
         }
         num_instruccion++;
