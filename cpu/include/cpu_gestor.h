@@ -16,21 +16,21 @@
 #include <utils/conexion.h>
 
 typedef struct {
-	int pc;
-	int ax;
-	int bx;
-	int cx;
-	int dx;
-	int eax;
-	int ebx;
-	int ecx;
-	int edx;
-	int di;
-	int si;
+	uint8_t ax;
+	uint8_t bx;
+	uint8_t cx;
+	uint8_t dx;
+	uint32_t eax;
+	uint32_t ebx;
+	uint32_t ecx;
+	uint32_t edx;
+	uint32_t di;
+	uint32_t si;
 }t_registros;
 
 typedef struct {
 	int pid;
+	uint32_t pc;
 	t_registros registros;
 }t_pcb;
 
@@ -45,7 +45,8 @@ typedef enum{
     RESIZE, 
     COPY_STRING, 
     IO_STDIN_READ, 
-    IO_STDOUT_WRITE
+    IO_STDOUT_WRITE,
+	EXIT
 } t_instr_code;
 
 typedef struct {

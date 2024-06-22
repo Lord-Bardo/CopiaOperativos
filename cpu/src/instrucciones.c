@@ -57,6 +57,9 @@ t_instruccion* fetch(int pid, int pc) {
 void execute(t_instruccion *instruccion){
 	switch (instruccion->instr_code)
 	{
+	case EXIT:
+		salir =1;
+		break;
 	case SET:
 		ejecutarSet(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
@@ -94,11 +97,12 @@ void execute(t_instruccion *instruccion){
 		break;
 	}
 }
+
 void ejecutarSet(char * registro_string, char * valor_string){
-	int *registro = obtener_registro(registro_string);
+	u_int32_t *registro = obtener_registro(registro_string);
 	
 	if (registro != NULL) {
-    	int valor = atoi(valor_string);
+    	u_int32_t valor = (u_int32_t)atoi(valor_string);
 		*registro = valor;
 	} 
 	else {
@@ -107,54 +111,61 @@ void ejecutarSet(char * registro_string, char * valor_string){
 	}
 	
 }
-void ejecutarSum(char * registro_destino, char * registro_origen){
-	int *registroD = obtener_registro(registro_destino); //donde vamos a guardar el resultado
 
-	if (registroD != NULL) {
-    	int valor = *obtener_registro(registro_origen);
-		*registroD += valor;
-	} 
-	else {
-    printf("Error: Registro Destino no válido\n");
-    	// Manejar el error de alguna manera apropiada
+
+
+void ejecutarSum(char * registro_destino, char * registro_origen){ //x lo que vi en las pruebas siempre suman mismo tipo registros
+
+	if((strcmp(registro_destino,"AX")==0 )||(strcmp("BX",registro_destino)== 0)||(strcmp("CX",registro_destino)== 0)||(strcmp("DX",registro_destino)== 0)){
+		u_int8_t *registroD = obtener_registro(registro_destino);
+		u_int8_t *registroO = obtener_registro(registro_origen);
+		*registroD += * registroO;
 	}
-	
+	else{
+		u_int32_t *registroD = obtener_registro(registro_destino);
+		u_int32_t *registroO = obtener_registro(registro_origen);
+		*registroD += * registroO;
+	}
 }
-void ejecutarSub(char * registro_destino, char * registro_origen){
-	int *registroD = obtener_registro(registro_destino); //donde vamos a guardar el resultado
+void ejecutarSub(char * registro_destino, char * registro_origen){ //x lo que vi en las pruebas siempre suman mismo tipo registros
 
-	if (registroD != NULL) {
-    	int valor = *obtener_registro(registro_origen);
-		*registroD -= valor;
-	} 
-	else {
-    printf("Error: Registro Destino no válido\n");
-    	// Manejar el error de alguna manera apropiada
+	if((strcmp(registro_destino,"AX")==0 )||(strcmp("BX",registro_destino)== 0)||(strcmp("CX",registro_destino)== 0)||(strcmp("DX",registro_destino)== 0)){
+		u_int8_t *registroD = obtener_registro(registro_destino);
+		u_int8_t *registroO = obtener_registro(registro_origen);
+		*registroD -= * registroO;
 	}
-	
+	else{
+		u_int32_t *registroD = obtener_registro(registro_destino);
+		u_int32_t *registroO = obtener_registro(registro_origen);
+		*registroD -= * registroO;
+	}
 }
 
 void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 
-	int valor_registro = *obtener_registro(registro_string);
-	int nro_instruccion =atoi(nro_instruccion_string);
-	if(valor_registro==0){
-		pcb.registros.pc = nro_instruccion;
+	u_int32_t *valor_registro = obtener_registro(registro_string);
+	u_int32_t nro_instruccion = (u_int32_t)atoi(nro_instruccion_string);
+	if(*valor_registro!=0){
+		pcb.pc = nro_instruccion;
 	}
 
 }
 
+void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){
+	int tiempo = atoi(tiempo_string);
+	//armar paquete para kernel
 
+}
 
 t_instruccion* pedidoAMemoria(int pid, int pc) {
     // Simulación de obtención de instrucción de memoria
-    char* args[5] = {"DX", "1200", NULL, "arg4", "arg5"};
+    char* args[5] = {"EDX", "1200", NULL, "arg4", "arg5"};
     t_instruccion* instr = (t_instruccion*) malloc(sizeof(t_instruccion));
     if (instr == NULL) {
         printf("Error al asignar memoria para la instrucción\n");
         return NULL;
     }
-     printf("Op Code PEDIDOmemoria: %d\n", SUM);
+     printf("Op Code PEDIDOmemoria: %d\n", SET);
     inicializarInstruccion(instr, SET, args);
     return instr;
 }
