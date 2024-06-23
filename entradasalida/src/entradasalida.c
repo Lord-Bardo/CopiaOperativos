@@ -2,18 +2,27 @@
 
 int main(int argc, char* argv[]) {
     // Inicializar estructuras de entradasalida (loggers y config)
-	inicializar_entradasalida();
+	// inicializar_entradasalida();
+	if (argc != 3) {
+		perror("Cantidad de argumentos erronea");
+        return 1;
+    }
+
+	char* nombre_interfaz = argv[1];
+	char* archivo_configuracion = argv[2];
+
+	inicializar_interfaz(nombre_interfaz, archivo_configuracion);
 
 	// Conexion con KERNEL
-	conectar_a_kernel();
-	atender_entradasalida_kernel(); // Puesto para probar, en realidad tiene que ejecutarse en hilo
+	conectar_a_kernel(); // Le puedo pasar el nombre de interfaz para el logger? VER COMO HACERLO
+	atender_entradasalida_kernel(); // Puesto para probar, en realidad tiene que ejecutarse en el hilo creado más abajo
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();
 
 	// Atender los mensajes de Memoria
 	pthread_t hilo_memoria;
-	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_memoria,NULL);
+	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_memoria, NULL);
 
 	// Atender los mensajes de Kernel
 	pthread_t hilo_kernel;
@@ -22,6 +31,7 @@ int main(int argc, char* argv[]) {
 	// Espera a que los hilos finalicen su ejecución
 	pthread_join(hilo_kernel, NULL);
 	pthread_join(hilo_memoria, NULL);
+	/* Consulta para mati: en que momento terminarian la ejecución de los hilos */
 
     // Finalizar ENTRADASALIDA (liberar memoria usada)
 	terminar_programa();
@@ -63,6 +73,19 @@ void terminar_programa(){
 	if(entradasalida_config != NULL){
 		config_destroy(entradasalida_config);
 	}
+
+	/* if(generica_logger != NULL){
+		log_destroy(generica_logger);
+	}
+	if(stdin_logger != NULL){
+		log_destroy(stdin_logger);
+	}
+	if(stdout_logger != NULL){
+		log_destroy(stdout_logger);
+	}
+	if(dialfs_logger != NULL){
+		log_destroy(dialfs_logger);
+	} */
 
 	liberar_conexion(fd_kernel);
 	liberar_conexion(fd_memoria);

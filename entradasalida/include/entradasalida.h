@@ -2,7 +2,7 @@
 #define ENTRADASALIDA_H_
 
 #include "./entradasalida_gestor.h"
-#include "./inicializar_entradasalida.h"
+#include "./inicializar_interfaces.h"
 #include "./entradasalida_memoria.h"
 #include "./entradasalida_kernel.h"
 
@@ -25,6 +25,13 @@ int RETRASO_COMPACTACION;
 int fd_kernel;
 int fd_memoria;
 int fd_entradasalida;
+
+typedef enum {
+    GENERICA,
+    STDIN,
+    STDOUT,
+    DIALFS
+} TipoInterfaz;
 
 //FUNCIONES
 void conectar_a_kernel();
