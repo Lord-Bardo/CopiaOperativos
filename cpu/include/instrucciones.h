@@ -2,7 +2,7 @@
 #define INSTRUCCIONES_H_
 
 
-#include "cpu_gestor.h"
+
 #include "procesos.h"
 
 void inicializarInstruccion(t_instruccion* instr, t_instr_code code, char* args[5]);
@@ -15,5 +15,6 @@ void ejecutarSum(char * registro_destino, char * registro_origen);
 void ejecutarSub(char * registro_destino, char * registro_origen);
 void ejecutarJnz(char * registro_string, char * nro_instruccion_string);
 t_instruccion* pedidoAMemoria(int pid, int pc);
+
 
 #endif

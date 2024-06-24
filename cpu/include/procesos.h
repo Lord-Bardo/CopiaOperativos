@@ -10,7 +10,7 @@ void inicializarPCBAleatorio(t_pcb *pcb);
 void copiarContexto(t_pcb pcb_recibido);
 void mostrarPCB(t_pcb auxiliar);
 void inicializarPCB(t_pcb *pcb);
-int *obtener_registro(char *registro_string);
+void *obtener_registro(char *registro_string);
 
 
 #endif

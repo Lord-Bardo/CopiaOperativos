@@ -3,8 +3,6 @@
 t_pcb pcb;
 
 
-
-
 void * obtener_registro(char *registro_string){
 	if(strcmp("AX",registro_string)== 0){
 		return &pcb.registros.ax;

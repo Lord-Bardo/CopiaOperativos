@@ -3,7 +3,7 @@
 
 #include "cpu_gestor.h"
 #include "instrucciones.h"
-#include "procesos.h"
+
 
 void atender_cpu_kernel_dispatch(void);
 void iniciar_ciclo_instruccion(t_pcb);
@@ -18,6 +18,7 @@ void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n);
 void agregar_pid_a_paquete(t_paquete *paquete, int pid);
 int pcb_get_pid(t_pcb *pcb);
 t_registros pcb_get_registros(t_pcb *pcb);
-bool salir=0;
+
+
 
 #endif

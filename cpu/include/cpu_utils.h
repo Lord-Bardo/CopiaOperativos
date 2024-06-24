@@ -3,7 +3,6 @@
 
 #include "cpu_gestor.h"
 #include "instrucciones.h"
-#include "procesos.h"
 
 void agregar_instruccion_paquete(t_paquete *paquete, char* instruccion);
 void agregar_pcb_paquete(t_paquete *paquete, t_pcb *pcb);
