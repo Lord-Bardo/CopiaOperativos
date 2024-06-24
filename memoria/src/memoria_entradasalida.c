@@ -3,7 +3,7 @@
 void atender_memoria_entradasalida(){
     int continuar = 1;
 	while( continuar ){
-		int cod_op = recibir_operacion(fd_entradasalida);
+		int cod_op = 1; // hay que hacerlo bien con recibir_codigo_operacion. 
 		switch(cod_op){
 		
 			case -1:

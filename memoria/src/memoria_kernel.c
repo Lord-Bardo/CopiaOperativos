@@ -15,7 +15,9 @@ void atender_memoria_kernel(){
 
                 for (int i = 0; i < TAM_MEMORIA; i++) 
                     proceso_recibido->memoria_de_instrucciones[i] = malloc(sizeof(char));
-
+                
+                num_instruccion = 0;
+                
                 // Verificar si la asignación de memoria fue exitosa
                 if (proceso_recibido->tabla_paginas == NULL || proceso_recibido->memoria_de_instrucciones == NULL) {
                     // Manejar el error de asignación de memoria

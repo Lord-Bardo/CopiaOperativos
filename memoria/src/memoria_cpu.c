@@ -1,7 +1,5 @@
 #include "../include/memoria_cpu.h"
-#include <utils/instrucciones.h>
-#include <commons/collections/list.h>
-#include <utils/conexion.h>
+
 
     // Inicialización de t_instruccion 'hardcode' con '0' como opcode y 'argsSet' como args
 char *hardcode = "SET AX 10";//como el orto

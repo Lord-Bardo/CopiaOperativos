@@ -1,7 +1,6 @@
 #ifndef MEMORIA_H_
 #define MEMORIA_H_
 
-#include "memoria_gestor.h"
 #include "inicializar_memoria.h"
 #include "memoria_entradasalida.h"
 #include "memoria_kernel.h"
