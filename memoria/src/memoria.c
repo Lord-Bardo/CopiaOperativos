@@ -23,6 +23,31 @@ int main(int argc, char* argv[]) {
 	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);
 														
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
+	
+//  ------------TEST CREAR PROCESO (SIN ENVÍO Y RECIBO DE PAQUETE)----------------
+
+	t_pcb_memoria *proceso_recibido;
+	proceso_recibido->tabla_paginas = malloc(sizeof(char)*3); // genera segmentation fault, revisar.
+	proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
+
+	for (int i = 0; i < TAM_MEMORIA; i++) 
+		proceso_recibido->memoria_de_instrucciones[i] = malloc(sizeof(char));
+	
+	num_instruccion = 0;
+	if (proceso_recibido->tabla_paginas == NULL || proceso_recibido->memoria_de_instrucciones == NULL) {
+		// Manejar el error de asignación de memoria
+		fprintf(stderr, "Error al asignar memoria\n");
+		exit(EXIT_FAILURE);
+	}
+	proceso_recibido->pid = 123;
+	proceso_recibido->path = "/ArchivoPseudocodigo.txt"; 
+
+	crear_proceso(proceso_recibido);
+	printf("SegundaInstruccion: %s\n", procesos[0].memoria_de_instrucciones[1]);
+	log_info(memoria_logger, "Entré y salí de crear proceso");
+	liberar_pcb_memoria(proceso_recibido);
+
+//  -----------------------------FIN DE TEST, VUELVA PRONTOS :)--------------------	
 
 	// Esperar conexion de CPU
 	fd_cpu = esperar_cliente(fd_memoria);
