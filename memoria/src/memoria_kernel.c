@@ -1,5 +1,10 @@
 #include "../include/memoria_kernel.h"
 
+void* espacio_usuario; 
+void* puntero_espacio_usuario;
+t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
+size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
+
 void atender_memoria_kernel(){
     int continuar = 1;
 	while( continuar ){

@@ -1,5 +1,19 @@
 #include "../include/memoria.h"
 
+t_log* memoria_logger;
+t_config* memoria_config;
+
+char *PUERTO_ESCUCHA;
+int TAM_MEMORIA;
+int TAM_PAGINA;
+char *PATH_INSTRUCCIONES;
+int RETARDO_REPUESTA;
+
+int fd_cpu;
+int fd_kernel;
+int fd_entradasalida;
+int fd_memoria;
+
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de memoria (loggers y config)
 	inicializar_memoria();
