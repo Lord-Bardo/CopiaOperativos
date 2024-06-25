@@ -1,16 +1,34 @@
 #include "../include/memoria_entradasalida.h"
 
+int escribir_memoria (t_pcb_memoria, int num_pagina, int offset, void* buffer, int tamanio)
+{
+	if (num_pagina >= t_pcb_memoria->cant_paginas) { //primero verificar posibles errores
+        fprintf(stderr, "Número de página fuera de rango\n");
+        return -1;
+    }
+	t_pagina* pagina = t_pcb_memoria->tabla_paginas[num_pagina];
+    if (!pagina->bit_presencia) {
+        fprintf(stderr, "Página no presente en memoria\n");
+        return -1;
+    }
+	// Calcular la dirección en la memoria contigua
+    int direccion_memoria = t_pagina->frame * TAM_PAGINA + offset;
+    memcpy(espacio_usuario + direccion_memoria, buffer, tamanio);
+    return 0;
+
+}
+
 void atender_memoria_entradasalida(){
     int continuar = 1;
 	while( continuar ){
-		int cod_op = recibir_operacion(fd_entradasalida);
+		t_codigo_operacion cod_op;
+		t_buffer *buffer = crear_buffer();
+		recibir_paquete(fd_entradasalida, &cod_op, buffer);
 		switch(cod_op){
 			//case SOLICITUD_ACCESO_TABLAS_PAGINAS: //POSIBLE NOMBRE DEL MENSAJE 
 			case SOLICITUD_ESCRITURA: //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H){
-                t_pcb_memoria solicitud;
-				recibir_paquete(fd_entradasalida, &cod_op, buffer);
-                t_pcb_memoria* proceso = obtener_proceso(solicitud.pid);
-                if (proceso == NULL) {
+                t_pcb_memoria* proceso_recibido = buffer_desempaquetar_proceso(buffer, proceso_recibido);
+                if (proceso_recibido == NULL) {
                     log_error(memoria_logger, "Proceso no encontrado: PID %d", solicitud.pid);
                     break;
                 }
@@ -21,7 +39,6 @@ void atender_memoria_entradasalida(){
                     log_error(memoria_logger, "Error en escritura: PID %d, Pagina %d", solicitud.pid, solicitud.num_pagina);
                 }
                 break;
-				break;
 
 			case SOLICITUD_LECTURA:{
                 t_pcb_memoria solicitud;
@@ -53,23 +70,7 @@ void atender_memoria_entradasalida(){
 	}
 }
 
-int escribir_memoria (t_pcb_memoria, int num_pagina, int offset, void* buffer, int tamanio)
-{
-	if (num_pagina >= t_pcb_memoria->cant_paginas) { //primero verificar posibles errores
-        fprintf(stderr, "Número de página fuera de rango\n");
-        return -1;
-    }
-	t_pagina* pagina = t_pcb_memoria->tabla_paginas[num_pagina];
-    if (!pagina->bit_presencia) {
-        fprintf(stderr, "Página no presente en memoria\n");
-        return -1;
-    }
-	// Calcular la dirección en la memoria contigua
-    int direccion_memoria = t_pagina->frame * TAM_PAGINA + offset;
-    memcpy(espacio_usuario + direccion_memoria, buffer, tamanio);
-    return 0;
 
-}
 
 int leer_memoria (t_pcb_memoria, int num_pagina, int offset, void* buffer, int tamanio) {
     if (num_pagina >= t_pcb_memoria->cant_paginas) { //primero verificar posibles errores
