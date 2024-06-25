@@ -25,9 +25,8 @@ int main(int argc, char* argv[]) {
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 	
 //  ------------TEST CREAR PROCESO (SIN ENVÍO Y RECIBO DE PAQUETE)----------------
-
-	t_pcb_memoria *proceso_recibido;
-	proceso_recibido->tabla_paginas = malloc(sizeof(char)*3); // genera segmentation fault, revisar.
+	t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
+	proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina)); // genera segmentation fault, revisar.
 	proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
 
 	for (int i = 0; i < TAM_MEMORIA; i++) 
@@ -43,10 +42,10 @@ int main(int argc, char* argv[]) {
 	proceso_recibido->path = "/ArchivoPseudocodigo.txt"; 
 
 	crear_proceso(proceso_recibido);
-	printf("SegundaInstruccion: %s\n", procesos[0].memoria_de_instrucciones[1]);
-	log_info(memoria_logger, "Entré y salí de crear proceso");
+	printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
+	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
+	log_info(memoria_logger, "Entré y salí de crear proceso y cree proceso existosamente :)");
 	liberar_pcb_memoria(proceso_recibido);
-
 //  ------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)------------------------	
 
 	// Esperar conexion de CPU

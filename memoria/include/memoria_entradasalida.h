@@ -4,7 +4,7 @@
 #include "memoria_utils.h"
 
 void atender_memoria_entradasalida(void);
-
+/* 
 // Variables globales
 extern void* espacio_usuario; // Memoria contigua simulada
 extern int fd_entradasalida; // File descriptor de entrada/salida
@@ -19,6 +19,6 @@ int escribir_memoria(t_pcb_memoria* proceso, int num_pagina, int offset, void* b
 int leer_memoria(t_pcb_memoria* proceso, int num_pagina, int offset, void* buffer, int tamanio);
 
 t_pcb_memoria* obtener_proceso(int pid);
-
+ */
 
 #endif
