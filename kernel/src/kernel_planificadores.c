@@ -18,10 +18,10 @@ pthread_mutex_t mutex_pid;
 
 // Semaforos
 pthread_mutex_t mutex_grado_multiprogramacion;
-sem_t sem_grado_multiprogramacion;
-sem_t sem_cpu_disponible;
-pthread_mutex_t mutex_socket_dispatch;
-pthread_mutex_t mutex_socket_memoria;
+sem_t sem_grado_multiprogramacion;;
+
+// Recursos
+t_dictionary *diccionario_recursos;
 
 void iniciar_planificadores(){
     // Estructuras
@@ -44,6 +44,7 @@ void inicializar_estructuras(){
     inicializar_estructuras_estados();
     inicializar_estructuras_pid();
     inicializar_semaforos();
+    inicializar_diccionario_recursos();
 }
 
 void inicializar_estructuras_estados(){
@@ -63,6 +64,10 @@ void inicializar_estructuras_pid(void){
 void inicializar_semaforos(){
     pthread_mutex_init(&mutex_grado_multiprogramacion, NULL);
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
+}
+
+void inicializar_diccionario_recursos(){
+    diccionario_recursos = crear_diccionario_recursos(RECURSOS, INSTANCIAS_RECURSOS);
 }
 
 void iniciar_planificacion(){
@@ -93,7 +98,7 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
     pthread_mutex_unlock(&mutex_grado_multiprogramacion);
 }
 
-// PLANIFICADOR CORTO PLAZO
+// PLANIFICADOR CORTO PLAZO ---------------------------------------------------
 void planificador_corto_plazo(){    
     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
         planificador_corto_plazo_fifo();
@@ -109,12 +114,13 @@ void planificador_corto_plazo(){
     }
 }
 
+// FIFO
 void planificador_corto_plazo_fifo(){
     while( estado_planificacion ){
         t_pcb *pcb = elegir_proceso_segun_fifo();
         proceso_a_exec(pcb);
         enviar_contexto_de_ejecucion(pcb);
-        recibir_contexto_de_ejecucion_actualizado(pcb); // Modifica directo al pcb con lo que recibe
+        recibir_contexto_de_ejecucion_actualizado(); // Modifica directo al pcb con lo que recibe
     }
 }
 
@@ -122,14 +128,38 @@ t_pcb *elegir_proceso_segun_fifo(){
     return estado_desencolar_primer_pcb(estado_ready);
 }
 
-// TODO: corto plazo RR y VRR
-void planificador_corto_plazo_rr(){
-    // TODO
+// RR
+void planificador_corto_plazo_rr(){ //TERMINAR
+    while( estado_planificacion ){
+        t_pcb *pcb = elegir_proceso_segun_rr();
+        proceso_a_exec(pcb);
+        enviar_contexto_de_ejecucion(pcb);
+        recibir_contexto_de_ejecucion_actualizado(); // Modifica directo al pcb con lo que recibe
+    }
 }
 
-void planificador_corto_plazo_vrr(){
-    // TODO
-    // Tener en cuenta READY_PLUS
+t_pcb *elegir_proceso_segun_rr(){
+    return estado_desencolar_primer_pcb(estado_ready); 
+}
+
+// VRR
+void planificador_corto_plazo_vrr(){ //TERMINAR
+    while( estado_planificacion ){
+        t_pcb *pcb = elegir_proceso_segun_rr();
+        proceso_a_exec(pcb);
+        enviar_contexto_de_ejecucion(pcb);
+        recibir_contexto_de_ejecucion_actualizado(); // Modifica directo al pcb con lo que recibe
+        estado_ordenar_por_quantum_restante(estado_ready_plus);
+    }
+}
+
+t_pcb *elegir_proceso_segun_vrr(){
+    if( estado_contiene_pcbs(estado_ready_plus) ){
+        return estado_desencolar_primer_pcb(estado_ready_plus);
+    }
+    else{
+        return estado_desencolar_primer_pcb(estado_ready);
+    }
 }
 
 // Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
@@ -140,25 +170,51 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb){
     eliminar_paquete(paquete_contexto_de_ejecucion);
 }
 
-void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
+void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
     // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros)
     // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
-    // En cualquier caso se lo debe desencolar de EXEC
+    // En cualquier caso se lo debe desencolar de EXEC -> NOTA: no necesariamente, si el proceso quiere hacer un signal deberia seguir ejecutando el mismo proceso
     // Si puede seguir ejecutando se lo encola en READY
     // Si no se bloqueo entonces se lo encola en BLOCKED
     t_codigo_operacion motivo_desalojo;
     t_buffer *buffer = crear_buffer();
     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
+    t_pcb *pcb = estado_desencolar_primer_pcb(estado_exec); // No se si lo correcto seria desencolarlo por lo del signal por ejemplo -> se podria desencolar, pero al hacer el signal se deberia meter primero en la cola de ready de maxima prioridad
     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
-
-    // switch(motivo_desalojo){
-    //     case :
-    // }
+    
+    switch(motivo_desalojo){
+        case SUCCESS:
+            break;
+        case INTERRUPT_QUANTUM:
+            break;
+        case INTERRUPT_USER:
+            break;
+        case OUT_OF_MEMORY:
+            break;
+        case IO:
+            char *nombre_interfaz;
+            buffer_desempaquetar_string(buffer, &nombre_interfaz);
+            if( interfaz_es_valida(nombre_interfaz) ){
+                // Ejecutar interfaz
+                // Hay varias, deberia hacer un switch para saber cual es y recibir lo q necesite
+            }
+            else{
+                // Matar al proceso
+            }
+            break;
+        case WAIT:
+            break;
+        case SIGNAL:
+            break;
+        // ...
+        default:
+            log_error(kernel_logger, "Motivo de desalojo desconocido");
+    }
 
     eliminar_buffer(buffer);
 }
 
-// PLANIFICADOR LARGO PLAZO
+// PLANIFICADOR LARGO PLAZO ---------------------------------------------------
 // Crea el pcb y lo encola en new
 void iniciar_proceso(char *path){
     int pid = generar_pid();
@@ -168,6 +224,33 @@ void iniciar_proceso(char *path){
 }
 
 void finalizar_proceso(int pid){ // TERMINAR
+    detener_planificacion();
+    // Me gusta mas la idea de la lista negra
+    // pthread_mutex_lock(mutex_lista_procesos_pendientes_a_finalizar);
+    // list_add(procesos_pendientes_a_finalizar, pid);
+    // pthread_mutex_unlock(mutex_lista_procesos_pendientes_a_finalizar);
+    // FORMA 1
+    // t_pcb *pcb = estado_rastrear_y_desencolar_pcb_por_pid(pid);
+    // FORMA 2
+    t_estado *estado = estado_rastrear_pcb_por_pid(pid);
+    if( estado == NULL ){
+        log_error(kernel_logger, "El PCB solicitado no se encuentra en el sistema");
+    }
+    switch(estado_get_nombre_estado(estado)){
+        case BLOCKED:
+            // Deberia mandarlo a exit cuando la io avise q termino
+            break;
+        case EXEC:
+            // Mandar interrupcion a CPU
+            break;
+        case EXIT:
+            log_error(kernel_logger, "El PCB solicitado ya esta siendo eliminado del sistema");
+            break;
+        default:
+            t_pcb *pcb = estado_desencolar_pcb_por_pid(estado, pid);
+            sem_post(&sem_grado_multiprogramacion);
+    }
+    
     // Se deberia liberar la memoria asignada al proceso
     // list_remove_by_condition();
     // proceso_a_exit();
@@ -177,22 +260,13 @@ void finalizar_proceso(int pid){ // TERMINAR
     // detener_planificacion(); -> tiene que frenar las transiciones?
 }
 
-// El manejo de NEW -> READY habria que mandarlo a un hilo aparte
 void planificador_largo_plazo(){
+    // Manejar ESTADO -> EXIT
+    pthread_t hilo_liberar_procesos_exit;
+    pthread_create(&hilo_liberar_procesos_exit, NULL, (void *)liberar_procesos_exit, NULL);
+    pthread_detach(hilo_liberar_procesos_exit);
+
     // Manejar NEW -> READY
-    pthread_t hilo_new_ready;
-    pthread_create(&hilo_new_ready, NULL, (void *)planificador_largo_plazo_new_ready, NULL);
-    pthread_detach(hilo_new_ready);
-
-    // // Manejar ESTADO -> EXIT
-    // // Estas funciones se podrían unir en una sola y hacer un for, pero capaz queda mas simple hacer estas 4 funciones y listo
-    // manejador_new_exit();
-    // manejador_ready_exit();
-    // manejador_exec_exit();
-    // manejador_blocked_exit();
-}
-
-void planificador_largo_plazo_new_ready(){
     while( estado_planificacion ){
         sem_wait(&sem_grado_multiprogramacion);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
@@ -201,9 +275,16 @@ void planificador_largo_plazo_new_ready(){
             proceso_a_ready(pcb);
         }
         else{
-            finalizar_proceso(pcb_get_pid(pcb));
+            proceso_a_exit(pcb);
         } 
     }
+
+    
+    // // Estas funciones se podrían unir en una sola y hacer un for, pero capaz queda mas simple hacer estas 4 funciones y listo
+    // manejador_new_exit();
+    // manejador_ready_exit();
+    // manejador_exec_exit();
+    // manejador_blocked_exit();
 }
 
 void pedir_a_memoria_iniciar_proceso(int pid, char *path){
@@ -218,6 +299,26 @@ t_codigo_operacion recibir_confirmacion_memoria_proceso_iniciado(){
     t_codigo_operacion codigo_operacion;
     recibir_codigo_operacion(fd_memoria, &codigo_operacion);
     return codigo_operacion;
+}
+
+void liberar_procesos_exit(){
+    while(1){
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_exit);
+        pedir_a_memoria_finalizar_proceso(pcb_get_pid(pcb));
+        liberar_recursos(pcb);
+        sem_post(&sem_grado_multiprogramacion);
+    }
+}
+
+void pedir_a_memoria_finalizar_proceso(int pid){
+    t_paquete *paquete_solicitud_finalizar_proceso = crear_paquete(SOLICITUD_FINALIZAR_PROCESO);
+    agregar_pid_a_paquete(paquete_solicitud_finalizar_proceso, pid);
+    enviar_paquete(fd_memoria, paquete_solicitud_finalizar_proceso);
+    eliminar_paquete(paquete_solicitud_finalizar_proceso);
+}
+
+void liberar_recursos(t_pcb *pcb){
+    // TODO
 }
 
 // void manejador_new_exit() {
@@ -252,7 +353,7 @@ t_codigo_operacion recibir_confirmacion_memoria_proceso_iniciado(){
 //     }
 // }
 
-// PROCESO A ...
+// PROCESO A ... ---------------------------------------------------
 void proceso_a_ready(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
@@ -272,4 +373,5 @@ void proceso_a_blocked(t_pcb *pcb){
 void proceso_a_exit(t_pcb *pcb){ // REVISAR
     pcb_cambiar_estado_a(pcb, EXIT);
     estado_encolar_pcb(estado_exit, pcb);
+    // deberia loggear aca el finalizar_proceso o cuando lo elimino por completo o cuando llamo a finalizar proceso?
 }

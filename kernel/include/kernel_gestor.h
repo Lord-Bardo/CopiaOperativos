@@ -11,11 +11,18 @@
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 
 #include <utils/conexion.h>
 #include <utils/registros.h>
 
 // ESTRUCTURAS
+// Planificacion
+typedef enum{
+    PAUSADA = 0,
+    ACTIVA = 1
+} t_estado_planificacion;
+
 // Estado
 typedef enum{
     NEW,
@@ -23,7 +30,8 @@ typedef enum{
     READY_PLUS,
     EXEC,
     BLOCKED,
-    EXIT
+    EXIT,
+    RECURSO
 } t_nombre_estado;
 
 typedef struct{
@@ -43,11 +51,11 @@ typedef struct{
     char *path;
 } t_pcb;
 
-// Planificacion
-typedef enum{
-    PAUSADA = 0,
-    ACTIVA = 1
-} t_estado_planificacion;
+// Recurso
+typedef struct {
+    int instancias;
+    t_estado *estado_recurso;
+} t_recurso;
 
 // VARIABLES GLOBALES
 // Loggers y Config
@@ -93,8 +101,8 @@ extern pthread_mutex_t mutex_pid;
 // Semaforos
 extern pthread_mutex_t mutex_grado_multiprogramacion;
 extern sem_t sem_grado_multiprogramacion;
-extern sem_t sem_cpu_disponible;
-extern pthread_mutex_t mutex_socket_dispatch;
-extern pthread_mutex_t mutex_socket_memoria;
+
+// Recursos
+extern t_dictionary *diccionario_recursos;
 
 #endif

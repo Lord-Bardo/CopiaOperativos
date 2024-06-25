@@ -21,10 +21,13 @@ typedef enum{
     // KERNEL - CPU DISPATCH
     CONTEXTO_DE_EJECUCION,
     // Motivos desalojo
-    FINALIZACION,
-    SYSCALL,
-    INTERRUPCION,
+    SUCCESS,
+    INTERRUPT_QUANTUM,
+    INTERRUPT_USER,
     OUT_OF_MEMORY,
+    IO,
+    WAIT,
+    SIGNAL,
     // KERNEL - ENTRADASALIDA (manejo de interfaces)
     IO_GEN_SLEEP,
     IO_STDIN_READ,

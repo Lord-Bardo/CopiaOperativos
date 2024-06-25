@@ -110,31 +110,31 @@ void ejecutar_script(char *path){
 void proceso_estado(){
 	// NEW
 	char *lista_new = lista_pids_string(estado_new);
-	printf("NEW: %s", lista_new);
+	printf("NEW: %s\n", lista_new);
 	free(lista_new);
 
 	// READY
 	char *lista_ready = lista_pids_string(estado_ready);
-	printf("READY: %s", lista_ready);
+	printf("READY: %s\n", lista_ready);
 	free(lista_ready);
 
 	// READY_PLUS
 	char *lista_ready_plus = lista_pids_string(estado_ready_plus);
-	printf("READY PLUS: %s", lista_ready_plus);
+	printf("READY PLUS: %s\n", lista_ready_plus);
 	free(lista_ready_plus);
 
 	// EXEC
 	char *lista_exec = lista_pids_string(estado_exec);
-	printf("EXEC: %s", lista_exec);
+	printf("EXEC: %s\n", lista_exec);
 	free(lista_exec);
 
 	// BLOCKED
 	char *lista_blocked = lista_pids_string(estado_blocked);
-	printf("BLOCKED: %s", lista_blocked);
+	printf("BLOCKED: %s\n", lista_blocked);
 	free(lista_blocked);
 
 	// EXIT
 	char *lista_exit = lista_pids_string(estado_exit);
-	printf("EXIT: %s", lista_exit);
+	printf("EXIT: %s\n", lista_exit);
 	free(lista_exit);
 }

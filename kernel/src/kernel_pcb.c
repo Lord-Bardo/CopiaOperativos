@@ -56,6 +56,12 @@ t_nombre_estado pcb_get_estado(t_pcb *pcb){
     return pcb->estado;
 }
 
+void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado){
+    t_nombre_estado estado_anterior = pcb_get_estado(pcb);
+    pcb->estado = nuevo_estado;
+    log_cambio_estado(pcb, estado_anterior, nuevo_estado);
+}
+
 uint32_t pcb_get_pc(t_pcb *pcb){
     return pcb->PC;
 }
@@ -150,10 +156,4 @@ void pcb_set_registro_di(t_pcb *pcb, char *valor){
 
 char* pcb_get_path(t_pcb *pcb){
     return pcb->path;
-}
-
-void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado){
-    t_nombre_estado estado_anterior = pcb_get_estado(pcb);
-    pcb->estado = nuevo_estado;
-    log_cambio_estado(pcb, estado_anterior, nuevo_estado);
 }

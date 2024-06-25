@@ -13,6 +13,7 @@ int generar_pid(void);
 int pcb_get_pid(t_pcb *pcb);
 int pcb_get_quantum(t_pcb *pcb);
 t_nombre_estado pcb_get_estado(t_pcb *pcb);
+void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado);
 uint32_t pcb_get_pc(t_pcb *pcb);
 t_registros *pcb_get_registros(t_pcb *pcb);
 char *pcb_get_registro_ax(t_pcb *pcb);
@@ -37,6 +38,5 @@ void pcb_set_registro_edx(t_pcb *pcb, char *valor);
 void pcb_set_registro_si(t_pcb *pcb, char *valor);
 void pcb_set_registro_di(t_pcb *pcb, char *valor);
 char *pcb_get_path(t_pcb *pcb);
-void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado);
 
 #endif
