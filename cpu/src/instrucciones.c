@@ -49,10 +49,7 @@ void mostrarInstruccion(t_instruccion instr) {
     } 
 
 }
-t_instruccion* fetch(int pid, int pc) {
-    t_instruccion* instr = pedidoAMemoria(pid, pc);
-    return instr;
-}
+
 
 void execute(t_instruccion *instruccion){
 	switch (instruccion->instr_code)

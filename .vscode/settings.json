@@ -9,6 +9,11 @@
         "consola.h": "c",
         "limits": "c",
         "memoria_entradasalida.h": "c",
-        "dictionary.h": "c"
+        "dictionary.h": "c",
+        "cpu_utils.h": "c",
+        "cpu_kernel_dispatch.h": "c",
+        "cpu_gestor.h": "c",
+        "instrucciones.h": "c",
+        "procesos.h": "c"
     }
 }
