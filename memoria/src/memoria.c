@@ -47,19 +47,16 @@ int main(int argc, char* argv[]) {
 	log_info(memoria_logger, "Entré y salí de crear proceso");
 	liberar_pcb_memoria(proceso_recibido);
 
-//  -----------------------------FIN DE TEST, VUELVA PRONTOS :)--------------------	
+//  ------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)------------------------	
 
 	// Esperar conexion de CPU
-	fd_cpu = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente CPU al servidor MEMORIA");
+	aceptar_conexion_cpu();
 
 	// Esperar conexion de KERNEL
-	fd_kernel = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente KERNEL al servidor MEMORIA!");
+	aceptar_conexion_kernel();
 
 	// Esperar conexion de ENTRADASALIDA
-	fd_entradasalida = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
+	aceptar_conexion_entradasalida();
 
 	// Atender los mensajes de CPU
 	pthread_t hilo_cpu;
@@ -85,44 +82,6 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-// TODO -- CONSOLA Y PAQUETE -- Deberian tener el logger y la conexion que no se pasen por parámetros
-void leer_consola(t_log *logger){
-	char *leido;
-
-	// Leo la primer linea
-	leido = readline("> ");
-
-	// El resto, las voy leyendo y logueando hasta recibir un string vacío
-	while (leido[0] != '\0'){
-		log_info(logger, "%s", leido);
-		leido = readline("> ");
-	}
-
-	// Libero las lineas
-	free(leido);
-}
-
-void paquete(int conexion){
-	char *leido;
-	t_paquete *paquete;
-
-    // Creo el paquete
-	paquete = crear_paquete(PAQUETE);
-
-	// Leo y agrego las lineas al paquete
-	leido = readline("> ");
-	while (leido[0] != '\0'){
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		leido = readline("> ");
-	}
-	// Envio el paquete
-	enviar_paquete(conexion, paquete);
-
-	// Libero las lineas y el paquete
-	free(leido);
-	eliminar_paquete(paquete);
-}
-
 void terminar_programa(){
     if(memoria_logger != NULL){
         log_destroy(memoria_logger);
@@ -137,4 +96,37 @@ void terminar_programa(){
 	liberar_conexion(fd_memoria);
 	liberar_conexion(fd_kernel);
 	liberar_conexion(fd_entradasalida);
+}
+
+void aceptar_conexion_kernel(){
+	fd_kernel = esperar_cliente(fd_memoria);
+	if( recibir_handshake(fd_kernel) == HANDSHAKE_KERNEL){
+		enviar_handshake(fd_kernel, HANDSHAKE_OK);
+		log_info(memoria_logger, "¡Se conectó el cliente KERNEL al servidor MEMORIA!");
+	}
+	else{
+		enviar_handshake(fd_kernel, HANDSHAKE_ERROR);
+	}
+}
+
+void aceptar_conexion_cpu(){
+	fd_cpu = esperar_cliente(fd_memoria);
+	if( recibir_handshake(fd_cpu) == HANDSHAKE_CPU){
+		enviar_handshake(fd_cpu, HANDSHAKE_OK);
+		log_info(memoria_logger, "¡Se conectó el cliente CPU al servidor MEMORIA!");
+	}
+	else{
+		enviar_handshake(fd_cpu, HANDSHAKE_ERROR);
+	}
+}
+
+void aceptar_conexion_entradasalida(){
+	fd_entradasalida = esperar_cliente(fd_memoria);
+	if( recibir_handshake(fd_entradasalida) == HANDSHAKE_ENTRADASALIDA ){
+		enviar_handshake(fd_entradasalida, HANDSHAKE_OK);
+		log_info(memoria_logger, "¡Se conectó el cliente ENTRADASALIDA al servidor MEMORIA!");
+	}
+	else{
+		enviar_handshake(fd_entradasalida, HANDSHAKE_ERROR);
+	}
 }
