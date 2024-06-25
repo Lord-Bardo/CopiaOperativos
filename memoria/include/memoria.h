@@ -22,8 +22,9 @@ extern int fd_entradasalida;
 extern int fd_memoria;
 
 //FUNCIONES
-void leer_consola(t_log*);
-void paquete(int);
 void terminar_programa();
+void aceptar_conexion_cpu();
+void aceptar_conexion_kernel();
+void aceptar_conexion_entradasalida();
 
 #endif

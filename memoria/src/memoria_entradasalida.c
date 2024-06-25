@@ -1,5 +1,5 @@
 #include "../include/memoria_entradasalida.h"
-
+/* 
 int escribir_memoria (t_pcb_memoria proceso, int num_pagina, int offset, void* buffer, int tamanio)
 {
 	if (num_pagina >= proceso.cant_paginas) { //primero verificamos que no hayan errores
@@ -35,7 +35,7 @@ int leer_memoria (t_pcb_memoria proceso, int num_pagina, int offset, void* buffe
     memcpy(buffer, espacio_usuario + direccion_memoria, tamanio);
     return 0;
 }
-
+*/
 void atender_memoria_entradasalida(){
     int continuar = 1;
 	while( continuar ){
@@ -43,13 +43,14 @@ void atender_memoria_entradasalida(){
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_entradasalida, &cod_op, buffer);
 		switch(cod_op){
+            /*
 			//case SOLICITUD_ACCESO_TABLAS_PAGINAS: //POSIBLE NOMBRE DEL MENSAJE 
-			case SOLICITUD_ESCRITURA:{ //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H){
+			case SOLICITUD_ESCRITURA: //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H){
                 t_pcb_memoria* solicitud;
 				buffer_desempaquetar_proceso(buffer, &solicitud);
 				t_pcb_memoria* proceso_recibido = obtener_proceso(solicitud->pid);
                 if (proceso_recibido == NULL) {
-                    log_error(memoria_logger, "Proceso no encontrado: PID %d", solicitud.pid);
+                    log_error(memoria_logger, "Proceso no encontrado: PID %d", solicitud->pid);
 					eliminar_buffer(buffer);
                     break;
                 }
@@ -60,10 +61,9 @@ void atender_memoria_entradasalida(){
                     log_error(memoria_logger, "Error en escritura: PID %d, Pagina %d", solicitud.pid, solicitud.num_pagina);
                 }
 				eliminar_buffer(buffer);
-                break;
-			}
+                break; 
 
-			case SOLICITUD_LECTURA:{
+			case SOLICITUD_LECTURA:
                 t_pcb_memoria solicitud;
                 buffer_desempaquetar(buffer, &solicitud);
                 t_pcb_memoria* proceso_recibido = obtener_proceso(solicitud.pid);
@@ -86,19 +86,18 @@ void atender_memoria_entradasalida(){
                 free(buffer);
 				free(buffer_lectura);
                 break; //lo mismo con el case anterior (este también esta en el coenxion.h)
-			
 			case -1:
 				log_error(memoria_logger, "Se perdio la conexion con ENTRADASALIDA!");
 				continuar = 0;
 				break;
+                */
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de ENTRADASALIDA");
 				break;
 		}
 	}
 }
-
-
+/*
 // Función para obtener un proceso por su PID
 t_pcb_memoria* obtener_proceso(int pid) {
     // Iterar sobre la lista de procesos para encontrar el proceso con el PID dado
@@ -132,4 +131,5 @@ void enviar_datos(int socket, void* buffer, int size) { //todavía tengp que rev
     } else {
         printf("No se pudieron enviar todos los datos\n");
     }
-}
+} 
+*/

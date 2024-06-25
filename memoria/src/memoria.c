@@ -25,9 +25,8 @@ int main(int argc, char* argv[]) {
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 	
 //  ------------TEST CREAR PROCESO (SIN ENVÍO Y RECIBO DE PAQUETE)----------------
-
-	t_pcb_memoria *proceso_recibido;
-	proceso_recibido->tabla_paginas = malloc(sizeof(char)*3); // genera segmentation fault, revisar.
+	t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
+	proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina)); // genera segmentation fault, revisar.
 	proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
 
 	for (int i = 0; i < TAM_MEMORIA; i++) 
@@ -43,23 +42,20 @@ int main(int argc, char* argv[]) {
 	proceso_recibido->path = "/ArchivoPseudocodigo.txt"; 
 
 	crear_proceso(proceso_recibido);
-	printf("SegundaInstruccion: %s\n", procesos[0].memoria_de_instrucciones[1]);
-	log_info(memoria_logger, "Entré y salí de crear proceso");
+	printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
+	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
+	log_info(memoria_logger, "Entré y salí de crear proceso y cree proceso existosamente :)");
 	liberar_pcb_memoria(proceso_recibido);
-
-//  -----------------------------FIN DE TEST, VUELVA PRONTOS :)--------------------	
+//  ------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)------------------------	
 
 	// Esperar conexion de CPU
-	fd_cpu = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente CPU al servidor MEMORIA");
+	aceptar_conexion_cpu();
 
 	// Esperar conexion de KERNEL
-	fd_kernel = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente KERNEL al servidor MEMORIA!");
+	aceptar_conexion_kernel();
 
 	// Esperar conexion de ENTRADASALIDA
-	fd_entradasalida = esperar_cliente(fd_memoria);
-	log_info(memoria_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
+	aceptar_conexion_entradasalida();
 
 	// Atender los mensajes de CPU
 	pthread_t hilo_cpu;
@@ -85,44 +81,6 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-// TODO -- CONSOLA Y PAQUETE -- Deberian tener el logger y la conexion que no se pasen por parámetros
-void leer_consola(t_log *logger){
-	char *leido;
-
-	// Leo la primer linea
-	leido = readline("> ");
-
-	// El resto, las voy leyendo y logueando hasta recibir un string vacío
-	while (leido[0] != '\0'){
-		log_info(logger, "%s", leido);
-		leido = readline("> ");
-	}
-
-	// Libero las lineas
-	free(leido);
-}
-
-void paquete(int conexion){
-	char *leido;
-	t_paquete *paquete;
-
-    // Creo el paquete
-	paquete = crear_paquete(PAQUETE);
-
-	// Leo y agrego las lineas al paquete
-	leido = readline("> ");
-	while (leido[0] != '\0'){
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		leido = readline("> ");
-	}
-	// Envio el paquete
-	enviar_paquete(conexion, paquete);
-
-	// Libero las lineas y el paquete
-	free(leido);
-	eliminar_paquete(paquete);
-}
-
 void terminar_programa(){
     if(memoria_logger != NULL){
         log_destroy(memoria_logger);
@@ -137,4 +95,37 @@ void terminar_programa(){
 	liberar_conexion(fd_memoria);
 	liberar_conexion(fd_kernel);
 	liberar_conexion(fd_entradasalida);
+}
+
+void aceptar_conexion_kernel(){
+	fd_kernel = esperar_cliente(fd_memoria);
+	if( recibir_handshake(fd_kernel) == HANDSHAKE_KERNEL){
+		enviar_handshake(fd_kernel, HANDSHAKE_OK);
+		log_info(memoria_logger, "¡Se conectó el cliente KERNEL al servidor MEMORIA!");
+	}
+	else{
+		enviar_handshake(fd_kernel, HANDSHAKE_ERROR);
+	}
+}
+
+void aceptar_conexion_cpu(){
+	fd_cpu = esperar_cliente(fd_memoria);
+	if( recibir_handshake(fd_cpu) == HANDSHAKE_CPU){
+		enviar_handshake(fd_cpu, HANDSHAKE_OK);
+		log_info(memoria_logger, "¡Se conectó el cliente CPU al servidor MEMORIA!");
+	}
+	else{
+		enviar_handshake(fd_cpu, HANDSHAKE_ERROR);
+	}
+}
+
+void aceptar_conexion_entradasalida(){
+	fd_entradasalida = esperar_cliente(fd_memoria);
+	if( recibir_handshake(fd_entradasalida) == HANDSHAKE_ENTRADASALIDA ){
+		enviar_handshake(fd_entradasalida, HANDSHAKE_OK);
+		log_info(memoria_logger, "¡Se conectó el cliente ENTRADASALIDA al servidor MEMORIA!");
+	}
+	else{
+		enviar_handshake(fd_entradasalida, HANDSHAKE_ERROR);
+	}
 }
