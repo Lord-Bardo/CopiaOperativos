@@ -3,6 +3,7 @@
 void inicializar_cpu(){
     iniciar_logger();
     iniciar_config();
+	
 }
 
 void iniciar_logger(){

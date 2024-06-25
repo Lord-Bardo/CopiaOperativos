@@ -3,7 +3,7 @@
 int agregar_proceso_a_procesos(t_pcb_memoria proceso) // Podría poner esto en un utils, no śe...
 {
     for (int i = 0; i < (TAM_MEMORIA/TAM_PAGINA); i++) {
-        if (procesos[i].id == -1) { // Celda vacía encontrada
+        if (procesos[i].pid == -1) { // Celda vacía encontrada
             procesos[i] = proceso;
             return 1; // Éxito
         }
@@ -11,7 +11,7 @@ int agregar_proceso_a_procesos(t_pcb_memoria proceso) // Podría poner esto en u
     return 0; // Error, no hay celdas vacías (supongo que la máxima cant. de procesos que puede haber será TAM_MEMORIA/TAM_PAGINA, es decir procesos de una sola pág.)
 }
 
-bool instruccion_valida(const char* instruccion) // Nos dice si la instruccion leida del archivo de pseudocodigo comienza con alguno de estos strings.
+bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida del archivo de pseudocodigo comienza con alguno de estos strings.
 {
     return strstr(instruccion, "SET") == instruccion ||
            strstr(instruccion, "SUM") == instruccion ||
@@ -32,6 +32,15 @@ bool instruccion_valida(const char* instruccion) // Nos dice si la instruccion l
            strstr(instruccion, "IO_FS_DELETE ") == instruccion ||
            strstr(instruccion, "IO_FS_TRUNCATE") == instruccion ||
            strstr(instruccion, "IO_STDOUT_WRITE") == instruccion;
+}
+
+void liberar_pcb_memoria(t_pcb_memoria* proceso)
+{
+    for (int i = 0; i < TAM_MEMORIA; i++) 
+        free(proceso->memoria_de_instrucciones[i]);
+        
+    free(proceso->memoria_de_instrucciones);
+    free(proceso->tabla_paginas);
 }
 
 // MANEJO DE BUFFER.

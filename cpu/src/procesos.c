@@ -2,7 +2,8 @@
 
 t_pcb pcb;
 
-int *obtener_registro(char *registro_string){
+
+void * obtener_registro(char *registro_string){
 	if(strcmp("AX",registro_string)== 0){
 		return &pcb.registros.ax;
 	}
@@ -33,7 +34,7 @@ int *obtener_registro(char *registro_string){
 //esto va en otor lado creo
 void inicializarPCB(t_pcb *pcb) {
     pcb->pid = 0;
-    pcb->registros.pc = 0;
+    pcb->pc = 0;
     pcb->registros.ax = 0;
     pcb->registros.bx = 0;
     pcb->registros.cx = 0;
@@ -48,7 +49,7 @@ void inicializarPCB(t_pcb *pcb) {
 void mostrarPCB(t_pcb auxiliar){
 	printf("PID: %d\n", auxiliar.pid);
     printf("Registros:\n");
-    printf("PC: %d\n", auxiliar.registros.pc);
+    printf("PC: %d\n", auxiliar.pc);
     printf("AX: %d\n", auxiliar.registros.ax);
     printf("BX: %d\n", auxiliar.registros.bx);
     printf("CX: %d\n", auxiliar.registros.cx);
@@ -64,7 +65,7 @@ void mostrarPCB(t_pcb auxiliar){
 
 void copiarContexto(t_pcb pcb_recibido){
 	pcb.pid = pcb_recibido.pid;
-    pcb.registros.pc = pcb_recibido.registros.pc;
+    pcb.pc = pcb_recibido.pc;
     pcb.registros.ax = pcb_recibido.registros.ax;
     pcb.registros.bx = pcb_recibido.registros.bx;
     pcb.registros.cx = pcb_recibido.registros.cx;
@@ -78,11 +79,11 @@ void copiarContexto(t_pcb pcb_recibido){
 }
 void inicializarPCBAleatorio(t_pcb *pcb) {
     pcb->pid = rand();
-    pcb->registros.pc = rand();
-    pcb->registros.ax = 4000;
-    pcb->registros.bx = rand();
-    pcb->registros.cx = rand();
-    pcb->registros.dx = 0;
+    pcb->pc = 0;
+    pcb->registros.ax = 4;
+    pcb->registros.bx = (u_int8_t) rand(); //ojo aca el random x que son de int_8
+    pcb->registros.cx = 6;
+    pcb->registros.dx = (u_int8_t)3123410;
     pcb->registros.eax = rand();
     pcb->registros.ebx = rand();
     pcb->registros.ecx = rand();

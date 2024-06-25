@@ -16,21 +16,21 @@
 #include <utils/conexion.h>
 
 typedef struct {
-	int pc;
-	int ax;
-	int bx;
-	int cx;
-	int dx;
-	int eax;
-	int ebx;
-	int ecx;
-	int edx;
-	int di;
-	int si;
+	uint8_t ax;
+	uint8_t bx;
+	uint8_t cx;
+	uint8_t dx;
+	uint32_t eax;
+	uint32_t ebx;
+	uint32_t ecx;
+	uint32_t edx;
+	uint32_t di;
+	uint32_t si;
 }t_registros;
 
 typedef struct {
 	int pid;
+	uint32_t pc;
 	t_registros registros;
 }t_pcb;
 
@@ -39,13 +39,14 @@ typedef enum{
 	SUM,
     SUB,
     JNZ,
-    IO_GEN_SLEEP,
+    INS_IO_GEN_SLEEP,
     MOV_IN, 
     MOV_OUT, 
     RESIZE, 
     COPY_STRING, 
-    IO_STDIN_READ, 
-    IO_STDOUT_WRITE
+    INS_IO_STDIN_READ, 
+    INS_IO_STDOUT_WRITE,
+	EXIT
 } t_instr_code;
 
 typedef struct {
@@ -58,6 +59,7 @@ typedef struct {
 extern t_log* cpu_logger;
 extern t_config* cpu_config;
 extern t_pcb pcb;
+extern int salir_ciclo_instruccion;
 //HABIRA QUE PONER EL PCB ACA CREO
 extern char* IP_MEMORIA;
 extern char* PUERTO_MEMORIA;

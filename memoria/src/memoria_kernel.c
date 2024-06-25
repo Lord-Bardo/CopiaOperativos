@@ -1,5 +1,10 @@
 #include "../include/memoria_kernel.h"
 
+void* espacio_usuario; 
+void* puntero_espacio_usuario;
+t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
+size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
+
 void atender_memoria_kernel(){
     int continuar = 1;
 	while( continuar ){
@@ -7,14 +12,28 @@ void atender_memoria_kernel(){
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_kernel, &cod_op, buffer);
 		switch(cod_op){
-			case SOLICITUD_CREAR_PROCESO:
+			case SOLICITUD_INICIAR_PROCESO:
+                // Inicializo tabla y lista de instrucciones del proceso recibido.
 			    t_pcb_memoria *proceso_recibido;
-                proceso_recibido->tabla_de_pags = {0}; // lleno la tabla con paginas inicializadas en {0, NULL, false} para indicar que está vacía
-                proceso_recibido->memoria_de_instrucciones = NULL;
+                proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
+                proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
+
+                for (int i = 0; i < TAM_MEMORIA; i++) 
+                    proceso_recibido->memoria_de_instrucciones[i] = malloc(sizeof(char));
+                
+                num_instruccion = 0;
+                
+                // Verificar si la asignación de memoria fue exitosa
+                if (proceso_recibido->tabla_paginas == NULL || proceso_recibido->memoria_de_instrucciones == NULL) {
+                    // Manejar el error de asignación de memoria
+                    fprintf(stderr, "Error al asignar memoria\n");
+                    exit(EXIT_FAILURE);
+                }
 
 				buffer_desempaquetar_proceso(buffer, proceso_recibido); // función hecha en utils de memoria.
 
 				crear_proceso(proceso_recibido);
+                break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
                 //TODO
@@ -28,6 +47,7 @@ void atender_memoria_kernel(){
 		}
 	}
 }
+
 void crear_proceso(t_pcb_memoria *proceso)
 {
     // Inicializo la cadena de ruta completa.
@@ -52,7 +72,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     }
 
 	// Leer el archivo instruccion por instruccion.
-    char instruccion[TAM_MEMORIA];
+    char instruccion[256];
     while (fgets(instruccion, sizeof(instruccion), archivo) != NULL) 
     {
         // Eliminar el salto de línea al final de cada instruccion
@@ -63,7 +83,8 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Instrucción inválida en el archivo");
             fclose(archivo);
             free(ruta_completa);
-            enviar_codigo_operacion(ERROR_CREACION_PROCESO);
+            liberar_pcb_memoria(proceso);
+            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
             exit(EXIT_FAILURE);
         }
 
@@ -73,7 +94,8 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Error al duplicar la cadena");
             fclose(archivo);
             free(ruta_completa);
-            enviar_codigo_operacion(ERROR_CREACION_PROCESO);
+            liberar_pcb_memoria(proceso);
+            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
             exit(EXIT_FAILURE);
         }
         num_instruccion++;

@@ -43,9 +43,11 @@ typedef enum{
     FETCH,
     INSTRUCCION,
     DATO, 
-    PCB//usado para mov_in y mov_out
+    PCB,//usado para mov_in y mov_out
     // ...
-
+    //ENTRADASALIDA - MEMORIA
+    SOLICITUD_ESCRITURA,
+    SOLICITUD_LECTURA,
 } t_codigo_operacion;
 
 typedef enum{
