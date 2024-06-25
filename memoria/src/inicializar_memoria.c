@@ -31,7 +31,7 @@ void iniciar_config(void)
     RETARDO_REPUESTA =config_get_int_value(memoria_config, "RETARDO_RESPUESTA");
 }
 
-void iniciar_variables()
+void iniciar_variables(void)
 {
 	espacio_usuario = malloc(TAM_MEMORIA);
     memset(espacio_usuario, 0, TAM_MEMORIA);

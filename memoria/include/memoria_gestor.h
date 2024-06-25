@@ -23,7 +23,8 @@ typedef struct {
     char* path;
     t_pagina* tabla_paginas; 
     char** memoria_de_instrucciones; 
-} t_pcb_memoria;
+    int cant_paginas; 
+} t_pcb_memoria; //FALTARÍA AGREGAR CANTIDAD DE PÁGINAS y offset
 
 //VARIABLES GLOBALES
 extern t_log* memoria_logger;
