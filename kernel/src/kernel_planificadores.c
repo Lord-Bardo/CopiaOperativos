@@ -149,7 +149,7 @@ void planificador_corto_plazo_vrr(){ //TERMINAR
         proceso_a_exec(pcb);
         enviar_contexto_de_ejecucion(pcb);
         recibir_contexto_de_ejecucion_actualizado(); // Modifica directo al pcb con lo que recibe
-        estado_ordenar_por_quantum_restante(estado_ready_plus);
+        // estado_ordenar_por_quantum_restante(estado_ready_plus); lo comente para q pueda compilar nomas
     }
 }
 
@@ -192,15 +192,14 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
         case OUT_OF_MEMORY:
             break;
         case IO:
-            char *nombre_interfaz;
-            buffer_desempaquetar_string(buffer, &nombre_interfaz);
-            if( interfaz_es_valida(nombre_interfaz) ){
-                // Ejecutar interfaz
-                // Hay varias, deberia hacer un switch para saber cual es y recibir lo q necesite
-            }
-            else{
-                // Matar al proceso
-            }
+            // char *nombre_interfaz = buffer_desempaquetar_string(buffer);
+            // if( interfaz_es_valida(nombre_interfaz) ){
+            //     // Ejecutar interfaz
+            //     // Hay varias, deberia hacer un switch para saber cual es y recibir lo q necesite
+            // }
+            // else{
+            //     // Matar al proceso
+            // }
             break;
         case WAIT:
             break;
@@ -305,7 +304,8 @@ void liberar_procesos_exit(){
     while(1){
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_exit);
         pedir_a_memoria_finalizar_proceso(pcb_get_pid(pcb));
-        liberar_recursos(pcb);
+        // liberar_recursos(pcb); -> podria hacerlo dentro de eliminar_pcb()
+        eliminar_pcb(pcb);
         sem_post(&sem_grado_multiprogramacion);
     }
 }

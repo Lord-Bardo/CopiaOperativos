@@ -27,7 +27,7 @@ void eliminar_recurso(void *recurso_void){ // lo recibo como void * porq necesit
 
 t_dictionary *crear_diccionario_recursos(char** recursos, char** instancias_recursos){
     t_dictionary *diccionario_recursos = dictionary_create();
-    for(int i = 0, recursos[i] != NULL && instancias_recursos[i] != NULL, i++){
+    for(int i = 0; recursos[i] != NULL && instancias_recursos[i] != NULL; i++){
         dictionary_put(diccionario_recursos, recursos[i], (void *) crear_recurso(atoi(instancias_recursos[i])));
     }
 

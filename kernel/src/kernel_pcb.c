@@ -20,10 +20,12 @@ t_pcb *crear_pcb(int pid, char* path){
     }
     string_append(&(pcb->path), path);
 
+    pcb->recursos_usados = dictionary_create();
+
     return pcb;
 }
 
-void eliminar_pcb(t_pcb *pcb){
+void eliminar_pcb(t_pcb *pcb){ // agregar diccionario
     if( pcb != NULL ){
         if( pcb->registros != NULL ){
             eliminar_registros(pcb->registros);
@@ -31,6 +33,11 @@ void eliminar_pcb(t_pcb *pcb){
         if( pcb->path != NULL ){
             free(pcb->path);
         }
+
+        if( pcb->recursos_usados != NULL ){
+            dictionary_destroy_and_destroy_elements(pcb->recursos_usados, eliminar_recurso);
+        }
+
         free(pcb);
     }
 }

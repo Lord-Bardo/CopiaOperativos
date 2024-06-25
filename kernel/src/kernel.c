@@ -10,6 +10,12 @@ int main(int argc, char* argv[]) {
 	// Conexion con MEMORIA
 	conectar_a_memoria();
 
+	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)
+	// ...
+	//
+
+	iniciar_consola_interactiva();
+
 	// Conexion con CPU - DISPATCH
 	conectar_a_cpu_dispatch();
 
