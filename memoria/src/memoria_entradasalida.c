@@ -3,9 +3,7 @@
 void atender_memoria_entradasalida(){
     int continuar = 1;
 	while( continuar ){
-		t_codigo_operacion cod_op;
-		t_buffer *buffer = crear_buffer();
-		recibir_paquete(fd_entradasalida, &cod_op, buffer);
+		int cod_op = recibir_operacion(fd_entradasalida);
 		switch(cod_op){
 			//case SOLICITUD_ACCESO_TABLAS_PAGINAS: //POSIBLE NOMBRE DEL MENSAJE 
 			case SOLICITUD_ESCRITURA: //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H){

@@ -1,5 +1,10 @@
 #include "../include/memoria_kernel.h"
 
+void* espacio_usuario; 
+void* puntero_espacio_usuario;
+t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
+size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
+
 void atender_memoria_kernel(){
     int continuar = 1;
 	while( continuar ){
@@ -15,7 +20,9 @@ void atender_memoria_kernel(){
 
                 for (int i = 0; i < TAM_MEMORIA; i++) 
                     proceso_recibido->memoria_de_instrucciones[i] = malloc(sizeof(char));
-
+                
+                num_instruccion = 0;
+                
                 // Verificar si la asignación de memoria fue exitosa
                 if (proceso_recibido->tabla_paginas == NULL || proceso_recibido->memoria_de_instrucciones == NULL) {
                     // Manejar el error de asignación de memoria

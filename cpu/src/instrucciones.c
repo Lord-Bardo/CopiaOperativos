@@ -58,7 +58,8 @@ void execute(t_instruccion *instruccion){
 	switch (instruccion->instr_code)
 	{
 	case EXIT:
-		salir =1;
+		salir_ciclo_instruccion=1;
+		log_info(cpu_logger,"ENTRE AL EXIT");
 		break;
 	case SET:
 		ejecutarSet(instruccion->argumentos[0],instruccion->argumentos[1]);
@@ -72,7 +73,7 @@ void execute(t_instruccion *instruccion){
 	case JNZ:
 		ejecutarJnz(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
-	case IO_GEN_SLEEP:
+	case INS_IO_GEN_SLEEP:
 		ejecutarSum(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
 	case MOV_IN:
@@ -87,10 +88,10 @@ void execute(t_instruccion *instruccion){
 	case COPY_STRING:
 		ejecutarSub(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
-	case IO_STDIN_READ:
+	case INS_IO_STDIN_READ:
 		ejecutarSub(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
-	case IO_STDOUT_WRITE:
+	case INS_IO_STDOUT_WRITE:
 		ejecutarSub(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;		
 	default:
@@ -159,13 +160,13 @@ void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){
 
 t_instruccion* pedidoAMemoria(int pid, int pc) {
     // Simulación de obtención de instrucción de memoria
-    char* args[5] = {"EDX", "1200", NULL, "arg4", "arg5"};
+    char* args[5] = {"EDX", "69", NULL, "arg4", "arg5"};
     t_instruccion* instr = (t_instruccion*) malloc(sizeof(t_instruccion));
     if (instr == NULL) {
         printf("Error al asignar memoria para la instrucción\n");
         return NULL;
     }
      printf("Op Code PEDIDOmemoria: %d\n", SET);
-    inicializarInstruccion(instr, SET, args);
+    inicializarInstruccion(instr, EXIT, args);
     return instr;
 }

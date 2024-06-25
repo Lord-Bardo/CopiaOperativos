@@ -9,9 +9,13 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
+#include <commons/collections/list.h>
 
 #include <utils/conexion.h>
 #include <utils/planificadores.h>
+#include <utils/instrucciones.h>
+
+
 
 // ESTRUCTURAS
 typedef struct {
