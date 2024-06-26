@@ -11,8 +11,22 @@ int main(int argc, char* argv[]) {
 	conectar_a_memoria();
 
 	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)
-	// ...
-	//
+
+	// HOLA MATI QUERIDO, GRACIAS POR EL ESPACIO Y LA BUENA ONDA, TE LO DEJO COMENTADO PARA NO VOLVERLO A HACER, 
+	// ESPERO NO TE MOLESTE, CUALQUIER COSA CORTÁ Y PEGAMELO EN MEMORIA. TE MANDO UN ABRAZO, CUIDATE <3 
+
+//----------------------------------test: envío de paquete a memoria--------------------------------------------------------------------------------------------
+	/*
+	t_paquete* paquete_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
+	char* path = "/ArchivoPseudocodigo.txt";
+	int pid = 123;
+	agregar_a_paquete(paquete_proceso, &path, sizeof(char));
+	agregar_a_paquete(paquete_proceso, &pid, sizeof(int));
+	enviar_paquete(fd_memoria, paquete_proceso);
+	eliminar_paquete(paquete_proceso);
+	//nota: genera broken pipe en el send del handshake y segmentation fault en el strcpy de ruta_completa.
+	*/
+//----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
 
 	iniciar_consola_interactiva();
 
@@ -21,7 +35,7 @@ int main(int argc, char* argv[]) {
 
 	// Conexion con CPU - INTERRUPT
 	conectar_a_cpu_interrupt();
-
+ 
 	// Iniciar servidor de KERNEL
 	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
 	log_info(kernel_logger, "Servidor KERNEL iniciado!");
@@ -33,7 +47,7 @@ int main(int argc, char* argv[]) {
 	pthread_t hilo_entradasalida;
 	pthread_create(&hilo_entradasalida, NULL, (void*)atender_kernel_entradasalida, NULL); // Mati: vi en un issue que decian que el main es buen lugar para manejar conexiones de las interfaces e/s
 
-	// Atender los mensajes de MEMORIA
+ 	// Atender los mensajes de MEMORIA
 	pthread_t hilo_memoria;
 	pthread_create(&hilo_memoria, NULL, (void*)atender_kernel_memoria, NULL);
 
