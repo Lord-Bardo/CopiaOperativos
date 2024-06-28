@@ -10,7 +10,7 @@ void atender_memoria_entradasalida(){
 		t_codigo_operacion cod_op;
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_entradasalida, &cod_op, buffer);
-		switch(cod_op){
+		switch(cod_op){ //hasta acá está bien
 			//case SOLICITUD_ACCESO_TABLAS_PAGINAS: //POSIBLE NOMBRE DEL MENSAJE 
 
 			case SOLICITUD_ESCRITURA: //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H){
@@ -18,7 +18,7 @@ void atender_memoria_entradasalida(){
                 int tamanio; //tamanio de datos a almacenar
                 void* data; // almacena datos que se van a escribir en memoria después de ser desempaquetados.
 
-                buffer_desempaquetar_proceso(buffer, &solicitud);
+                buffer_desempaquetar_proceso(buffer, &solicitud); //manda lo que quiere escribir(char*), la dire fisica (aka frame y desplazamiento) y el tamanio
                 buffer_desempaquetar(buffer, &tamanio);
                 data = malloc(tamanio);
                 buffer_desempaquetar(buffer, data);//guarda lo del buffer en data
@@ -36,6 +36,11 @@ void atender_memoria_entradasalida(){
                     log_error(memoria_logger, "Error en escritura: PID %d, Pagina %d", solicitud.pid, solicitud.num_pagina);
                 }
 				eliminar_buffer(buffer);
+                t_paquete* paquete = crear_paquete(MENSAJE);
+                char* mensaje = "OK";
+                agregar_a_paquete(paquete, mensaje, sizeof(char)*2 +1); //preparo el paquete para mandarle a entradasalida con la info de la direccion
+                enviar_paquete(fd_entradasalida, paquete);
+                eliminar_paquete(paquete); //se saca el paquete
                 break; 
 
 			case SOLICITUD_LECTURA:
@@ -51,17 +56,23 @@ void atender_memoria_entradasalida(){
                 t_buffer* buffer_lectura = crear_buffer();
 				buffer_lectura->size = tamanio;
                 buffer_lectura->stream = malloc(buffer_lectura->size);
-
-                int resultado_lectura = leer_memoria(proceso_recibido, solicitud.num_pagina, solicitud.offset, buffer_lectura->stream, buffer_lectura->size);
+                //1. buscar el pid en el array y luego con el frame encontrar la pagina
+                int resultado_lectura = leer_memoria(proceso_recibido, solicitud.tabla_paginas(revisar), solicitud.offset, buffer_lectura->stream, buffer_lectura->size);//solo recibe direccion fisica
+                
                 if (resultado_lectura == 0) {
                     enviar_datos(fd_entradasalida, buffer_lectura->stream, buffer_lectura->size);
                     log_info(memoria_logger, "Lectura exitosa: PID %d, Pagina %d", solicitud.pid, solicitud.num_pagina);
+                    //crear variable valor de lo encontrado del pid
                 } else {
                     log_error(memoria_logger, "Error en lectura: PID %d, Pagina %d", solicitud.pid, solicitud.num_pagina);
+                    eliminar_buffer(buffer);
+                    free(buffer_lectura->stream);
+				    free(buffer_lectura);
                 }
-                eliminar_buffer(buffer);
-                free(buffer_lectura->stream);
-				free(buffer_lectura);
+                agregar_a_paquete(paquete, valor, sizeof(char)*2 +1); //preparo el paquete para mandarle a entradasalida con la info de la direccion
+                enviar_paquete(fd_entradasalida, paquete);
+                eliminar_paquete(paquete); //se saca el paquete
+                
                 break; //lo mismo con el case anterior (este también esta en el coenxion.h)
 
 			case -1:
@@ -112,12 +123,18 @@ int leer_memoria (t_pcb_memoria* proceso, int num_pagina, int offset, void* buff
     return 0;
 }
 
-/* 
+int obtener_cantidad_procesos(){
+    int i = 0;
+    while (procesos[i].pid!= -1) //cumplirá lo que queremos? -> revisar 
+    {
+        i++;
+    }
+    return i;
+} 
+
 // Función para obtener un proceso por su PID
 t_pcb_memoria* obtener_proceso(int pid) {
-    extern t_pcb_memoria* procesos; // Declaración del array de procesos
-    extern int cantidad_procesos;    // Declaración de la cantidad de procesos
-
+    int cantidad_procesos = obtener_cantidad_procesos();    // Declaración de la cantidad de procesos PARA HACERRRR
     for (int i = 0; i < cantidad_procesos; i++) {
         if (procesos[i].pid == pid) {
             return &procesos[i];
@@ -126,7 +143,7 @@ t_pcb_memoria* obtener_proceso(int pid) {
     // Si no se encuentra el proceso, retornar NULL
     return NULL;
 }
- */
+
 /* espacio_usuario = malloc(TAM_MEMORIA);
     memset(espacio_usuario, 0, TAM_MEMORIA);
     puntero_espacio_usuario = espacio_usuario; //puntero hacia el primer frame.
@@ -134,7 +151,7 @@ t_pcb_memoria* obtener_proceso(int pid) {
     for(int i=0; i<(TAM_MEMORIA/TAM_PAGINA); i++)
         procesos[i].pid = -1; // Inicializo mi array de procesos con procesos con PID = -1 para indicar que las celdas del array están vacías
 } */
-/* 
+
 void enviar_datos(int socket, void* buffer, int size) { //todavía tengp que revisar esto que fue todo copy-paste
     int total_bytes_sent = 0;
     int bytes_left = size;
@@ -156,4 +173,3 @@ void enviar_datos(int socket, void* buffer, int size) { //todavía tengp que rev
         printf("No se pudieron enviar todos los datos\n");
     }
 } 
- */

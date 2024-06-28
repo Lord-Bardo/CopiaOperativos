@@ -27,8 +27,8 @@ typedef struct {
     char* path;
     t_pagina* tabla_paginas; 
     char** memoria_de_instrucciones; 
-    int cant_paginas; 
-    int num_pagina;
+    int cant_paginas; //se va
+    int num_pagina; //se va
     int offset; //desplazamiento
 } t_pcb_memoria;
 

@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 	aceptar_conexion_cpu();
 
  */	// Esperar conexion de KERNEL
-	aceptar_conexion_kernel();
+	//aceptar_conexion_kernel();
  
 	// Esperar conexion de ENTRADASALIDA
 	aceptar_conexion_entradasalida();
@@ -66,11 +66,11 @@ int main(int argc, char* argv[]) {
 	pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
 
 	// Atender los mensajes de KERNEL 
-	pthread_t hilo_kernel;
-	pthread_create(&hilo_kernel, NULL, (void*)atender_memoria_kernel, NULL);
+	//pthread_t hilo_kernel;
+	//pthread_create(&hilo_kernel, NULL, (void*)atender_memoria_kernel, NULL);
 	
 	// Esperar a que los hilos finalicen su ejecucion
-	pthread_join(hilo_kernel, NULL); 
+	//pthread_join(hilo_kernel, NULL); 
 	pthread_join(hilo_entradasalida, NULL);
 	//pthread_join(hilo_cpu, NULL);
 
