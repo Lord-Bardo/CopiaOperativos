@@ -24,7 +24,7 @@ extern int cantidad_procesos;
 // Declaración de la función obtener_proceso
 t_pcb_memoria* obtener_proceso(int pid);
 
-extern t_pcb_memoria procesos[MAX_PROCESOS]; // Declaración externa
+//extern t_pcb_memoria procesos [MAX_PROCESOS]; // Declaración externa
 extern int cantidad_procesos; // Declaración externa
 
 void enviar_datos(int socket, void* buffer, int size);
