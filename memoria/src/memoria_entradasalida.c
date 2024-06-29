@@ -14,7 +14,7 @@ void atender_memoria_entradasalida(){
 			//case SOLICITUD_ACCESO_TABLAS_PAGINAS: //POSIBLE NOMBRE DEL MENSAJE 
 
 			case SOLICITUD_ESCRITURA: //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H){
-                t_pcb_memoria solicitud;
+                t_pcb_memoria solicitud; //solamente recibo la direccion fìsica y tamanio y el vALOR ni necesito el pid
                 int tamanio; //tamanio de datos a almacenar
                 void* data; // almacena datos que se van a escribir en memoria después de ser desempaquetados.
 
