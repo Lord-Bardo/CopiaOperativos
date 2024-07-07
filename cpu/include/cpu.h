@@ -28,5 +28,6 @@ int fd_memoria;
 void leer_consola(t_log*);
 void paquete(int);
 void terminar_programa();
+void conectar_a_memoria();
 
 #endif

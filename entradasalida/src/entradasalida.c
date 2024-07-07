@@ -14,8 +14,8 @@ int main(int argc, char* argv[]) {
 	inicializar_interfaz(nombre_interfaz, archivo_configuracion);
 
 	// Conexion con KERNEL
-	conectar_a_kernel(); // Le puedo pasar el nombre de interfaz para el logger? VER COMO HACERLO
-	atender_entradasalida_kernel(); // Puesto para probar, en realidad tiene que ejecutarse en el hilo creado más abajo
+	//conectar_a_kernel(); // Le puedo pasar el nombre de interfaz para el logger? VER COMO HACERLO
+	//atender_entradasalida_kernel(); // Puesto para probar, en realidad tiene que ejecutarse en el hilo creado más abajo
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();
@@ -25,11 +25,11 @@ int main(int argc, char* argv[]) {
 	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_memoria, NULL);
 
 	// Atender los mensajes de Kernel
-	pthread_t hilo_kernel;
-	pthread_create(&hilo_kernel, NULL, (void*)atender_entradasalida_kernel, NULL);
+	//pthread_t hilo_kernel;
+	//pthread_create(&hilo_kernel, NULL, (void*)atender_entradasalida_kernel, NULL);
 
 	// Espera a que los hilos finalicen su ejecución
-	pthread_join(hilo_kernel, NULL);
+	//pthread_join(hilo_kernel, NULL);
 	pthread_join(hilo_memoria, NULL);
 	/* Consulta para mati: en que momento terminarian la ejecución de los hilos */
 

@@ -14,7 +14,7 @@ void atender_memoria_kernel(){
 		switch(cod_op){
 			case SOLICITUD_INICIAR_PROCESO:
                 // Inicializo tabla y lista de instrucciones del proceso recibido.
-			    t_pcb_memoria *proceso_recibido;
+			    t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
                 proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
                 proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
 
@@ -30,9 +30,9 @@ void atender_memoria_kernel(){
                     exit(EXIT_FAILURE);
                 }
 
-				buffer_desempaquetar_proceso(buffer, proceso_recibido); // función hecha en utils de memoria.
-
+				buffer_desempaquetar_proceso(buffer, proceso_recibido); 
 				crear_proceso(proceso_recibido);
+                eliminar_buffer(buffer);
                 break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
@@ -56,7 +56,7 @@ void crear_proceso(t_pcb_memoria *proceso)
         perror("Error al asignar memoria");
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
         exit(EXIT_FAILURE);
-    }
+    } 
     strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo.
 
     // Concateno la ruta al archivo con la ruta completa usando string_append.
@@ -101,10 +101,16 @@ void crear_proceso(t_pcb_memoria *proceso)
         num_instruccion++;
     }
     agregar_proceso_a_procesos(*proceso); // Función hecha en utils de memoria.
-    enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO);
+    //enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); //DESCOMENTAR UNA VEZ TERMINADO EL TEST
 
     // Cerrar el archivo
     fclose(archivo);
     free(ruta_completa);
+/* 
+    //borrar una vez terminado el testeo
+    printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
+	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
+	log_info(memoria_logger, "Entré y salí de crear proceso y cree proceso existosamente :)");
+	liberar_pcb_memoria(proceso); */
 }
 

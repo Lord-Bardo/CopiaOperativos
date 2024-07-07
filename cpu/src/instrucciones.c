@@ -28,17 +28,47 @@ void inicializarInstruccion(t_instruccion* instr, t_instr_code code, char* args[
     }
 }
 
-void liberarInstruccion(t_instruccion* instr) {
-    if (instr != NULL) {
-        // Liberar memoria de los argumentos
-        for (int i = 0; i < 5; i++) {
-            if (instr->argumentos[i] != NULL) {
-                free(instr->argumentos[i]);
-            }
+void liberar_instruccion(t_instruccion* instruccion) {
+    if (instruccion == NULL) {
+        return; // Si instruccion es NULL, no hay nada que liberar
+    }
+
+    // Liberar la memoria de cada argumento en el arreglo de argumentos
+    for (int i = 0; i < 5; i++) {
+        if (instruccion->argumentos[i] != NULL) {
+            free(instruccion->argumentos[i]);
+            instruccion->argumentos[i] = NULL; // Importante: marcar como NULL después de liberar
         }
     }
-}
 
+    // Liberar la memoria de la estructura t_instruccion
+    free(instruccion);
+}
+t_instruccion* crear_instruccion() {
+    // Reserva memoria para la estructura t_instruccion
+    t_instruccion* nueva_instruccion = (t_instruccion*)malloc(sizeof(t_instruccion));
+    if (nueva_instruccion == NULL) {
+        perror("Error al reservar memoria para t_instruccion");
+        exit(EXIT_FAILURE);
+    }
+
+    // Reserva memoria para cada argumento en el arreglo de argumentos
+    for (int i = 0; i < 5; i++) {
+        nueva_instruccion->argumentos[i] = (char*)malloc(15 * sizeof(char));
+        if (nueva_instruccion->argumentos[i] == NULL) {
+            perror("Error al reservar memoria para un argumento");
+
+            // Libera memoria previamente asignada en caso de error
+            for (int j = 0; j < i; j++) {
+                free(nueva_instruccion->argumentos[j]);
+            }
+            free(nueva_instruccion);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return nueva_instruccion;
+}
 
 void mostrarInstruccion(t_instruccion instr) {
     printf("Op Code mostrar INstruccion: %d\n", instr.instr_code);
@@ -167,3 +197,26 @@ t_instruccion* pedidoAMemoria(int pid, int pc) {
     inicializarInstruccion(instr, EXIT, args);
     return instr;
 }
+
+
+
+int obtener_numero_instruccion(char * cadena){
+	if(strcmp(cadena,"SET")==0){
+		return 0;
+	}
+	if(strcmp(cadena,"SUM")==0){
+		return 1;
+	}
+	if(strcmp(cadena,"SUB")==0){
+		return 2;
+	}
+	if(strcmp(cadena,"JNZ")==0){
+		return 3;
+	}
+	if(strcmp(cadena,"IO_GEN_SLEEP")==0){
+		return 4;
+	}
+	return -1;
+}
+
+
