@@ -1,14 +1,12 @@
 #include "../include/kernel_utils.h"
 
 // LOGS OBLIGATORIOS ------------------------------------------------------------------
-
 void log_creacion_proceso(t_pcb *pcb){
     log_info(kernel_logger_min_y_obl, "Se crea el proceso %d en NEW", pcb_get_pid(pcb));
 }
 
-// Finaliza el proceso <PID> - Motivo: <SUCCESS / INVALID_RESOURCE / INVALID_INTERFACE / OUT_OF_MEMORY / INTERRUPTED_BY_USER>
-void log_fin_proceso(){
-    //log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d - Motivo: " , pid , /* Acá iria el motivo en una variable (?) */); // Lucho: Completar
+void log_fin_proceso(t_pcb *pcb, char *motivo_finalizacion){
+    log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d - Motivo: %s", pcb_get_pid(pcb), motivo_finalizacion);
 }
 
 void log_cambio_estado(t_pcb *pcb, t_nombre_estado estado_anterior, t_nombre_estado nuevo_estado){
@@ -34,16 +32,18 @@ char *estado_get_nombre_estado_string(t_nombre_estado nombre_estado){
     }
 }
 
-void log_motivo_bloqueo(){
-
+// PID: <PID> - Bloqueado por: <INTERFAZ / NOMBRE_RECURSO>
+void log_motivo_bloqueo(t_pcb *pcb, char *motivo_bloqueo){
+    log_info(kernel_logger_min_y_obl, "PID: %d - Bloqueado por: %s", pcb_get_pid(pcb), motivo_bloqueo);
 }
 
 void log_fin_quantum(){
 
 }
 
-void log_ingreso_ready(){
-    log_info(kernel_logger_min_y_obl, "Cola Ready READY: %s", lista_pids_string(estado_ready)); // Mati: No se que poner en <COLA> -> Lo cambiamos por READY pero sigue la duda
+// estado puede ser estado_ready o estado_ready_plus
+void log_ingreso_ready(t_estado *estado){
+    log_info(kernel_logger_min_y_obl, "Cola %s: %s", estado_get_nombre_estado_string(estado_get_nombre_estado(estado)), lista_pids_string(estado));
 }
 
 char *lista_pids_string(t_estado *estado){
@@ -93,7 +93,6 @@ void pid_destroyer(void *pid){
 }
 
 // MANEJO PAQUETE ------------------------------------------------------------------
-
 // Se podria generalizar a agregar_int_a_paquete(), pero me parecio mas representativo esto (pueden estar las dos de todas formas)
 void agregar_pid_a_paquete(t_paquete *paquete, int pid){
     agregar_a_paquete(paquete, &pid, sizeof(pid));

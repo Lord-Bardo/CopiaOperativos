@@ -49,7 +49,7 @@ typedef struct{
     uint32_t PC;
     t_registros *registros;
     char *path;
-    t_dictionary *recursos_usados;
+    t_dictionary *diccionario_recursos_usados;
 } t_pcb;
 
 // Recurso

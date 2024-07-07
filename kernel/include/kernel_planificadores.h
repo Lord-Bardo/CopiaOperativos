@@ -31,10 +31,11 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb);
 void recibir_contexto_de_ejecucion_actualizado();
 void iniciar_proceso(char *path);
 void proceso_a_ready(t_pcb *pcb);
-void proceso_a_exit(t_pcb *pcb);
+void proceso_a_exit(t_pcb *pcb, char *motivo_finalizacion);
 void pedir_a_memoria_iniciar_proceso(int pid, char *path);
 void pedir_a_memoria_finalizar_proceso(int pid);
 t_codigo_operacion recibir_confirmacion_memoria_proceso_iniciado(void);
 void finalizar_proceso(int pid);
+void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso);
 
 #endif

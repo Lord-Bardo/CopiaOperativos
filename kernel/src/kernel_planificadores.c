@@ -1,6 +1,14 @@
 #include "../include/kernel_planificadores.h"
 
 // VARIABLES GLOBALES
+// Motivos finalizacion
+#define FINALIZACION_SUCCESS "SUCCESS"
+#define FINALIZACION_INVALID_RESOURCE "INVALID_RESOURCE"
+#define FINALIZACION_INVALID_INTERFACE "INVALID_INTERFACE"
+#define FINALIZACION_OUT_OF_MEMORY "OUT_OF_MEMORY"
+#define FINALIZACION_INTERRUPTED_BY_USER "INTERRUPTED_BY_USER"
+#define FINALIZACION_ERROR "ERROR" // lo agregue yo para los casos q no caen en ninguno de los anteriores
+
 // Planificacion
 t_estado_planificacion estado_planificacion;
 
@@ -99,6 +107,7 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
 }
 
 // PLANIFICADOR CORTO PLAZO ---------------------------------------------------
+
 void planificador_corto_plazo(){    
     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
         planificador_corto_plazo_fifo();
@@ -214,6 +223,7 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
 }
 
 // PLANIFICADOR LARGO PLAZO ---------------------------------------------------
+
 // Crea el pcb y lo encola en new
 void iniciar_proceso(char *path){
     int pid = generar_pid();
@@ -274,7 +284,8 @@ void planificador_largo_plazo(){
             proceso_a_ready(pcb);
         }
         else{
-            proceso_a_exit(pcb);
+            proceso_a_exit(pcb, FINALIZACION_ERROR);
+            // sem_post(&sem_grado_multiprogramacion);
         } 
     }
 
@@ -304,9 +315,11 @@ void liberar_procesos_exit(){
     while(1){
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_exit);
         pedir_a_memoria_finalizar_proceso(pcb_get_pid(pcb));
-        // liberar_recursos(pcb); -> podria hacerlo dentro de eliminar_pcb()
+        if( !dictionary_is_empty(pcb_get_diccionario_recursos_usados(pcb)) ){
+            liberar_recursos_usados(pcb); // REVISAR SI PASO EL PCB O EL DICCIONARIO DIRECTAMENTE
+        }
         eliminar_pcb(pcb);
-        sem_post(&sem_grado_multiprogramacion);
+        // sem_post(&sem_grado_multiprogramacion);
     }
 }
 
@@ -317,8 +330,92 @@ void pedir_a_memoria_finalizar_proceso(int pid){
     eliminar_paquete(paquete_solicitud_finalizar_proceso);
 }
 
-void liberar_recursos(t_pcb *pcb){
-    // TODO
+// opcion 1:
+// void liberar_recursos_usados(t_dictionary *diccionario_recursos_usados){ // REVISAR SI RECIBO EL DICCIONARIO DIRECTO O EL PCB
+//     int size_dict = dictionary_size(diccionario_recursos_usados);
+//     t_list *recursos = dictionary_keys(diccionario_recursos_usados);
+//     for(int i = 0; i < size_dict; i++){
+//         char *nombre_recurso = list_get(recursos, i);
+//         int instancias_usadas = *(int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+//         for(int j = 0; j < instancias_usadas; j++){
+//             ejecutar_instruccion_signal(nombre_recurso); // REVISAR SI NO NECESITO EL PCB
+//         }
+//     }
+//     dictionary_clean(diccionario_recursos_usados);
+
+//     list_destroy_and_destroy_elements(recursos, free);
+// }
+
+// opcion 2:
+void liberar_recursos_usados(t_pcb *pcb){
+    t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+    int size_dict = dictionary_size(diccionario_recursos_usados);
+    t_list *recursos = dictionary_keys(diccionario_recursos_usados);
+    for(int i = 0; i < size_dict; i++){
+        char *nombre_recurso = list_get(recursos, i);
+        liberar_recurso(pcb, nombre_recurso);
+    }
+    dictionary_clean(diccionario_recursos_usados);
+
+    list_destroy_and_destroy_elements(recursos, free);
+}
+
+void liberar_recurso(t_pcb *pcb, char *nombre_recurso){
+    t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+    int instancias_usadas = *(int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+    for(int i = 0; i < instancias_usadas; i++){
+        ejecutar_instruccion_signal(pcb, nombre_recurso);
+    }
+}
+
+void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso){
+    
+}
+
+void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
+    // aumentar uno al general y uno al del pcb
+    if( !diccionario_recursos_existe_recurso(diccionario_recursos, nombre_recurso) ){
+        proceso_a_exit(pcb, FINALIZACION_INVALID_RESOURCE);
+        // sem_post(&sem_grado_multiprogramacion); -> Tengo q definir si lo hago en proceso_a_exit, cuando libero los recursos o lo hago siempre seguido al proceso_a_exit
+    }
+    else{
+        // Impacto el signal en el recurso
+        t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, nombre_recurso);
+        recurso_signal(recurso);
+
+        // Impacto el signal en el pcb (si es que tiene tomada una instancia del recurso). Si el proceso no usa el recurso (tiene tomadas 0 instancias), entonces el mismo esta creando una nueva instancia del recurso con el signal
+        if( pcb_usa_recurso(pcb, nombre_recurso) ){
+            t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+            int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+            if( *instancias_usadas > 1 ){
+                // Si el proceso tomo mas de una instancia => le resto una instancia (ya que realizo un signal y libero una) y actualizo su diccionario
+                int *nuevo_valor = malloc(sizeof(int));
+                if( nuevo_valor == NULL){
+                    log_error(kernel_logger, "Error al asignar memoria para el NUEVO VALOR DE INSTANCIAS USADAS");
+                    return;
+                }
+                *nuevo_valor = *instancias_usadas - 1;
+                
+                // Libero el valor anterior
+                free(instancias_usadas);
+
+                // Agrego el nuevo valor
+                dictionary_put(diccionario_recursos_usados, nombre_recurso, nuevo_valor);
+            }
+            else{
+                // Si el proceso solo tiene tomada una instancia => directamente elimino al recurso de su diccionario, ya que al hacer el signal no tendra ninguna instancia
+                dictionary_remove_and_destroy(diccionario_recursos_usados, nombre_recurso, free);
+            }
+        }
+        
+        // Compruebo si tras el signal se debe desbloquear algun proceso
+        if( recurso_debe_desbloquear_proceso(recurso) ){
+            // Desbloqueo al primero proceso
+            t_pcb *pcb = recurso_desencolar_primer_proceso(recurso);
+            // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
+            proceso_a_ready(pcb);
+        }
+    }
 }
 
 // void manejador_new_exit() {
@@ -354,10 +451,11 @@ void liberar_recursos(t_pcb *pcb){
 // }
 
 // PROCESO A ... ---------------------------------------------------
+
 void proceso_a_ready(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
-    log_ingreso_ready();
+    log_ingreso_ready(estado_ready);
 }
 
 void proceso_a_exec(t_pcb *pcb){
@@ -370,8 +468,8 @@ void proceso_a_blocked(t_pcb *pcb){
     estado_encolar_pcb(estado_blocked, pcb);
 }
 
-void proceso_a_exit(t_pcb *pcb){ // REVISAR
+void proceso_a_exit(t_pcb *pcb, char *motivo_finalizacion){
     pcb_cambiar_estado_a(pcb, EXIT);
     estado_encolar_pcb(estado_exit, pcb);
-    // deberia loggear aca el finalizar_proceso o cuando lo elimino por completo o cuando llamo a finalizar proceso?
+    log_fin_proceso(pcb, motivo_finalizacion);
 }
