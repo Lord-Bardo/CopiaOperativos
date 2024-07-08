@@ -214,8 +214,10 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
             // }
             break;
         case WAIT:
+            ejecutar_instruccion_wait(pcb, buffer_desempaquetar_string(buffer));
             break;
         case SIGNAL:
+            ejecutar_instruccion_signal(pcb, buffer_desempaquetar_string(buffer));
             break;
         // ...
         default:
@@ -387,12 +389,6 @@ void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
         if( pcb_usa_recurso(pcb, nombre_recurso) ){
             t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
             int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
-            printf("%p",instancias_usadas);
-            if(instancias_usadas == NULL){
-                printf("NULL");
-
-            }
-            printf("%d", *instancias_usadas);
             if( *instancias_usadas > 1 ){
                 // Si el proceso tomo mas de una instancia => le resto una instancia (ya que realizo un signal y libero una) y actualizo su diccionario
                 (*instancias_usadas)--;
