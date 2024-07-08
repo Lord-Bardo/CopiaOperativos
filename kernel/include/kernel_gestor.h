@@ -102,6 +102,7 @@ extern pthread_mutex_t mutex_pid;
 // Semaforos
 extern pthread_mutex_t mutex_grado_multiprogramacion;
 extern sem_t sem_grado_multiprogramacion;
+extern pthread_mutex_t mutex_socket_memoria;
 
 // Recursos
 extern t_dictionary *diccionario_recursos;

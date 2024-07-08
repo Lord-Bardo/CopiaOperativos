@@ -8,6 +8,9 @@ int main(int argc, char* argv[]) {
 	iniciar_planificadores();
 
 	t_pcb *pcb = crear_pcb(0, "p");
+	ejecutar_instruccion_wait(pcb,"RB");
+	ejecutar_instruccion_wait(pcb,"RA");
+	ejecutar_instruccion_wait(pcb,"RA");
 	ejecutar_instruccion_signal(pcb, "RA");
 
 	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)

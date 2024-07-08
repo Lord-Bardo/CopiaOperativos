@@ -47,8 +47,21 @@ bool recurso_debe_desbloquear_proceso(t_recurso *recurso){
     return estado_contiene_pcbs(recurso_get_estado_recurso(recurso)) && recurso_get_instancias(recurso) == 0;
 }
 
+bool recurso_debe_bloquear_proceso(t_recurso *recurso){
+    return recurso_get_instancias(recurso) < 0;
+} 
+
 t_pcb *recurso_desencolar_primer_proceso(t_recurso *recurso){
     return estado_desencolar_primer_pcb(recurso_get_estado_recurso(recurso));
+}
+
+void recurso_encolar_proceso(t_recurso *recurso, t_pcb *pcb){
+    estado_encolar_pcb(recurso_get_estado_recurso(recurso), pcb);
+}
+
+void recurso_bloquear_proceso(t_recurso *recurso, t_pcb *pcb){
+    recurso_encolar_proceso(recurso, pcb);
+    pcb_cambiar_estado_a(pcb, BLOCKED);
 }
 
 // DICCIONARIO RECURSOS --------------------------------------------------
