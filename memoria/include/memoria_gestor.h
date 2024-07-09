@@ -27,10 +27,17 @@ typedef struct {
     char* path;
     t_pagina* tabla_paginas; 
     char** memoria_de_instrucciones; 
+<<<<<<< HEAD
 /*  int cant_paginas; 
     int num_pagina;
     int offset;  */
 } t_pcb_memoria; 
+=======
+    int cant_paginas; //se va
+    int num_pagina; //se va
+    int offset; //desplazamiento
+} t_pcb_memoria;
+>>>>>>> 1648ba97928acd44a48fee03781b9e77e76e4f02
 
 //pregunta: que onda con el buffer del proceso? La struct del buffer está en conexion.h pero como los conecto?
 

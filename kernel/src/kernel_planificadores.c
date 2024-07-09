@@ -1,6 +1,14 @@
 #include "../include/kernel_planificadores.h"
 
 // VARIABLES GLOBALES
+// Motivos finalizacion
+#define FINALIZACION_SUCCESS "SUCCESS"
+#define FINALIZACION_INVALID_RESOURCE "INVALID_RESOURCE"
+#define FINALIZACION_INVALID_INTERFACE "INVALID_INTERFACE"
+#define FINALIZACION_OUT_OF_MEMORY "OUT_OF_MEMORY"
+#define FINALIZACION_INTERRUPTED_BY_USER "INTERRUPTED_BY_USER"
+#define FINALIZACION_ERROR "ERROR" // lo agregue yo para los casos q no caen en ninguno de los anteriores
+
 // Planificacion
 t_estado_planificacion estado_planificacion;
 
@@ -18,11 +26,13 @@ pthread_mutex_t mutex_pid;
 
 // Semaforos
 pthread_mutex_t mutex_grado_multiprogramacion;
-sem_t sem_grado_multiprogramacion;;
+sem_t sem_grado_multiprogramacion;
+pthread_mutex_t mutex_socket_memoria;
 
 // Recursos
 t_dictionary *diccionario_recursos;
 
+// INICIALIZACION PLANIFICADORES ------------------------------------------
 void iniciar_planificadores(){
     // Estructuras
     inicializar_estructuras();
@@ -64,6 +74,7 @@ void inicializar_estructuras_pid(void){
 void inicializar_semaforos(){
     pthread_mutex_init(&mutex_grado_multiprogramacion, NULL);
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
+    pthread_mutex_init(&mutex_socket_memoria, NULL);
 }
 
 void inicializar_diccionario_recursos(){
@@ -99,6 +110,7 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
 }
 
 // PLANIFICADOR CORTO PLAZO ---------------------------------------------------
+
 void planificador_corto_plazo(){    
     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
         planificador_corto_plazo_fifo();
@@ -202,8 +214,10 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
             // }
             break;
         case WAIT:
+            ejecutar_instruccion_wait(pcb, buffer_desempaquetar_string(buffer));
             break;
         case SIGNAL:
+            ejecutar_instruccion_signal(pcb, buffer_desempaquetar_string(buffer));
             break;
         // ...
         default:
@@ -214,6 +228,7 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
 }
 
 // PLANIFICADOR LARGO PLAZO ---------------------------------------------------
+
 // Crea el pcb y lo encola en new
 void iniciar_proceso(char *path){
     int pid = generar_pid();
@@ -246,7 +261,7 @@ void finalizar_proceso(int pid){ // TERMINAR
             log_error(kernel_logger, "El PCB solicitado ya esta siendo eliminado del sistema");
             break;
         default:
-            t_pcb *pcb = estado_desencolar_pcb_por_pid(estado, pid);
+            t_pcb *pcb = estado_desencolar_pcb_por_pid(estado, pid); // revisar el quilombo de kernel_estado.c
             sem_post(&sem_grado_multiprogramacion);
     }
     
@@ -269,12 +284,13 @@ void planificador_largo_plazo(){
     while( estado_planificacion ){
         sem_wait(&sem_grado_multiprogramacion);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-        pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb));
-        if( recibir_confirmacion_memoria_proceso_iniciado() == CONFIRMACION_PROCESO_INICIADO ){
+        t_codigo_operacion respuesta_memoria = pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb));
+        if( respuesta_memoria == CONFIRMACION_PROCESO_INICIADO ){
             proceso_a_ready(pcb);
         }
         else{
-            proceso_a_exit(pcb);
+            proceso_a_exit(pcb, FINALIZACION_ERROR);
+            // sem_post(&sem_grado_multiprogramacion);
         } 
     }
 
@@ -286,39 +302,147 @@ void planificador_largo_plazo(){
     // manejador_blocked_exit();
 }
 
-void pedir_a_memoria_iniciar_proceso(int pid, char *path){
+t_codigo_operacion pedir_a_memoria_iniciar_proceso(int pid, char *path){
+    t_codigo_operacion respuesta_memoria;
     t_paquete *paquete_solicitud_iniciar_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
     agregar_pid_a_paquete(paquete_solicitud_iniciar_proceso, pid);
     agregar_string_a_paquete(paquete_solicitud_iniciar_proceso, path);
+    
+    pthread_mutex_lock(&mutex_socket_memoria);
+    // Envio la solicitud
     enviar_paquete(fd_memoria, paquete_solicitud_iniciar_proceso);
-    eliminar_paquete(paquete_solicitud_iniciar_proceso);
-}
+    // Recibo la respuesta
+    recibir_codigo_operacion(fd_memoria, &respuesta_memoria);
+    pthread_mutex_unlock(&mutex_socket_memoria);
 
-t_codigo_operacion recibir_confirmacion_memoria_proceso_iniciado(){
-    t_codigo_operacion codigo_operacion;
-    recibir_codigo_operacion(fd_memoria, &codigo_operacion);
-    return codigo_operacion;
+    eliminar_paquete(paquete_solicitud_iniciar_proceso);
+
+    return respuesta_memoria;
 }
 
 void liberar_procesos_exit(){
     while(1){
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_exit);
-        pedir_a_memoria_finalizar_proceso(pcb_get_pid(pcb));
-        // liberar_recursos(pcb); -> podria hacerlo dentro de eliminar_pcb()
-        eliminar_pcb(pcb);
-        sem_post(&sem_grado_multiprogramacion);
+        t_codigo_operacion respuesta_memoria = pedir_a_memoria_finalizar_proceso(pcb_get_pid(pcb));
+        if( respuesta_memoria == CONFIRMACION_PROCESO_FINALIZADO ){
+            if( !dictionary_is_empty(pcb_get_diccionario_recursos_usados(pcb)) ){
+                liberar_recursos_usados(pcb);
+            }
+            eliminar_pcb(pcb);
+            // sem_post(&sem_grado_multiprogramacion);
+        }
+        else{
+            log_error(kernel_logger, "MEMORIA no finalizo correctamente el proceso!");
+        }
     }
 }
 
-void pedir_a_memoria_finalizar_proceso(int pid){
+t_codigo_operacion pedir_a_memoria_finalizar_proceso(int pid){
+    t_codigo_operacion respuesta_memoria;
     t_paquete *paquete_solicitud_finalizar_proceso = crear_paquete(SOLICITUD_FINALIZAR_PROCESO);
     agregar_pid_a_paquete(paquete_solicitud_finalizar_proceso, pid);
+    
+    pthread_mutex_lock(&mutex_socket_memoria);
+    // Envio la solicitud
     enviar_paquete(fd_memoria, paquete_solicitud_finalizar_proceso);
+    // Recibo la respuesta
+    recibir_codigo_operacion(fd_memoria, &respuesta_memoria);
+    pthread_mutex_unlock(&mutex_socket_memoria);
+
     eliminar_paquete(paquete_solicitud_finalizar_proceso);
+
+    return respuesta_memoria;
 }
 
-void liberar_recursos(t_pcb *pcb){
-    // TODO
+void liberar_recursos_usados(t_pcb *pcb){
+    t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+    int size_dict = dictionary_size(diccionario_recursos_usados);
+    t_list *recursos = dictionary_keys(diccionario_recursos_usados);
+    for(int i = 0; i < size_dict; i++){
+        char *nombre_recurso = list_get(recursos, i);
+        liberar_recurso(pcb, nombre_recurso);
+    }
+
+    list_destroy_and_destroy_elements(recursos, free);
+}
+
+void liberar_recurso(t_pcb *pcb, char *nombre_recurso){
+    t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+    int instancias_usadas = *(int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+    for(int i = 0; i < instancias_usadas; i++){
+        ejecutar_instruccion_signal(pcb, nombre_recurso);
+    }
+}
+
+void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
+    // Verifico que el recurso exista
+    if( !diccionario_recursos_existe_recurso(diccionario_recursos, nombre_recurso) ){
+        proceso_a_exit(pcb, FINALIZACION_INVALID_RESOURCE);
+        // sem_post(&sem_grado_multiprogramacion); -> Tengo q definir si lo hago en proceso_a_exit, cuando libero los recursos o lo hago siempre seguido al proceso_a_exit
+    }
+    else{
+        // Impacto el signal en el recurso (aumento en 1 la cantidad de instancias)
+        t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, nombre_recurso);
+        recurso_signal(recurso);
+
+        // Impacto el signal en el pcb (disminuyo en 1 las instancias tomadas). Esto lo realizo solo si el proceso tiene tomada una instancia del recurso. Si el proceso no usa el recurso (tiene tomadas 0 instancias), entonces el mismo esta creando una nueva instancia del recurso con el signal -> no hay nada que impactar en el pcb (la instancia del recurso ya fue creada arriba con recurso_signal).
+        if( pcb_usa_recurso(pcb, nombre_recurso) ){
+            t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+            int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+            if( *instancias_usadas > 1 ){
+                // Si el proceso tomo mas de una instancia => le resto una instancia (ya que realizo un signal y libero una) y actualizo su diccionario
+                (*instancias_usadas)--;
+                dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas); 
+            }
+            else{
+                // Si el proceso solo tiene tomada una instancia => directamente elimino al recurso de su diccionario, ya que al hacer el signal no tendra ninguna instancia
+                dictionary_remove_and_destroy(diccionario_recursos_usados, nombre_recurso, free);
+            }
+        }
+        
+        // Compruebo si tras el signal se debe desbloquear algun proceso
+        if( recurso_debe_desbloquear_proceso(recurso) ){
+            // Desbloqueo al primero proceso
+            t_pcb *pcb = recurso_desencolar_primer_proceso(recurso);
+            // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
+            proceso_a_ready(pcb);
+        }
+    }
+}
+
+void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso){
+    // Verifico que el recurso exista
+    if( !diccionario_recursos_existe_recurso(diccionario_recursos, nombre_recurso) ){
+        proceso_a_exit(pcb, FINALIZACION_INVALID_RESOURCE);
+        // sem_post(&sem_grado_multiprogramacion); -> Tengo q definir si lo hago en proceso_a_exit, cuando libero los recursos o lo hago siempre seguido al proceso_a_exit
+    }
+    else{
+        // Impacto el wait en el recurso
+        t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, nombre_recurso);
+        recurso_wait(recurso);
+
+        // Impacto el wait en el pcb
+        // Si el proceso ya tenia tomada una instancia le agrego una mas
+        // Si el proceso no tenia tomada ninguna instancia le agrego el recurso a su diccionario con 1 instancia
+        t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+        if( pcb_usa_recurso(pcb, nombre_recurso) ){
+            int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+            (*instancias_usadas)++;
+            dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas);
+        }
+        else{
+            int *instancias_usadas = malloc(sizeof(int));
+            *instancias_usadas = 1; 
+            dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas);
+        }
+        
+        // Compruebo si tras el wait se debe bloquear al proceso
+        if( recurso_debe_bloquear_proceso(recurso) ){
+            // Bloqueo al proceso (lo encolo en la cola del recurso)
+            recurso_bloquear_proceso(recurso, pcb);
+            log_motivo_bloqueo(pcb, nombre_recurso);
+        }
+    }
 }
 
 // void manejador_new_exit() {
@@ -354,10 +478,11 @@ void liberar_recursos(t_pcb *pcb){
 // }
 
 // PROCESO A ... ---------------------------------------------------
+
 void proceso_a_ready(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
-    log_ingreso_ready();
+    log_ingreso_ready(estado_ready);
 }
 
 void proceso_a_exec(t_pcb *pcb){
@@ -370,8 +495,8 @@ void proceso_a_blocked(t_pcb *pcb){
     estado_encolar_pcb(estado_blocked, pcb);
 }
 
-void proceso_a_exit(t_pcb *pcb){ // REVISAR
+void proceso_a_exit(t_pcb *pcb, char *motivo_finalizacion){
     pcb_cambiar_estado_a(pcb, EXIT);
     estado_encolar_pcb(estado_exit, pcb);
-    // deberia loggear aca el finalizar_proceso o cuando lo elimino por completo o cuando llamo a finalizar proceso?
+    log_fin_proceso(pcb, motivo_finalizacion);
 }

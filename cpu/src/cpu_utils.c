@@ -68,8 +68,8 @@ void recibir_instruccion(t_instruccion * instruccion){
 	
 	recibir_paquete(fd_memoria,&op_code,buffer);
 
-	if(op_code!= FETCH){
-		log_info(cpu_logger,"ERROR AL RECIBIR LA INSTRUCCION DE MEMORIA, el codigo de operacion no es FETCH");
+	if(op_code!= INSTRUCCION){
+		log_info(cpu_logger,"ERROR AL RECIBIR LA INSTRUCCION DE MEMORIA, el codigo de operacion no es INSTRUCCION");
 		return;
 	}
 	
@@ -77,53 +77,30 @@ void recibir_instruccion(t_instruccion * instruccion){
 	eliminar_buffer(buffer);
 
 }
-void buffer_desempaquetar_instruccion(t_buffer *buffer, t_instruccion * instruccion){
-	//tengo que desempaquetar 
-	buffer_desempaquetar(buffer,&(instruccion->instr_code));
-	buffer_desempaquetar_argumentos(buffer,instruccion);
-}
+t_instruccion convertir_string_a_instruccion(char* cadena) {
+    t_instruccion instruccion;
+    char *instr_code = strtok(cadena, " ");
+    instruccion.instr_code =obtener_numero_instruccion(instr_code);
 
-
-void buffer_desempaquetar_argumentos(t_buffer *buffer, t_instruccion * instruccion){
-	char * cadena = buffer_desempaquetar_string(buffer);
-
-	char *token = strtok(cadena, " ");
     int i = 0;
-    
+    char *token = strtok(NULL, " ");
     while (token != NULL && i < 5) {
-        // Asignar memoria y copiar el token al array de argumentos
-        instruccion->argumentos[i] = malloc(strlen(token) + 1);
-        if (instruccion->argumentos[i] == NULL) {
-            fprintf(stderr, "Error: No se pudo asignar memoria para el argumento.\n");
-            exit(EXIT_FAILURE);
-        }
-        strcpy(instruccion->argumentos[i], token);
-        i++;
+        instruccion.argumentos[i++] = token;
         token = strtok(NULL, " ");
     }
-    
-    // Asegurar que los restantes elementos en argumentos[] sean NULL
+    // Asegurarse de que los argumentos restantes sean NULL
     while (i < 5) {
-        instruccion->argumentos[i] = NULL;
-        i++;
+        instruccion.argumentos[i++] = NULL;
     }
-    
-    // Liberar la cadena desempaquetada
-    free(cadena);
-
+    return instruccion;
 }
 
-void liberar_instruccion(t_instruccion *instruccion) {
-    // Liberar instr_code si es necesario
-    // (asumimos que no es dinámico en este ejemplo, pero podrías ajustarlo si es necesario)
-    
-    // Liberar los argumentos
-    for (int i = 0; i < 5; i++) {
-        if (instruccion->argumentos[i] != NULL) {
-            free(instruccion->argumentos[i]);
-            instruccion->argumentos[i] = NULL;
-        }
-    }
+void buffer_desempaquetar_instruccion(t_buffer *buffer, t_instruccion * instruccion){
+	char * instruccion_string =buffer_desempaquetar_string(buffer);
+    log_info(cpu_logger,"LA CADENA ENTERA DE LA INSTRUCCION ES: %s",instruccion_string);
+   
+    *instruccion = convertir_string_a_instruccion(instruccion_string);
+    mostrarInstruccion(*instruccion);
 }
 
 void enviar_fetch_memoria(int pid, u_int32_t pc){
@@ -133,6 +110,7 @@ void enviar_fetch_memoria(int pid, u_int32_t pc){
 	enviar_paquete(fd_memoria,paquete);
 	eliminar_paquete(paquete);
 }
+
 
 /*void recibir_pcb(int socket_cliente){
 	t_list *pcb_como_lista = recibir_paquete(socket_cliente);

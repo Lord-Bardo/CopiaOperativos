@@ -7,8 +7,11 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
-	// Conexion con MEMORIA
-	conectar_a_memoria();
+	t_pcb *pcb = crear_pcb(0, "p");
+	ejecutar_instruccion_wait(pcb,"RB");
+	ejecutar_instruccion_wait(pcb,"RA");
+	ejecutar_instruccion_wait(pcb,"RA");
+	ejecutar_instruccion_signal(pcb, "RA");
 
 	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)
 
@@ -29,6 +32,12 @@ int main(int argc, char* argv[]) {
 //----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
 
 	iniciar_consola_interactiva();
+
+
+
+
+	// Conexion con MEMORIA
+	conectar_a_memoria();
 
 	// Conexion con CPU - DISPATCH
 	conectar_a_cpu_dispatch();

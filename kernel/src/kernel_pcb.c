@@ -20,7 +20,7 @@ t_pcb *crear_pcb(int pid, char* path){
     }
     string_append(&(pcb->path), path);
 
-    pcb->recursos_usados = dictionary_create();
+    pcb->diccionario_recursos_usados = dictionary_create(); // KEY: Nombre del recurso - Value: Cantidad de instancias usadas
 
     return pcb;
 }
@@ -34,8 +34,8 @@ void eliminar_pcb(t_pcb *pcb){ // agregar diccionario
             free(pcb->path);
         }
 
-        if( pcb->recursos_usados != NULL ){
-            dictionary_destroy_and_destroy_elements(pcb->recursos_usados, eliminar_recurso);
+        if( pcb->diccionario_recursos_usados != NULL ){
+            dictionary_destroy(pcb->diccionario_recursos_usados);
         }
 
         free(pcb);
@@ -163,4 +163,12 @@ void pcb_set_registro_di(t_pcb *pcb, char *valor){
 
 char* pcb_get_path(t_pcb *pcb){
     return pcb->path;
+}
+
+t_dictionary *pcb_get_diccionario_recursos_usados(t_pcb *pcb){
+    return pcb->diccionario_recursos_usados;
+}
+
+bool pcb_usa_recurso(t_pcb *pcb, char *nombre_recurso){
+    return dictionary_has_key(pcb_get_diccionario_recursos_usados(pcb), nombre_recurso);
 }

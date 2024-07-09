@@ -38,5 +38,7 @@ void pcb_set_registro_edx(t_pcb *pcb, char *valor);
 void pcb_set_registro_si(t_pcb *pcb, char *valor);
 void pcb_set_registro_di(t_pcb *pcb, char *valor);
 char *pcb_get_path(t_pcb *pcb);
+t_dictionary *pcb_get_diccionario_recursos_usados(t_pcb *pcb);
+bool pcb_usa_recurso(t_pcb *pcb, char *nombre_recurso);
 
 #endif
