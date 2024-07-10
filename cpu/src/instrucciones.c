@@ -101,25 +101,25 @@ void execute(t_instruccion *instruccion){
 		ejecutarJnz(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
 	case INS_IO_GEN_SLEEP:
-		ejecutarSum(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarIoGenSleep(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
 	case MOV_IN:
-		ejecutarSum(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarMovIn(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
 	case MOV_OUT:
-		ejecutarSum(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarMovOut(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
 	case RESIZE:
-		ejecutarSum(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarResize(instruccion->argumentos[0]);
 		break;
 	case COPY_STRING:
-		ejecutarSub(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarCopyString(instruccion->argumentos[0]);
 		break;
 	case INS_IO_STDIN_READ:
-		ejecutarSub(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarStdRead(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
 		break;
 	case INS_IO_STDOUT_WRITE:
-		ejecutarSub(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarStdWrite(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
 		break;		
 	default:
 		break;
@@ -180,10 +180,60 @@ void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 }
 
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){
-	int tiempo = atoi(tiempo_string);
+	int* tiempo;
+	t_codigo_operacion *op;
+	*op=IO_GEN_SLEEP;
+    *tiempo = atoi(tiempo_string);
+	t_paquete *paquete =crear_paquete(IO);
+
+	agregar_a_paquete(paquete,interfaz,sizeof(interfaz)+1);
+
+	agregar_a_paquete(paquete,op,sizeof(t_codigo_operacion));
+
+	agregar_a_paquete(paquete,tiempo,sizeof(int));
+	
+	
+	enviar_paquete(fd_cpu_dispatch,paquete);
+	eliminar_paquete(paquete);
+	
 	//armar paquete para kernel
+}
+
+void ejecutarResize(char *tamanio){
+	t_paquete * paquete = crear_paquete(RESIZE); //este nombre deberia ser otro para no pisar el de las instrucicones MEM_RESIZE por ejemplo
+	int tamanio_int = atoi(tamanio);
+	
+	agregar_a_paquete(paquete,&tamanio_int,sizeof(int));
+	enviar_paquete(fd_memoria,paquete);
+	eliminar_paquete(paquete);
+
+	//En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
+}
+
+void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
+	//TODO
+}
+void ejecutarMovOut(char* registro_direrccion,char* registro_datos){
+	//TODO
+}
+void ejecutarCopyString(char *tamanio){
+	/*Toma del string apuntado por el registro SI y copia la cantidad de bytes
+	 indicadas en el parámetro tamaño a la posición de memoria apuntada por el registro DI.*/
 
 }
+
+void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_tamanio){
+	//TODO
+}
+void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio){ //entiendo que voy a leer un registro y ese valor es el tamanio
+	//TODO
+}
+
+
+
+
+
+
 
 t_instruccion* pedidoAMemoria(int pid, int pc) {
     // Simulación de obtención de instrucción de memoria
@@ -215,6 +265,24 @@ int obtener_numero_instruccion(char * cadena){
 	}
 	if(strcmp(cadena,"IO_GEN_SLEEP")==0){
 		return 4;
+	}
+	if(strcmp(cadena,"MOV_IN")){
+		return 5;
+	}
+	if(strcmp(cadena,"MOV_OUT")){
+		return 6;
+	}
+	if(strcmp(cadena,"RESIZE")){
+		return 7;
+	}
+	if(strcmp(cadena,"COPY_STRING")){
+		return 8;
+	}
+	if(strcmp(cadena,"INS_IO_STDIN_READ")){
+		return 9;
+	}
+	if(strcmp(cadena,"INS_IO_STDOUT_WRITE")){
+		return 10;
 	}
 	return -1;
 }

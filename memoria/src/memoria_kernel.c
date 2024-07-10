@@ -14,8 +14,10 @@ void atender_memoria_kernel(){
 		switch(cod_op){
 			case SOLICITUD_INICIAR_PROCESO:
                 // Inicializo tabla y lista de instrucciones del proceso recibido.
+                //Quedaría mejor la inicializaci{on en una función aparte, agregar!!
 			    t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
                 proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
+                proceso_recibido->path = NULL;
                 proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
 
                 for (int i = 0; i < TAM_MEMORIA; i++) 
@@ -51,13 +53,13 @@ void atender_memoria_kernel(){
 void crear_proceso(t_pcb_memoria *proceso)
 {
     // Inicializo la cadena de ruta completa.
-    char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + 1); // Ruta completa empieza vacía.
+    char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
     if (ruta_completa == NULL) {
         perror("Error al asignar memoria");
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
         exit(EXIT_FAILURE);
     } 
-    strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo.
+    strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo. Si genera segment fault intentar con: memcpy(ruta_completa, PATH_INSTRUCCIONES, strlen(PATH_INSTRUCCIONES) + 1)
 
     // Concateno la ruta al archivo con la ruta completa usando string_append.
     string_append(&ruta_completa, proceso->path); 
@@ -106,11 +108,12 @@ void crear_proceso(t_pcb_memoria *proceso)
     // Cerrar el archivo
     fclose(archivo);
     free(ruta_completa);
-/* 
+
     //borrar una vez terminado el testeo
+    printf("Imprimo primer y ultima instruccion del proceso: %s\n", procesos[0].pid);
     printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
 	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
 	log_info(memoria_logger, "Entré y salí de crear proceso y cree proceso existosamente :)");
-	liberar_pcb_memoria(proceso); */
+	liberar_pcb_memoria(proceso); 
 }
 
