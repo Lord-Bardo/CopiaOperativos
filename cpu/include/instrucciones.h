@@ -12,10 +12,16 @@ t_instruccion* pedidoAMemoria(int pid, int pc);
 
 void execute(t_instruccion *instruccion);
 void ejecutarSet(char * registro_string, char * valor_string);
+void ejecutarMovIn(char* registro_datos, char* registro_direrccion);
+void ejecutarMovOut(char* registro_direrccion,char* registro_datos);
 void ejecutarSum(char * registro_destino, char * registro_origen);
 void ejecutarSub(char * registro_destino, char * registro_origen);
 void ejecutarJnz(char * registro_string, char * nro_instruccion_string);
-
+void ejecutarResize(char* tamanio);
+void ejecutarIoGenSleep(char* interfaz, char* tiempo_string);
+void ejecutarCopyString(char *tamanio);
+void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_tamanio);
+void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio);
 
 
 t_instruccion* crear_instruccion();
