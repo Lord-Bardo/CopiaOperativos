@@ -13,7 +13,7 @@ void inicializar_estructuras(void);
 void inicializar_estructuras_estados(void);
 void inicializar_estructuras_pid(void);
 void inicializar_semaforos(void);
-void inicializar_diccionario_recursos(void);
+void inicializar_diccionarios(void);
 void iniciar_planificacion(void);
 void detener_planificacion(void);
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion);
@@ -41,7 +41,7 @@ void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso);
 // PROCESO A ...
 void proceso_a_ready(t_pcb *pcb);
 void proceso_a_exec(t_pcb *pcb);
-void proceso_a_blocked(t_pcb *pcb);
+void proceso_a_blocked(t_pcb *pcb, char *motivo_bloqueo);
 void proceso_a_exit(t_pcb *pcb, char *motivo_finalizacion);
 
 #endif

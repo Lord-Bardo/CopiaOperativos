@@ -27,7 +27,6 @@ char** INSTANCIAS_RECURSOS;
 int GRADO_MULTIPROGRAMACION;
 
 int fd_kernel;
-int fd_entradasalida;
 int fd_memoria;
 int fd_cpu_dispatch;
 int fd_cpu_interrupt;
@@ -36,7 +35,7 @@ int fd_cpu_interrupt;
 void conectar_a_memoria(void);
 void conectar_a_cpu_dispatch(void);
 void conectar_a_cpu_interrupt(void);
-void aceptar_conexion_entradasalida(void);
+void aceptar_conexiones_entradasalida(void);
 void terminar_programa();
 
 #endif

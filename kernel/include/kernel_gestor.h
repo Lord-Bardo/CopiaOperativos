@@ -31,7 +31,8 @@ typedef enum{
     EXEC,
     BLOCKED,
     EXIT,
-    RECURSO
+    RECURSO,
+    INTERFAZ
 } t_nombre_estado;
 
 typedef struct{
@@ -53,10 +54,21 @@ typedef struct{
 } t_pcb;
 
 // Recurso
-typedef struct {
+typedef struct{
     int instancias;
     t_estado *estado_recurso;
 } t_recurso;
+
+// Interfaz e/s
+typedef struct{
+    t_tipo_interfaz tipo_interfaz;
+    int fd_interfaz;
+    t_estado *estado_interfaz;
+} t_interfaz;
+
+typedef struct{
+    
+} t_solicitud_io;
 
 // VARIABLES GLOBALES
 // Loggers y Config
@@ -79,7 +91,6 @@ extern int GRADO_MULTIPROGRAMACION;
 
 // File descriptors (sockets)
 extern int fd_kernel;
-extern int fd_entradasalida;
 extern int fd_memoria;
 extern int fd_cpu_dispatch;
 extern int fd_cpu_interrupt;
@@ -106,5 +117,8 @@ extern pthread_mutex_t mutex_socket_memoria;
 
 // Recursos
 extern t_dictionary *diccionario_recursos;
+
+// Interfaces
+extern t_dictionary *diccionario_interfaces;
 
 #endif

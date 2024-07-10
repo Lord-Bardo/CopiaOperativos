@@ -7,6 +7,21 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
+	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
+	log_info(kernel_logger, "Servidor KERNEL iniciado!");
+
+	int fd_interfaz = esperar_cliente(fd_kernel);
+	if( recibir_handshake(fd_interfaz) == HANDSHAKE_ENTRADASALIDA ){
+		enviar_handshake(fd_interfaz, HANDSHAKE_OK);
+		t_codigo_operacion codigo_operacion;
+		if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) <= 0 ){
+			log_info(kernel_logger, "SE DESCONECTOOOOOOOOOOOOOOOOOOO");
+			// Logica de eliminar la interfaz
+		}
+	}
+
+	iniciar_consola_interactiva();
+
 	t_pcb *pcb = crear_pcb(0, "p");
 	ejecutar_instruccion_wait(pcb,"RB");
 	ejecutar_instruccion_wait(pcb,"RA");
@@ -31,7 +46,6 @@ int main(int argc, char* argv[]) {
 	*/
 //----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
 
-	iniciar_consola_interactiva();
 
 
 
@@ -49,12 +63,9 @@ int main(int argc, char* argv[]) {
 	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
 	log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
-	// Esperar conexion de ENTRADASALIDA
-	aceptar_conexion_entradasalida();
-
-	// Atender los mensajes de ENTRADASALIDA 
+	// Esperar conexiones de interfaces ENTRADASALIDA y atender los mensajes de las interfaces ENTRADASALIDA 
 	pthread_t hilo_entradasalida;
-	pthread_create(&hilo_entradasalida, NULL, (void*)atender_kernel_entradasalida, NULL); // Mati: vi en un issue que decian que el main es buen lugar para manejar conexiones de las interfaces e/s
+	pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
 
  	// Atender los mensajes de MEMORIA
 	pthread_t hilo_memoria;
@@ -111,15 +122,37 @@ void conectar_a_cpu_interrupt(){
 	}
 }
 
-void aceptar_conexion_entradasalida(){
-	fd_entradasalida = esperar_cliente(fd_kernel);
-	if( recibir_handshake(fd_entradasalida) == HANDSHAKE_ENTRADASALIDA ){
-		enviar_handshake(fd_entradasalida, HANDSHAKE_OK);
-		log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA al servidor KERNEL!");
+void aceptar_conexiones_entradasalida(){
+	int fd_interfaz;
+	t_codigo_operacion handshake;
+	t_buffer *buffer = crear_buffer();
+	while(1){
+		fd_interfaz = esperar_cliente(fd_kernel);
+		recibir_paquete(fd_interfaz, &handshake, buffer);
+		if( handshake == HANDSHAKE_ENTRADASALIDA ){
+			enviar_handshake(fd_interfaz, HANDSHAKE_OK);
+
+			// Desempaqueto los datos de la interfaz
+			char *nombre_interfaz = buffer_desempaquetar_string(buffer);
+			t_tipo_interfaz tipo_interfaz;
+			buffer_desempaquetar(buffer, tipo_interfaz);
+
+			// Agrego la interfaz al diccionario
+			dictionary_put(diccionario_interfaces, nombre_interfaz, crear_interfaz(fd_interfaz, tipo_interfaz));
+			
+			// Atiendo los mensajes de la interfaz
+			pthread_t hilo_interfaz;
+			pthread_create(&hilo_interfaz, NULL, (void*)atender_kernel_interfaz, (void *)nombre_interfaz);
+			pthread_detach(&hilo_interfaz);
+
+			log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA-%s al servidor KERNEL!", nombre_interfaz);
+		}
+		else{
+			enviar_handshake(fd_interfaz, HANDSHAKE_ERROR);
+			liberar_conexion(fd_interfaz);
+		}
 	}
-	else{
-		enviar_handshake(fd_entradasalida, HANDSHAKE_ERROR);
-	}
+	eliminar_buffer(buffer);
 }
 
 void terminar_programa(){
@@ -135,7 +168,7 @@ void terminar_programa(){
 	liberar_conexion(fd_cpu_interrupt);
 	liberar_conexion(fd_memoria);
 	liberar_conexion(fd_kernel);
-	liberar_conexion(fd_entradasalida);
+	// liberar_conexion(fd_entradasalida);
 
 	// deberiamos liberar los recursos usados por los modulos (nose si aca o en otro lado)
 }

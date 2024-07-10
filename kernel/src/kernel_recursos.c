@@ -59,11 +59,6 @@ void recurso_encolar_proceso(t_recurso *recurso, t_pcb *pcb){
     estado_encolar_pcb(recurso_get_estado_recurso(recurso), pcb);
 }
 
-void recurso_bloquear_proceso(t_recurso *recurso, t_pcb *pcb){
-    recurso_encolar_proceso(recurso, pcb);
-    pcb_cambiar_estado_a(pcb, BLOCKED);
-}
-
 // DICCIONARIO RECURSOS --------------------------------------------------
 
 t_dictionary *crear_diccionario_recursos(char** recursos, char** instancias_recursos){

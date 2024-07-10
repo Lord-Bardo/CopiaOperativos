@@ -28,9 +28,13 @@ pthread_mutex_t mutex_pid;
 pthread_mutex_t mutex_grado_multiprogramacion;
 sem_t sem_grado_multiprogramacion;
 pthread_mutex_t mutex_socket_memoria;
+// CREAR UN MUTEX PARA CADA DICCIONARIO
 
 // Recursos
 t_dictionary *diccionario_recursos;
+
+// Interfaces
+t_dictionary *diccionario_interfaces;
 
 // INICIALIZACION PLANIFICADORES ------------------------------------------
 void iniciar_planificadores(){
@@ -54,7 +58,7 @@ void inicializar_estructuras(){
     inicializar_estructuras_estados();
     inicializar_estructuras_pid();
     inicializar_semaforos();
-    inicializar_diccionario_recursos();
+    inicializar_diccionarios();
 }
 
 void inicializar_estructuras_estados(){
@@ -77,8 +81,9 @@ void inicializar_semaforos(){
     pthread_mutex_init(&mutex_socket_memoria, NULL);
 }
 
-void inicializar_diccionario_recursos(){
+void inicializar_diccionarios(){
     diccionario_recursos = crear_diccionario_recursos(RECURSOS, INSTANCIAS_RECURSOS);
+    diccionario_interfaces = dictionary_create();
 }
 
 void iniciar_planificacion(){
@@ -203,23 +208,70 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
             break;
         case OUT_OF_MEMORY:
             break;
-        case IO:
-            // char *nombre_interfaz = buffer_desempaquetar_string(buffer);
-            // if( interfaz_es_valida(nombre_interfaz) ){
-            //     // Ejecutar interfaz
-            //     // Hay varias, deberia hacer un switch para saber cual es y recibir lo q necesite
-            // }
-            // else{
-            //     // Matar al proceso
-            // }
-            break;
         case WAIT:
             ejecutar_instruccion_wait(pcb, buffer_desempaquetar_string(buffer));
             break;
         case SIGNAL:
             ejecutar_instruccion_signal(pcb, buffer_desempaquetar_string(buffer));
             break;
-        // ...
+        case IO:
+            char *nombre_interfaz = buffer_desempaquetar_string(buffer);
+            // sem_wait diccionario
+            if( diccionario_interfaces_existe_interfaz(nombre_interfaz) ){ // la corroboracion de la conexion se hace al momento de mandar la operacion a la interfaz (si existe, es muy probable q siga conectada (salvo q se desconecte justo dsp de la corroboracion))
+                // Obtengo la interfaz
+                t_interfaz *interfaz = diccionario_interfaces_get_interfaz(diccionario_interfaces, nombre_interfaz);
+                // sem_post diccionario
+                
+                // Desempaqueto la operacion a realizar y corroboro que sea valida
+                t_codigo_operacion operacion;
+                buffer_desempaquetar(buffer, operacion);
+
+
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                // Obtengo la interfaz y compruebo que este conectada
+                t_interfaz *interfaz = diccionario_interfaces_get_interfaz(diccionario_interfaces, nombre_interfaz);
+                if( interfaz_esta_conectada(interfaz) ){
+                    // Desempaqueto la operacion a realizar y corroboro que sea valida
+                    t_codigo_operacion operacion;
+                    buffer_desempaquetar(buffer, operacion);
+                    switch( operacion ){
+                        case IO_GEN_SLEEP:
+                            // Desempaqueto los parametros de la operacion
+                            char *parametros = buffer_desempaquetar_string(buffer);
+
+                            // Creo el paquete con la operacion a realizar y sus parametros, y se lo envio a la interfaz
+                            t_paquete paquete_operacion_interfaz = crear_paquete(operacion);
+                            agregar_string_a_paquete(paquete_operacion_interfaz, parametros);
+                            enviar_paquete(interfaz_get_fd(interfaz), paquete_operacion_interfaz);
+                            eliminar_paquete(paquete_operacion_interfaz);
+
+                            // Bloqueo al proceso
+                            interfaz_encolar_proceso(interfaz, pcb);
+                            proceso_a_blocked(pcb, nombre_interfaz);
+                            break;
+                        default:
+                            proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+                            // sem_post(&sem_grado_multiprogramacion);
+                    }
+                }
+                else{
+                    proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+                    // sem_post(&sem_grado_multiprogramacion);
+                }
+            }
+            else{
+                proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+                // sem_post(&sem_grado_multiprogramacion);
+            }
+            break;
         default:
             log_error(kernel_logger, "Motivo de desalojo desconocido");
     }
@@ -404,6 +456,7 @@ void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
         if( recurso_debe_desbloquear_proceso(recurso) ){
             // Desbloqueo al primero proceso
             t_pcb *pcb = recurso_desencolar_primer_proceso(recurso);
+            estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
             // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
             proceso_a_ready(pcb);
         }
@@ -439,8 +492,8 @@ void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso){
         // Compruebo si tras el wait se debe bloquear al proceso
         if( recurso_debe_bloquear_proceso(recurso) ){
             // Bloqueo al proceso (lo encolo en la cola del recurso)
-            recurso_bloquear_proceso(recurso, pcb);
-            log_motivo_bloqueo(pcb, nombre_recurso);
+            recurso_encolar_proceso(recurso, pcb);
+            proceso_a_blocked(pcb, nombre_recurso);
         }
     }
 }
@@ -490,9 +543,10 @@ void proceso_a_exec(t_pcb *pcb){
     estado_encolar_pcb(estado_exec, pcb);
 }
 
-void proceso_a_blocked(t_pcb *pcb){
+void proceso_a_blocked(t_pcb *pcb, char *motivo_bloqueo){
     pcb_cambiar_estado_a(pcb, BLOCKED);
     estado_encolar_pcb(estado_blocked, pcb);
+    log_motivo_bloqueo(pcb, motivo_bloqueo);
 }
 
 void proceso_a_exit(t_pcb *pcb, char *motivo_finalizacion){

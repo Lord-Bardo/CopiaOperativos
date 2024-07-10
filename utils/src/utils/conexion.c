@@ -65,13 +65,13 @@ void liberar_conexion(int socket){
 }
 
 // Handshake
-void enviar_handshake(int socket, t_handshake handshake){
-	send(socket, &handshake, sizeof(t_handshake), 0);
+void enviar_handshake(int socket, t_codigo_operacion handshake){
+	send(socket, &handshake, sizeof(t_codigo_operacion), 0);
 }
 
-t_handshake recibir_handshake(int socket){
-	t_handshake handshake;
-	recv(socket, &handshake, sizeof(t_handshake), MSG_WAITALL);
+t_codigo_operacion recibir_handshake(int socket){
+	t_codigo_operacion handshake;
+	recv(socket, &handshake, sizeof(t_codigo_operacion), MSG_WAITALL);
 	return handshake;
 }
 
@@ -159,11 +159,12 @@ void enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion){
 }
 
 // Recibir
-void recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion){
-    if( recv(socket, codigo_operacion, sizeof(t_codigo_operacion), MSG_WAITALL) != sizeof(t_codigo_operacion) ){
-        perror("Error al recibir el codigo de operacion");
-        return;
-    }
+int recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion){
+    // if( recv(socket, codigo_operacion, sizeof(t_codigo_operacion), MSG_WAITALL) != sizeof(t_codigo_operacion) ){
+    //     perror("Error al recibir el codigo de operacion");
+    //     return;
+    // }
+	return recv(socket, codigo_operacion, sizeof(t_codigo_operacion), MSG_WAITALL);
 }
 
 void recibir_buffer(int socket, t_buffer *buffer){
@@ -174,7 +175,7 @@ void recibir_buffer(int socket, t_buffer *buffer){
     }
 
     // Redimensiono el tamaño del buffer
-    void* new_stream = realloc(buffer->stream, buffer->size);
+    void* new_stream = realloc(buffer->stream, buffer->size); // Asigno el puntero a otra variable xq si falla el realloc perderia la referencia a buffer->stream
     if( new_stream == NULL ){
         perror("Error al redimensionar el buffer");
         return;
@@ -239,6 +240,7 @@ void buffer_desempaquetar(t_buffer *buffer, void *destino){
 	buffer_actualizar(buffer, bytes);
 }
 
+// Se requiere una funcion especial para los char * xq hasta no desempaquetar la cantidad de bytes del string no se sabe cuanta memoria pedir con malloc
 char *buffer_desempaquetar_string(t_buffer *buffer){
 	// Chequeo que el buffer tenga contenido para desempaquetar
     if( buffer->stream == NULL || buffer->size == 0 ){
