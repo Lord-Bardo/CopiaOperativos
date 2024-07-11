@@ -8,6 +8,15 @@
 #include "kernel_recursos.h"
 #include "kernel_entradasalida.h"
 
+// Motivos finalizacion
+#define FINALIZACION_SUCCESS "SUCCESS"
+#define FINALIZACION_INVALID_RESOURCE "INVALID_RESOURCE"
+#define FINALIZACION_INVALID_INTERFACE "INVALID_INTERFACE"
+#define FINALIZACION_OUT_OF_MEMORY "OUT_OF_MEMORY"
+#define FINALIZACION_INTERRUPTED_BY_USER "INTERRUPTED_BY_USER"
+#define FINALIZACION_ERROR "ERROR" // lo agregue yo para los casos q no caen en ninguno de los anteriores
+#define FINALIZACION_DESCONEXION_INTERFAZ "DESCONEXION_INTERFAZ" // lo agregue yo
+
 // INICIALIZACION PLANIFICADORES
 void iniciar_planificadores(void);
 void inicializar_estructuras(void);

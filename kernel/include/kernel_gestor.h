@@ -64,8 +64,9 @@ typedef struct{
     t_tipo_interfaz tipo_interfaz;
     int fd_interfaz;
     t_list *lista_solicitudes_io;
-    pthread_mutex_t *mutex_interfaz;
-    sem_t *sem_interfaz;
+    pthread_mutex_t *mutex_lista_solicitudes_io;
+    sem_t *sem_lista_solicitudes_io;
+    sem_t *sem_control_uso_interfaz;
 } t_interfaz;
 
 typedef struct{
@@ -117,6 +118,7 @@ extern pthread_mutex_t mutex_pid;
 extern pthread_mutex_t mutex_grado_multiprogramacion;
 extern sem_t sem_grado_multiprogramacion;
 extern pthread_mutex_t mutex_socket_memoria;
+extern pthread_mutex_t mutex_diccionario_interfaces;
 
 // Recursos
 extern t_dictionary *diccionario_recursos;
