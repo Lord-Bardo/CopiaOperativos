@@ -7,26 +7,7 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
-	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
-	log_info(kernel_logger, "Servidor KERNEL iniciado!");
-
-	int fd_interfaz = esperar_cliente(fd_kernel);
-	if( recibir_handshake(fd_interfaz) == HANDSHAKE_ENTRADASALIDA ){
-		enviar_handshake(fd_interfaz, HANDSHAKE_OK);
-		t_codigo_operacion codigo_operacion;
-		if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) <= 0 ){
-			log_info(kernel_logger, "SE DESCONECTOOOOOOOOOOOOOOOOOOO");
-			// Logica de eliminar la interfaz
-		}
-	}
-
 	iniciar_consola_interactiva();
-
-	t_pcb *pcb = crear_pcb(0, "p");
-	ejecutar_instruccion_wait(pcb,"RB");
-	ejecutar_instruccion_wait(pcb,"RA");
-	ejecutar_instruccion_wait(pcb,"RA");
-	ejecutar_instruccion_signal(pcb, "RA");
 
 	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)
 
@@ -47,6 +28,27 @@ int main(int argc, char* argv[]) {
 //----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
 
 
+	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
+	log_info(kernel_logger, "Servidor KERNEL iniciado!");
+
+	int fd_interfaz = esperar_cliente(fd_kernel);
+	if( recibir_handshake(fd_interfaz) == HANDSHAKE_ENTRADASALIDA ){
+		enviar_handshake(fd_interfaz, HANDSHAKE_OK);
+		t_codigo_operacion codigo_operacion;
+		if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) <= 0 ){
+			log_info(kernel_logger, "SE DESCONECTOOOOOOOOOOOOOOOOOOO");
+			// Logica de eliminar la interfaz
+		}
+	}
+
+	
+
+	t_pcb *pcb = crear_pcb(0, "p");
+	ejecutar_instruccion_wait(pcb,"RB");
+	ejecutar_instruccion_wait(pcb,"RA");
+	ejecutar_instruccion_wait(pcb,"RA");
+	ejecutar_instruccion_signal(pcb, "RA");
+
 
 
 
@@ -64,8 +66,8 @@ int main(int argc, char* argv[]) {
 	log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
 	// Esperar conexiones de interfaces ENTRADASALIDA y atender los mensajes de las interfaces ENTRADASALIDA 
-	pthread_t hilo_entradasalida;
-	pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
+	// pthread_t hilo_entradasalida;
+	// pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
 
  	// Atender los mensajes de MEMORIA
 	pthread_t hilo_memoria;
@@ -79,7 +81,7 @@ int main(int argc, char* argv[]) {
 	iniciar_consola_interactiva();
 
     // Esperar a que los hilos finalicen su ejecucion
-	pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
+	//pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 	pthread_join(hilo_memoria, NULL);
 	pthread_join(hilo_cpu_dispatch, NULL);
 
@@ -122,38 +124,38 @@ void conectar_a_cpu_interrupt(){
 	}
 }
 
-void aceptar_conexiones_entradasalida(){
-	int fd_interfaz;
-	t_codigo_operacion handshake;
-	t_buffer *buffer = crear_buffer();
-	while(1){
-		fd_interfaz = esperar_cliente(fd_kernel);
-		recibir_paquete(fd_interfaz, &handshake, buffer);
-		if( handshake == HANDSHAKE_ENTRADASALIDA ){
-			enviar_handshake(fd_interfaz, HANDSHAKE_OK);
+// void aceptar_conexiones_entradasalida(){
+// 	int fd_interfaz;
+// 	t_codigo_operacion handshake;
+// 	t_buffer *buffer = crear_buffer();
+// 	while(1){
+// 		fd_interfaz = esperar_cliente(fd_kernel);
+// 		recibir_paquete(fd_interfaz, &handshake, buffer);
+// 		if( handshake == HANDSHAKE_ENTRADASALIDA ){
+// 			enviar_handshake(fd_interfaz, HANDSHAKE_OK);
 
-			// Desempaqueto los datos de la interfaz
-			char *nombre_interfaz = buffer_desempaquetar_string(buffer);
-			t_tipo_interfaz tipo_interfaz;
-			buffer_desempaquetar(buffer, tipo_interfaz);
+// 			// Desempaqueto los datos de la interfaz
+// 			char *nombre_interfaz = buffer_desempaquetar_string(buffer);
+// 			t_tipo_interfaz tipo_interfaz;
+// 			buffer_desempaquetar(buffer, &tipo_interfaz);
 
-			// Agrego la interfaz al diccionario
-			dictionary_put(diccionario_interfaces, nombre_interfaz, crear_interfaz(fd_interfaz, tipo_interfaz));
+// 			// Agrego la interfaz al diccionario
+// 			dictionary_put(diccionario_interfaces, nombre_interfaz, crear_interfaz(fd_interfaz, tipo_interfaz));
 			
-			// Atiendo los mensajes de la interfaz
-			pthread_t hilo_interfaz;
-			pthread_create(&hilo_interfaz, NULL, (void*)atender_kernel_interfaz, (void *)nombre_interfaz);
-			pthread_detach(&hilo_interfaz);
+// 			// Atiendo los mensajes de la interfaz
+// 			pthread_t hilo_interfaz;
+// 			pthread_create(&hilo_interfaz, NULL, (void*)atender_kernel_interfaz, (void *)nombre_interfaz);
+// 			pthread_detach(&hilo_interfaz);
 
-			log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA-%s al servidor KERNEL!", nombre_interfaz);
-		}
-		else{
-			enviar_handshake(fd_interfaz, HANDSHAKE_ERROR);
-			liberar_conexion(fd_interfaz);
-		}
-	}
-	eliminar_buffer(buffer);
-}
+// 			log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA-%s al servidor KERNEL!", nombre_interfaz);
+// 		}
+// 		else{
+// 			enviar_handshake(fd_interfaz, HANDSHAKE_ERROR);
+// 			liberar_conexion(fd_interfaz);
+// 		}
+// 	}
+// 	eliminar_buffer(buffer);
+// }
 
 void terminar_programa(){
 	if(kernel_logger != NULL){

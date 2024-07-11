@@ -145,13 +145,15 @@ void *serializar_paquete(t_paquete *paquete, int bytes){
 	return magic; //por qué magic?????
 }
 
-void enviar_paquete(int socket, t_paquete *paquete){
+int enviar_paquete(int socket, t_paquete *paquete){
 	int bytes = paquete->buffer->size + 2 * sizeof(int); // tamaño del stream del buffer + un int para el codigo de operacion + un int para el tamaño del buffer
 	void *a_enviar = serializar_paquete(paquete, bytes);
 
-	send(socket, a_enviar, bytes, 0);
+	int ret = send(socket, a_enviar, bytes, MSG_NOSIGNAL);
 
 	free(a_enviar);
+
+	return ret;
 }
 
 void enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion){

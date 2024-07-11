@@ -6,6 +6,7 @@
 #include "kernel_pcb.h"
 #include "kernel_estados.h"
 #include "kernel_recursos.h"
+#include "kernel_entradasalida.h"
 
 // INICIALIZACION PLANIFICADORES
 void iniciar_planificadores(void);

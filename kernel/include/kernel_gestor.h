@@ -63,11 +63,14 @@ typedef struct{
 typedef struct{
     t_tipo_interfaz tipo_interfaz;
     int fd_interfaz;
-    t_estado *estado_interfaz;
+    t_list *lista_solicitudes_io;
+    pthread_mutex_t *mutex_interfaz;
+    sem_t *sem_interfaz;
 } t_interfaz;
 
 typedef struct{
-    
+	t_pcb *pcb;
+	t_paquete *paquete_solicitud_io;
 } t_solicitud_io;
 
 // VARIABLES GLOBALES

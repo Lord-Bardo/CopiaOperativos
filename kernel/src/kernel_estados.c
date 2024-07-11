@@ -12,7 +12,7 @@ t_estado *crear_estado(t_nombre_estado nombre_estado){
 
     pthread_mutex_t *mutex = malloc(sizeof(pthread_mutex_t));
     if( mutex == NULL ){
-        log_error(kernel_logger, "Error al asignar memoria para el MUTEX del ESTAD");
+        log_error(kernel_logger, "Error al asignar memoria para el MUTEX del ESTADO");
         return NULL;
     }
     pthread_mutex_init(mutex, NULL);
@@ -20,7 +20,7 @@ t_estado *crear_estado(t_nombre_estado nombre_estado){
 
     sem_t *sem = malloc(sizeof(sem_t));
     if( sem == NULL ){
-        log_error(kernel_logger, "Error al asignar memoria para el SEMAFORO del ESTAD");
+        log_error(kernel_logger, "Error al asignar memoria para el SEMAFORO del ESTADO");
         return NULL;
     }
     sem_init(sem, 0, 0); // La lista arranca vacia
@@ -36,8 +36,7 @@ void eliminar_estado(t_estado *estado){
         }
         else{
             list_destroy_and_destroy_elements(estado->lista_procesos, pcb_destroyer);
-        } 
-        free(estado->lista_procesos);
+        }
 
         pthread_mutex_destroy(estado->mutex_estado);
         free(estado->mutex_estado);

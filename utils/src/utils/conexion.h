@@ -100,7 +100,7 @@ void eliminar_paquete(t_paquete *paquete);
 // Enviar
 void agregar_a_paquete(t_paquete* paquete, void* valor, int tamanio);
 void *serializar_paquete(t_paquete *paquete, int bytes);
-void enviar_paquete(int socket, t_paquete* paquete);
+int enviar_paquete(int socket, t_paquete* paquete);
 void enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion);
 // Recibir
 int recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion);

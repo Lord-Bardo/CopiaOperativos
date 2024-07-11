@@ -215,63 +215,95 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
             ejecutar_instruccion_signal(pcb, buffer_desempaquetar_string(buffer));
             break;
         case IO:
-            char *nombre_interfaz = buffer_desempaquetar_string(buffer);
-            // sem_wait diccionario
-            if( diccionario_interfaces_existe_interfaz(nombre_interfaz) ){ // la corroboracion de la conexion se hace al momento de mandar la operacion a la interfaz (si existe, es muy probable q siga conectada (salvo q se desconecte justo dsp de la corroboracion))
-                // Obtengo la interfaz
-                t_interfaz *interfaz = diccionario_interfaces_get_interfaz(diccionario_interfaces, nombre_interfaz);
-                // sem_post diccionario
+    //         char *nombre_interfaz = buffer_desempaquetar_string(buffer);
+    //         // sem_wait diccionario
+    //         if( diccionario_interfaces_existe_interfaz(diccionario_interfaces, nombre_interfaz) ){ // la corroboracion de la conexion se hace al momento de mandar la operacion a la interfaz (si existe, es muy probable q siga conectada (salvo q se desconecte justo dsp de la corroboracion))
+    //             // Obtengo la interfaz
+    //             t_interfaz *interfaz = diccionario_interfaces_get_interfaz(diccionario_interfaces, nombre_interfaz);
+    //             // sem_post diccionario
                 
-                // Desempaqueto la operacion a realizar y corroboro que sea valida
-                t_codigo_operacion operacion;
-                buffer_desempaquetar(buffer, operacion);
+    //             // Desempaqueto la operacion a realizar y corroboro que sea valida
+    //             t_codigo_operacion operacion;
+    //             buffer_desempaquetar(buffer, &operacion);
+    //             switch( interfaz_get_tipo_interfaz(interfaz) ){
+    //                 case GENERICA:
+    //                     switch( operacion ){
+    //                         case IO_GEN_SLEEP:
+    //                             // Desempaqueto los parametros de la operacion
+    //                             char *parametros = buffer_desempaquetar_string(buffer);
 
+    //                             // Creo el paquete con la operacion a realizar y sus parametros
+    //                             t_paquete *paquete_solicitud_io = crear_paquete(operacion);
+    //                             agregar_string_a_paquete(paquete_solicitud_io, parametros);
+                                
+    //                             // Creo la solicitud de entrada salida
+    //                             t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
+                                
+    //                             // Encolo la solicitud
+    //                             interfaz_encolar_solicitud_io(interfaz, solicitud_io);
+                                
+    //                             // Bloqueo al proceso
+    //                             proceso_a_blocked(pcb, nombre_interfaz);
+    //                             break;
+    //                         default:
+    //                             proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+    //                             // sem_post(&sem_grado_multiprogramacion);
+    //                     }
+    //                     break;
+    //                 case STDIN:
+    //                     break;
+    //                 case STDOUT:
+    //                     break;
+    //                 case DIALFS:
+    //                     break;
+    //                 default:
+    //                     proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+    //                     // sem_post(&sem_grado_multiprogramacion);
+    //             }
+                
+                
+                
+                
+                
+                
+                
+                
+    //             // // Obtengo la interfaz y compruebo que este conectada
+    //             // t_interfaz *interfaz = diccionario_interfaces_get_interfaz(diccionario_interfaces, nombre_interfaz);
+    //             // if( interfaz_esta_conectada(interfaz) ){
+    //             //     // Desempaqueto la operacion a realizar y corroboro que sea valida
+    //             //     t_codigo_operacion operacion;
+    //             //     buffer_desempaquetar(buffer, operacion);
+    //             //     switch( operacion ){
+    //             //         case IO_GEN_SLEEP:
+    //             //             // Desempaqueto los parametros de la operacion
+    //             //             char *parametros = buffer_desempaquetar_string(buffer);
 
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                // Obtengo la interfaz y compruebo que este conectada
-                t_interfaz *interfaz = diccionario_interfaces_get_interfaz(diccionario_interfaces, nombre_interfaz);
-                if( interfaz_esta_conectada(interfaz) ){
-                    // Desempaqueto la operacion a realizar y corroboro que sea valida
-                    t_codigo_operacion operacion;
-                    buffer_desempaquetar(buffer, operacion);
-                    switch( operacion ){
-                        case IO_GEN_SLEEP:
-                            // Desempaqueto los parametros de la operacion
-                            char *parametros = buffer_desempaquetar_string(buffer);
+    //             //             // Creo el paquete con la operacion a realizar y sus parametros, y se lo envio a la interfaz
+    //             //             t_paquete paquete_operacion_interfaz = crear_paquete(operacion);
+    //             //             agregar_string_a_paquete(paquete_operacion_interfaz, parametros);
+    //             //             enviar_paquete(interfaz_get_fd(interfaz), paquete_operacion_interfaz);
+    //             //             eliminar_paquete(paquete_operacion_interfaz);
 
-                            // Creo el paquete con la operacion a realizar y sus parametros, y se lo envio a la interfaz
-                            t_paquete paquete_operacion_interfaz = crear_paquete(operacion);
-                            agregar_string_a_paquete(paquete_operacion_interfaz, parametros);
-                            enviar_paquete(interfaz_get_fd(interfaz), paquete_operacion_interfaz);
-                            eliminar_paquete(paquete_operacion_interfaz);
-
-                            // Bloqueo al proceso
-                            interfaz_encolar_proceso(interfaz, pcb);
-                            proceso_a_blocked(pcb, nombre_interfaz);
-                            break;
-                        default:
-                            proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
-                            // sem_post(&sem_grado_multiprogramacion);
-                    }
-                }
-                else{
-                    proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
-                    // sem_post(&sem_grado_multiprogramacion);
-                }
-            }
-            else{
-                proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
-                // sem_post(&sem_grado_multiprogramacion);
-            }
-            break;
+    //             //             // Bloqueo al proceso
+    //             //             interfaz_encolar_proceso(interfaz, pcb);
+    //             //             proceso_a_blocked(pcb, nombre_interfaz);
+    //             //             break;
+    //             //         default:
+    //             //             proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+    //             //             // sem_post(&sem_grado_multiprogramacion);
+    //             //     }
+    //             // }
+    //             // else{
+    //             //     proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+    //             //     // sem_post(&sem_grado_multiprogramacion);
+    //             // }
+    //         }
+    //         else{
+    //             proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+    //             // sem_post(&sem_grado_multiprogramacion);
+    //         }
+    //         break;
         default:
             log_error(kernel_logger, "Motivo de desalojo desconocido");
     }
