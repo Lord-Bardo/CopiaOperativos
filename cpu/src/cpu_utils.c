@@ -110,7 +110,25 @@ void enviar_fetch_memoria(int pid, u_int32_t pc){
 	enviar_paquete(fd_memoria,paquete);
 	eliminar_paquete(paquete);
 }
+void pedir_frame_memoria(int pagina){
+    t_paquete *paquete = crear_paquete(FRAME);
+    agregar_a_paquete(paquete,pagina,sizeof(int));
+    enviar_paquete(fd_memoria,paquete);
+}
+void recibir_frame(int *frame){
+    t_codigo_operacion op_code;
+    t_buffer * buffer = crear_buffer();
 
+    recibir_paquete(fd_memoria,&op_code,buffer);
+
+    if(op_code != FRAME){
+        log_info(cpu_logger,"CODIGO DE OPERACION RECIBIDO NO ES FRAME, REICBI %d",op_code);
+        return;
+    }
+    buffer_desempaquetar(buffer,frame);
+    log_info(cpu_logger,"FRAME RECIBIDO: %d", *frame);
+
+}
 
 /*void recibir_pcb(int socket_cliente){
 	t_list *pcb_como_lista = recibir_paquete(socket_cliente);
