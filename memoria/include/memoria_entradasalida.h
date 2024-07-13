@@ -15,8 +15,8 @@ extern t_log* memoria_logger; // Logger para el módulo de memoria
 
 t_pcb_memoria* obtener_proceso(int pid);
 
-int escribir_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
-int leer_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
+int escribir_memoria(uint32_t direccion_fisica, void* buffer, int tamanio);
+int leer_memoria(uint32_t direccion_fisica, void* buffer, int tamanio);
 
 // Declaración de la función obtener_proceso
 t_pcb_memoria* obtener_proceso(int pid);

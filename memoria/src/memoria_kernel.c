@@ -103,7 +103,7 @@ void crear_proceso(t_pcb_memoria *proceso)
         num_instruccion++;
     }
     agregar_proceso_a_procesos(*proceso); // Función hecha en utils de memoria.
-    //enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); //DESCOMENTAR UNA VEZ TERMINADO EL TEST
+//  enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); //DESCOMENTAR UNA VEZ TERMINADO EL TEST
 
     // Cerrar el archivo
     fclose(archivo);

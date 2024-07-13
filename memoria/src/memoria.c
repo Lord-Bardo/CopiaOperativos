@@ -49,35 +49,35 @@ int main(int argc, char* argv[]) {
 	liberar_pcb_memoria(proceso_recibido);
 	 */
 //  ------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)------------------------
-/* 
-	// Esperar conexion de CPU
-	aceptar_conexion_cpu();
 
- */	// Esperar conexion de KERNEL
+//  Esperar conexion de CPU
+//	aceptar_conexion_cpu();
+
+//  Esperar conexion de KERNEL
 	aceptar_conexion_kernel();
  
-	// Esperar conexion de ENTRADASALIDA
-/* 	aceptar_conexion_entradasalida();
+//  Esperar conexion de ENTRADASALIDA
+// 	aceptar_conexion_entradasalida();
 
-/*	// Atender los mensajes de CPU
-	pthread_t hilo_cpu;
-	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
-*/
-	// Atender los mensajes de ENTRADASALIDA
-	//pthread_t hilo_entradasalida;
-	//pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
+//  Atender los mensajes de CPU
+//	pthread_t hilo_cpu;
+//	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
 
-	// Atender los mensajes de KERNEL 
+//  Atender los mensajes de ENTRADASALIDA
+//  pthread_t hilo_entradasalida;
+//  pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
+
+//  Atender los mensajes de KERNEL 
 	pthread_t hilo_kernel;
 	pthread_create(&hilo_kernel, NULL, (void*)atender_memoria_kernel, NULL);
 	
-	// Esperar a que los hilos finalicen su ejecucion
+//  Esperar a que los hilos finalicen su ejecucion
 	pthread_join(hilo_kernel, NULL); 
-	//pthread_join(hilo_entradasalida, NULL);
-	//pthread_join(hilo_cpu, NULL);
+//  pthread_join(hilo_entradasalida, NULL);
+//  pthread_join(hilo_cpu, NULL);
 
 
-	// Finalizar MEMORIA (liberar memoria usada)
+//  Finalizar MEMORIA (liberar memoria usada)
 	terminar_programa();
 
 	return 0;
