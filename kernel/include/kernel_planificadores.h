@@ -20,10 +20,12 @@
 // INICIALIZACION PLANIFICADORES
 void iniciar_planificadores(void);
 void inicializar_estructuras(void);
+void inicializar_estructuras_planificacion(void);
 void inicializar_estructuras_estados(void);
 void inicializar_estructuras_pid(void);
-void inicializar_semaforos(void);
-void inicializar_diccionarios(void);
+void inicializar_estructuras_grado_multiprogramacion(void);
+void inicializar_estructuras_diccionarios(void);
+void inicializar_estructuras_sockets(void);
 void iniciar_planificacion(void);
 void detener_planificacion(void);
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion);
@@ -36,7 +38,7 @@ t_pcb *elegir_proceso_segun_rr(void);
 void planificador_corto_plazo_vrr(void);
 t_pcb *elegir_proceso_segun_vrr(void);
 void enviar_contexto_de_ejecucion(t_pcb *pcb);
-void recibir_contexto_de_ejecucion_actualizado();
+void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb);
 // PLANIFICADOR LARGO PLAZO
 void iniciar_proceso(char *path);
 void finalizar_proceso(int pid);

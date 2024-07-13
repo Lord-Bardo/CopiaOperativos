@@ -147,7 +147,7 @@ void aceptar_conexiones_entradasalida(){
 			// Atiendo los mensajes de la interfaz
 			pthread_t hilo_interfaz;
 			pthread_create(&hilo_interfaz, NULL, (void*)atender_kernel_interfaz, (void *)nombre_interfaz);
-			pthread_detach(&hilo_interfaz);
+			pthread_detach(hilo_interfaz);
 
 			log_info(kernel_logger, "Se conecto el cliente ENTRADASALIDA-%s al servidor KERNEL!", nombre_interfaz);
 		}
