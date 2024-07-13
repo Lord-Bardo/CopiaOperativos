@@ -180,17 +180,14 @@ void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 }
 
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){
-	int* tiempo;
-	t_codigo_operacion *op;
-	*op=IO_GEN_SLEEP;
-    *tiempo = atoi(tiempo_string);
+	t_codigo_operacion op= IO_GEN_SLEEP;
 	t_paquete *paquete =crear_paquete(IO);
 
 	agregar_a_paquete(paquete,interfaz,sizeof(interfaz)+1);
 
-	agregar_a_paquete(paquete,op,sizeof(t_codigo_operacion));
+	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
 
-	agregar_a_paquete(paquete,tiempo,sizeof(int));
+	agregar_a_paquete(paquete,tiempo_string,sizeof(tiempo_string)+1);
 	
 	
 	enviar_paquete(fd_cpu_dispatch,paquete);
@@ -228,11 +225,6 @@ void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_t
 void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio){ //entiendo que voy a leer un registro y ese valor es el tamanio
 	//TODO
 }
-
-
-
-
-
 
 
 t_instruccion* pedidoAMemoria(int pid, int pc) {

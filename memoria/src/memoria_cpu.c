@@ -19,9 +19,15 @@ void atender_memoria_cpu(){
 				enviar_paquete(fd_cpu, paquete_instruccion);
 			
 				break;
-            case DATO: 	
+            case FRAME:
+				t_paquete *paquete_frame = crear_paquete(FRAME);
+				int frame_hardcode = 3; //ACA FRAN DEBERIAS LLAMAR A UNA FUNCION TIPO obtener_frame(nro_pag)
+
+				agregar_a_paquete(paquete_frame,frame_hardcode,sizeof(int));
 			    // lógica para enviar el paquete con la dirección lógica del dato que necesito
 				break; 	
+			case OP_RESIZE:
+				//aca recibirias lo demas querido.
 			case -1:
 				log_error(memoria_logger, "Se perdio la conexion con CPU!");
 				continuar = 0;

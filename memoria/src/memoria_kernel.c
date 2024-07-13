@@ -56,7 +56,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
     if (ruta_completa == NULL) {
         perror("Error al asignar memoria");
-        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
+        //enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
         exit(EXIT_FAILURE);
     } 
     strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo. Si genera segment fault intentar con: memcpy(ruta_completa, PATH_INSTRUCCIONES, strlen(PATH_INSTRUCCIONES) + 1)
@@ -69,7 +69,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     if (archivo == NULL) {
         perror("Error al abrir el archivo");
         free(ruta_completa);
-        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
+        //enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
         exit(EXIT_FAILURE);
     }
 
@@ -86,7 +86,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             fclose(archivo);
             free(ruta_completa);
             liberar_pcb_memoria(proceso);
-            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
+            //enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
             exit(EXIT_FAILURE);
         }
 
@@ -97,7 +97,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             fclose(archivo);
             free(ruta_completa);
             liberar_pcb_memoria(proceso);
-            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
+            //enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
             exit(EXIT_FAILURE);
         }
         num_instruccion++;

@@ -11,6 +11,8 @@ void agregar_pcb_paquete(t_paquete *paquete, t_pcb *pcb);
 void recibir_instruccion(t_instruccion * instruccion);
 void buffer_desempaquetar_instruccion(t_buffer *buffer, t_instruccion * instruccion);
 
+void pedir_frame_memoria(int pagina);
+void recibir_frame(int *frame);
 
 void enviar_fetch_memoria(int pid, u_int32_t pc);
 void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros);
