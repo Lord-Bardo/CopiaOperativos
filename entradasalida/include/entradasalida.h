@@ -26,15 +26,16 @@ int fd_kernel;
 int fd_memoria;
 int fd_entradasalida;
 
-typedef enum {
-    GENERICA,
-    STDIN,
-    STDOUT,
-    DIALFS
-} TipoInterfaz;
+// typedef enum {
+//     GENERICA,
+//     STDIN,
+//     STDOUT,
+//     DIALFS
+// } TipoInterfaz;
 
 //FUNCIONES
-void conectar_a_kernel();
+void conectar_a_kernel(char* nombre_interfaz);
+void agregar_string_a_paquete(t_paquete *paquete, char *string);
 void conectar_a_memoria();
 void terminar_programa();
 

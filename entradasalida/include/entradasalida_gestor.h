@@ -9,6 +9,10 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
+#include <sys/stat.h> // Para saber el estado de un archivo
+#include <sys/mman.h> // Para mmap
+#include <fcntl.h> // Para el open del bitmap
+#include <commons/bitarray.h>
 
 #include <utils/conexion.h>
 
