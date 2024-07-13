@@ -47,5 +47,5 @@ void liberar_pcb_memoria(t_pcb_memoria* proceso)
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria *proceso)
 {
     buffer_desempaquetar(buffer, &(proceso->pid));
-    buffer_desempaquetar(buffer, &(proceso->path));
+    proceso->path = buffer_desempaquetar_string(buffer);
 }

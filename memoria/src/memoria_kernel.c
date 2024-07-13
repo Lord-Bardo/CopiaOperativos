@@ -14,7 +14,7 @@ void atender_memoria_kernel(){
 		switch(cod_op){
 			case SOLICITUD_INICIAR_PROCESO:
                 // Inicializo tabla y lista de instrucciones del proceso recibido.
-                //Quedaría mejor la inicializaci{on en una función aparte, agregar!!
+                //Quedaría mejor la inicialización en una función aparte, agregar!!
 			    t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
                 proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
                 proceso_recibido->path = NULL;
@@ -52,8 +52,10 @@ void atender_memoria_kernel(){
 
 void crear_proceso(t_pcb_memoria *proceso)
 {
+    printf("Imprimo path del config: %s\n", PATH_INSTRUCCIONES);
+    printf("Imprimo path del pseudo: %s\n", proceso->path);
     // Inicializo la cadena de ruta completa.
-    char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
+    char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + strlen(proceso->path) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
     if (ruta_completa == NULL) {
         perror("Error al asignar memoria");
         //enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
