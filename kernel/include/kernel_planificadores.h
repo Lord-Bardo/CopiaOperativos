@@ -28,6 +28,10 @@ void inicializar_estructuras_diccionarios(void);
 void inicializar_estructuras_sockets(void);
 void iniciar_planificacion(void);
 void detener_planificacion(void);
+void detener_planificacion_new_to_ready(void);
+void detener_planificacion_ready_to_exec(void);
+void detener_planificacion_blocked_to_ready(void);
+void detener_planificacion_exec_to_exec_or_ready_or_blocked(void);
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion);
 // PLANIFICADOR CORTO PLAZO
 void planificador_corto_plazo(void);

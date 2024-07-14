@@ -26,7 +26,7 @@ sem_t sem_control_cambio_grado_multiprogramacion;
 
 // Recursos
 t_dictionary *diccionario_recursos;
-// CREAR UN MUTEX PARA CADA DICCIONARIO
+pthread_mutex_t mutex_diccionario_recursos;
 
 // Interfaces
 t_dictionary *diccionario_interfaces;
@@ -90,12 +90,12 @@ void inicializar_estructuras_grado_multiprogramacion(){
 }
 
 void inicializar_estructuras_diccionarios(){
-    // Diccionario interfaces
-    diccionario_recursos = crear_diccionario_recursos(RECURSOS, INSTANCIAS_RECURSOS);
-    pthread_mutex_init(&mutex_diccionario_interfaces, NULL);
     // Diccionario recursos
+    diccionario_recursos = crear_diccionario_recursos(RECURSOS, INSTANCIAS_RECURSOS);
+    pthread_mutex_init(&mutex_diccionario_recursos, NULL);
+    // Diccionario interfaces
     diccionario_interfaces = dictionary_create();
-    // ...
+    pthread_mutex_init(&mutex_diccionario_interfaces, NULL);
 }
 
 void inicializar_estructuras_sockets(){
@@ -105,17 +105,43 @@ void inicializar_estructuras_sockets(){
 
 void iniciar_planificacion(){
     if( estado_planificacion == PAUSADA ){
+        estado_planificacion = ACTIVA;
         sem_post(&sem_estado_planificacion_new_to_ready);
         sem_post(&sem_estado_planificacion_ready_to_exec);
-        sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
         sem_post(&sem_estado_planificacion_blocked_to_ready);
+        sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
     }
 }
 
 void detener_planificacion(){
     if( estado_planificacion == ACTIVA ){
-
+        estado_planificacion = PAUSADA;
+        pthread_t hilo_detener_planificacion_new_to_ready, hilo_detener_planificacion_ready_to_exec, hilo_detener_planificacion_blocked_to_ready, hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked;
+        pthread_create(&hilo_detener_planificacion_new_to_ready, NULL, (void *)detener_planificacion_new_to_ready, NULL);
+        pthread_create(&hilo_detener_planificacion_ready_to_exec, NULL, (void *)detener_planificacion_ready_to_exec, NULL);
+        pthread_create(&hilo_detener_planificacion_blocked_to_ready, NULL, (void *)detener_planificacion_blocked_to_ready, NULL);
+        pthread_create(&hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL, (void *)detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL);
+        pthread_detach(hilo_detener_planificacion_new_to_ready);
+        pthread_detach(hilo_detener_planificacion_ready_to_exec);
+        pthread_detach(hilo_detener_planificacion_blocked_to_ready);
+        pthread_detach(hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked);
     }
+}
+
+void detener_planificacion_new_to_ready(){
+    sem_wait(&sem_estado_planificacion_new_to_ready);
+}
+
+void detener_planificacion_ready_to_exec(){
+    sem_wait(&sem_estado_planificacion_ready_to_exec);
+}
+
+void detener_planificacion_blocked_to_ready(){
+    sem_wait(&sem_estado_planificacion_blocked_to_ready);
+}
+
+void detener_planificacion_exec_to_exec_or_ready_or_blocked(){
+    sem_wait(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
 }
 
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
@@ -237,15 +263,51 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
             break;
         case INTERRUPT_QUANTUM:
             break;
-        // case INTERRUPT_USER:
-        //     break;
+        case INTERRUPT_USER: // se mato al proceso por consola y justo estaba ejecutando
+            proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
+            // sem_post(&sem_grado_multiprogramacion);
+            break;
         case OUT_OF_MEMORY: // Fallo el Resize
             proceso_a_exit(pcb, FINALIZACION_SUCCESS);
             // sem_post(&sem_grado_multiprogramacion);
             break;
         case WAIT:
-            ejecutar_instruccion_wait(pcb, buffer_desempaquetar_string(buffer));
-            if( pcb_get_estado(pcb) == EXEC ){
+        { // uso "bloques compuestos" para evitar los errores de redefinicion de variables -> cada bloque de estos es como q esta aparte, si no los pongo el compilador me toma al switch como una sola cosa y me tira error de redefinicion con nombre_recurso y demas
+            char *nombre_recurso = buffer_desempaquetar_string(buffer);
+            // Verifico que el recurso exista
+            pthread_mutex_lock(&mutex_diccionario_recursos);
+            if( !diccionario_recursos_existe_recurso(diccionario_recursos, nombre_recurso) ){
+                pthread_mutex_unlock(&mutex_diccionario_recursos);
+                proceso_a_exit(pcb, FINALIZACION_INVALID_RESOURCE);
+                // sem_post(&sem_grado_multiprogramacion); -> Tengo q definir si lo hago en proceso_a_exit, cuando libero los recursos o lo hago siempre seguido al proceso_a_exit
+            }
+            else{
+                pthread_mutex_unlock(&mutex_diccionario_recursos);
+                ejecutar_instruccion_wait(pcb, nombre_recurso);
+                if( pcb_get_estado(pcb) == EXEC ){
+                    sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
+                    // sem_wait(&sem_estado_planificacion_ready_to_exec); // nose q tan necesario es volver a testear aca el estado porq deberia ser transparente para el q esta ejecutando el corte de la planificacion -> el wait es parte de la ejecucion del proceso, por lo que parar la plani en medio de su ejecucion seria raro -> si no es necesario puedo usar ejecutar_proceso()
+                    enviar_contexto_de_ejecucion(pcb);
+                    // sem_post(&sem_estado_planificacion_ready_to_exec);
+                    recibir_contexto_de_ejecucion_actualizado(pcb);
+                }
+            }
+            break;
+        }
+        case SIGNAL:
+        {
+            char *nombre_recurso = buffer_desempaquetar_string(buffer);
+            // Verifico que el recurso exista
+            pthread_mutex_lock(&mutex_diccionario_recursos);
+            if( !diccionario_recursos_existe_recurso(diccionario_recursos, nombre_recurso) ){
+                pthread_mutex_unlock(&mutex_diccionario_recursos);
+                proceso_a_exit(pcb, FINALIZACION_INVALID_RESOURCE);
+                // sem_post(&sem_grado_multiprogramacion); -> Tengo q definir si lo hago en proceso_a_exit, cuando libero los recursos o lo hago siempre seguido al proceso_a_exit
+            }
+            else{
+                pthread_mutex_unlock(&mutex_diccionario_recursos);
+                ejecutar_instruccion_signal(pcb, nombre_recurso);
+                // Despues del signal siempre sigue ejecutando el mismo proceso
                 sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
                 // sem_wait(&sem_estado_planificacion_ready_to_exec); // nose q tan necesario es volver a testear aca el estado porq deberia ser transparente para el q esta ejecutando el corte de la planificacion -> el wait es parte de la ejecucion del proceso, por lo que parar la plani en medio de su ejecucion seria raro -> si no es necesario puedo usar ejecutar_proceso()
                 enviar_contexto_de_ejecucion(pcb);
@@ -253,16 +315,9 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
                 recibir_contexto_de_ejecucion_actualizado(pcb);
             }
             break;
-        case SIGNAL:
-            ejecutar_instruccion_signal(pcb, buffer_desempaquetar_string(buffer));
-            // Despues del signal siempre sigue ejecutando el mismo proceso
-            sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
-            // sem_wait(&sem_estado_planificacion_ready_to_exec); // nose q tan necesario es volver a testear aca el estado porq deberia ser transparente para el q esta ejecutando el corte de la planificacion -> el wait es parte de la ejecucion del proceso, por lo que parar la plani en medio de su ejecucion seria raro -> si no es necesario puedo usar ejecutar_proceso()
-            enviar_contexto_de_ejecucion(pcb);
-            // sem_post(&sem_estado_planificacion_ready_to_exec);
-            recibir_contexto_de_ejecucion_actualizado(pcb);
-            break;
+        }
         case IO:
+        {
             char *nombre_interfaz = buffer_desempaquetar_string(buffer);
             pthread_mutex_lock(&mutex_diccionario_interfaces);
             if( diccionario_interfaces_existe_interfaz(diccionario_interfaces, nombre_interfaz) ){ // la corroboracion de la conexion se hace al momento de mandar la operacion a la interfaz (si existe, es muy probable q siga conectada (salvo q se desconecte justo dsp de la corroboracion))
@@ -289,11 +344,11 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
                                 // Creo la solicitud de entrada salida
                                 t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
                                 
-                                // Encolo la solicitud
-                                interfaz_encolar_solicitud_io(interfaz, solicitud_io);
-                                
                                 // Bloqueo al proceso
                                 proceso_a_blocked(pcb, nombre_interfaz);
+
+                                // Encolo la solicitud
+                                interfaz_encolar_solicitud_io(interfaz, solicitud_io);
                                 break;
                             default:
                                 proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
@@ -318,6 +373,7 @@ void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
                 // sem_post(&sem_grado_multiprogramacion);
             }
             break;
+        }
         default:
             log_error(kernel_logger, "Motivo de desalojo desconocido");
     }
@@ -337,46 +393,56 @@ void iniciar_proceso(char *path){
 }
 
 void finalizar_proceso(int pid){ // TERMINAR
-    detener_planificacion();
-    // Me gusta mas la idea de la lista negra
-    // pthread_mutex_lock(mutex_lista_procesos_pendientes_a_finalizar);
-    // list_add(procesos_pendientes_a_finalizar, pid);
-    // pthread_mutex_unlock(mutex_lista_procesos_pendientes_a_finalizar);
+    detener_planificacion(); // si detengo la plani deberia esperar a que se haya frenado por completo, porq si no se paro por completo puede haber procesos q hayan sido desencolados de una cola para poder meterlas en otra y no lo encuentre
+    // pthread_mutex_lock(&mutex_lista_procesos_pendientes_a_finalizar);
+    // list_add(procesos_pendientes_a_finalizar, pid); // cada vez q modifique la lista de procesos de un estado deberia corroborar que no este queriendo acceder a un proceso q se requiera finalizar
+    // pthread_mutex_unlock(&mutex_lista_procesos_pendientes_a_finalizar);
     // FORMA 1
-    // t_pcb *pcb = estado_rastrear_y_desencolar_pcb_por_pid(pid);
+    t_pcb *pcb = estado_rastrear_y_desencolar_pcb_por_pid(pid); // no esta mal porq lo encuentro y lo saco. Si llego no freno la plani, encontrar el estado y dsp aparte desencolarlo es al pedo porq pudo cambiar de estado
+    // t_nombre_estado nombre_estado = estado_get_nombre_estado(pcb_get_estado(pcb));
     // FORMA 2
-    t_estado *estado = estado_rastrear_pcb_por_pid(pid);
-    if( estado == NULL ){
+    // t_estado *estado = estado_rastrear_pcb_por_pid(pid);
+    // if( estado == NULL ){
+    //     log_error(kernel_logger, "El PCB solicitado no se encuentra en el sistema");
+    // }// podria consultar si ya se encontro dsp de buscar en cada lista
+    if( pcb != NULL ){
+        switch( pcb_get_estado(pcb) ){
+            case NEW:
+                proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
+                // sem_post(&sem_grado_multiprogramacion);
+                break;
+            case READY:
+                proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
+                // sem_post(&sem_grado_multiprogramacion);
+                break;
+            case READY_PLUS:
+                proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
+                // sem_post(&sem_grado_multiprogramacion);
+                break;
+            case BLOCKED:
+                proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
+                // sem_post(&sem_grado_multiprogramacion);
+                break;
+            case EXEC:
+                // Mandar interrupcion a CPU y la respuesta es manejada en manejar motivo desalojo
+                enviar_codigo_operacion(fd_cpu_interrupt, INTERRUPT_USER);
+                break;
+            case EXIT:
+                log_error(kernel_logger, "El PCB solicitado ya esta siendo eliminado del sistema");
+                break;
+        }
+    }
+    else{
         log_error(kernel_logger, "El PCB solicitado no se encuentra en el sistema");
     }
-    switch(estado_get_nombre_estado(estado)){
-        case BLOCKED:
-            // Deberia mandarlo a exit cuando la io avise q termino
-            break;
-        case EXEC:
-            // Mandar interrupcion a CPU
-            break;
-        case EXIT:
-            log_error(kernel_logger, "El PCB solicitado ya esta siendo eliminado del sistema");
-            break;
-        default:
-            t_pcb *pcb = estado_desencolar_pcb_por_pid(estado, pid); // revisar el quilombo de kernel_estado.c
-            sem_post(&sem_grado_multiprogramacion);
-    }
-    
-    // Se deberia liberar la memoria asignada al proceso
-    // list_remove_by_condition();
-    // proceso_a_exit();
-    // sem_post(&sem_grado_multiprogramacion);
 
-    // Pseudocodigo
-    // detener_planificacion(); -> tiene que frenar las transiciones?
+    iniciar_planificacion();
 }
 
-
+#include <unistd.h>
 
 void planificador_largo_plazo(){
-    // Manejar ESTADO -> EXIT
+    // Manejar EXIT
     pthread_t hilo_liberar_procesos_exit;
     pthread_create(&hilo_liberar_procesos_exit, NULL, (void *)liberar_procesos_exit, NULL);
     pthread_detach(hilo_liberar_procesos_exit);
@@ -397,14 +463,8 @@ void planificador_largo_plazo(){
             // sem_post(&sem_grado_multiprogramacion);
         }
         sem_post(&sem_estado_planificacion_new_to_ready);
+        sleep(0.001); // !!!!!!!!!!!!!!!!!!!!
     }
-
-    
-    // // Estas funciones se podrían unir en una sola y hacer un for, pero capaz queda mas simple hacer estas 4 funciones y listo
-    // manejador_new_exit();
-    // manejador_ready_exit();
-    // manejador_exec_exit();
-    // manejador_blocked_exit();
 }
 
 t_codigo_operacion pedir_a_memoria_iniciar_proceso(int pid, char *path){
@@ -434,7 +494,7 @@ void liberar_procesos_exit(){
                 liberar_recursos_usados(pcb);
             }
             eliminar_pcb(pcb);
-            // sem_post(&sem_grado_multiprogramacion);
+            sem_post(&sem_grado_multiprogramacion);
         }
         else{
             log_error(kernel_logger, "MEMORIA no finalizo correctamente el proceso!");
@@ -480,110 +540,79 @@ void liberar_recurso(t_pcb *pcb, char *nombre_recurso){
 }
 
 void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
-    // Verifico que el recurso exista
-    if( !diccionario_recursos_existe_recurso(diccionario_recursos, nombre_recurso) ){
-        proceso_a_exit(pcb, FINALIZACION_INVALID_RESOURCE);
-        // sem_post(&sem_grado_multiprogramacion); -> Tengo q definir si lo hago en proceso_a_exit, cuando libero los recursos o lo hago siempre seguido al proceso_a_exit
-    }
-    else{
-        // Impacto el signal en el recurso (aumento en 1 la cantidad de instancias)
-        t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, nombre_recurso);
-        recurso_signal(recurso);
+    pthread_mutex_lock(&mutex_diccionario_recursos);
+    t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, nombre_recurso);
+    pthread_mutex_unlock(&mutex_diccionario_recursos);
+    
+    pthread_mutex_lock(recurso_get_mutex_recurso(recurso));
 
-        // Impacto el signal en el pcb (disminuyo en 1 las instancias tomadas). Esto lo realizo solo si el proceso tiene tomada una instancia del recurso. Si el proceso no usa el recurso (tiene tomadas 0 instancias), entonces el mismo esta creando una nueva instancia del recurso con el signal -> no hay nada que impactar en el pcb (la instancia del recurso ya fue creada arriba con recurso_signal).
-        if( pcb_usa_recurso(pcb, nombre_recurso) ){
-            t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
-            int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
-            if( *instancias_usadas > 1 ){
-                // Si el proceso tomo mas de una instancia => le resto una instancia (ya que realizo un signal y libero una) y actualizo su diccionario
-                (*instancias_usadas)--;
-                dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas); 
-            }
-            else{
-                // Si el proceso solo tiene tomada una instancia => directamente elimino al recurso de su diccionario, ya que al hacer el signal no tendra ninguna instancia
-                dictionary_remove_and_destroy(diccionario_recursos_usados, nombre_recurso, free);
-            }
+    // Impacto el signal en el recurso (aumento en 1 la cantidad de instancias)
+    recurso_signal(recurso);
+
+    // Impacto el signal en el pcb (disminuyo en 1 las instancias tomadas). Esto lo realizo solo si el proceso tiene tomada una instancia del recurso. Si el proceso no usa el recurso (tiene tomadas 0 instancias), entonces el mismo esta creando una nueva instancia del recurso con el signal -> no hay nada que impactar en el pcb (la instancia del recurso ya fue creada arriba con recurso_signal).
+    if( pcb_usa_recurso(pcb, nombre_recurso) ){
+        t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+        int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+        if( *instancias_usadas > 1 ){
+            // Si el proceso tomo mas de una instancia => le resto una instancia (ya que realizo un signal y libero una) y actualizo su diccionario
+            (*instancias_usadas)--;
+            dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas); 
         }
-        
-        // Compruebo si tras el signal se debe desbloquear algun proceso
-        if( recurso_debe_desbloquear_proceso(recurso) ){
-            sem_wait(&sem_estado_planificacion_blocked_to_ready);
-            // Desbloqueo al primero proceso
-            t_pcb *pcb = recurso_desencolar_primer_proceso(recurso);
-            estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
-            // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
-            proceso_a_ready(pcb);
-            sem_post(&sem_estado_planificacion_blocked_to_ready);
+        else{
+            // Si el proceso solo tiene tomada una instancia => directamente elimino al recurso de su diccionario, ya que al hacer el signal no tendra ninguna instancia
+            dictionary_remove_and_destroy(diccionario_recursos_usados, nombre_recurso, free);
         }
     }
+    
+    
+    // Compruebo si tras el signal se debe desbloquear algun proceso
+    if( recurso_debe_desbloquear_proceso(recurso) ){
+        sem_wait(&sem_estado_planificacion_blocked_to_ready);
+        // Desbloqueo al primero proceso
+        t_pcb *pcb = recurso_desencolar_primer_proceso(recurso);
+        estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
+        // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
+        proceso_a_ready(pcb);
+        sem_post(&sem_estado_planificacion_blocked_to_ready);
+    }
+
+    pthread_mutex_unlock(recurso_get_mutex_recurso(recurso));
 }
 
 void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso){
-    // Verifico que el recurso exista
-    if( !diccionario_recursos_existe_recurso(diccionario_recursos, nombre_recurso) ){
-        proceso_a_exit(pcb, FINALIZACION_INVALID_RESOURCE);
-        // sem_post(&sem_grado_multiprogramacion); -> Tengo q definir si lo hago en proceso_a_exit, cuando libero los recursos o lo hago siempre seguido al proceso_a_exit
+    pthread_mutex_lock(&mutex_diccionario_recursos);
+    t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, nombre_recurso);
+    pthread_mutex_unlock(&mutex_diccionario_recursos);
+    
+    pthread_mutex_lock(recurso_get_mutex_recurso(recurso));
+    
+    // Impacto el wait en el recurso
+    recurso_wait(recurso);
+
+    // Impacto el wait en el pcb
+    // Si el proceso ya tenia tomada una instancia le agrego una mas
+    // Si el proceso no tenia tomada ninguna instancia le agrego el recurso a su diccionario con 1 instancia
+    t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
+    if( pcb_usa_recurso(pcb, nombre_recurso) ){
+        int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
+        (*instancias_usadas)++;
+        dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas);
     }
     else{
-        // Impacto el wait en el recurso
-        t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, nombre_recurso);
-        recurso_wait(recurso);
-
-        // Impacto el wait en el pcb
-        // Si el proceso ya tenia tomada una instancia le agrego una mas
-        // Si el proceso no tenia tomada ninguna instancia le agrego el recurso a su diccionario con 1 instancia
-        t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
-        if( pcb_usa_recurso(pcb, nombre_recurso) ){
-            int *instancias_usadas = (int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
-            (*instancias_usadas)++;
-            dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas);
-        }
-        else{
-            int *instancias_usadas = malloc(sizeof(int));
-            *instancias_usadas = 1; 
-            dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas);
-        }
-        
-        // Compruebo si tras el wait se debe bloquear al proceso
-        if( recurso_debe_bloquear_proceso(recurso) ){
-            // Bloqueo al proceso (lo encolo en la cola del recurso)
-            recurso_encolar_proceso(recurso, pcb);
-            proceso_a_blocked(pcb, nombre_recurso);
-        }
+        int *instancias_usadas = malloc(sizeof(int));
+        *instancias_usadas = 1; 
+        dictionary_put(diccionario_recursos_usados, nombre_recurso, instancias_usadas);
     }
+    
+    // Compruebo si tras el wait se debe bloquear al proceso
+    if( recurso_debe_bloquear_proceso(recurso) ){
+        // Bloqueo al proceso (lo encolo en la cola del recurso)
+        recurso_encolar_proceso(recurso, pcb);
+        proceso_a_blocked(pcb, nombre_recurso);
+    }
+
+    pthread_mutex_unlock(recurso_get_mutex_recurso(recurso));
 }
-
-// void manejador_new_exit() {
-//     while (estado_planificacion) {
-//         sem_wait(estado_get_sem(estado_new)); 
-//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
-//         proceso_a_exit(pcb);
-//     }
-// }
-
-// void manejador_ready_exit() {
-//     while (estado_planificacion) {
-//         sem_wait(estado_get_sem(estado_ready));
-//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_ready);
-//         proceso_a_exit(pcb);
-//     }
-// }
-
-// void manejador_exec_exit() {
-//     while (estado_planificacion) {
-//         sem_wait(estado_get_sem(estado_exec));
-//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_exec);
-//         proceso_a_exit(pcb);
-//     }
-// }
-
-// void manejador_blocked_exit() {
-//     while (estado_planificacion) {
-//         sem_wait(estado_get_sem(estado_blocked));
-//         t_pcb *pcb = estado_desencolar_primer_pcb(estado_blocked);
-//         proceso_a_exit(pcb);
-//     }
-// }
 
 // PROCESO A ... ---------------------------------------------------
 

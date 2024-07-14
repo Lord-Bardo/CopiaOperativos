@@ -18,6 +18,7 @@ void estado_encolar_pcb(t_estado *estado, t_pcb *pcb);
 t_pcb *estado_desencolar_primer_pcb(t_estado *estado);
 t_pcb *estado_desencolar_pcb_por_pid(t_estado *estado, int pid);
 bool pcb_comparar_pid(void *pcb, void *pid);
+t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid);
 int list_get_index(t_list *list, bool (*cutting_condition)(void *temp, void *target), void *target);
 bool estado_contiene_pcbs(t_estado *estado);
 t_estado *estado_rastrear_pcb_por_pid(int pid);

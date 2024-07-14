@@ -10,29 +10,53 @@ void atender_kernel_interfaz(void *nombre_interfaz){
 	while(1){
 		t_solicitud_io *solicitud_io = interfaz_desencolar_primera_solicitud_io(interfaz);
         t_pcb *pcb = solicitud_io_get_pcb(solicitud_io);
-        if( enviar_paquete(fd_interfaz, solicitud_io_get_paquete_solicitud_io(solicitud_io)) > 0 ){
-            eliminar_solicitud_io(solicitud_io);
-            if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) > 0 ){
-                switch(codigo_operacion){
-                    case IO_FIN_OPERACION:
-                        sem_wait(&sem_estado_planificacion_blocked_to_ready);
-                        // Desbloquear proceso
-                        estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb));
-                        // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
-                        proceso_a_ready(pcb);
-                        sem_post(&sem_estado_planificacion_blocked_to_ready);
-                        break;
-                    default:
-                        log_warning(kernel_logger, "KERNEL: Operacion desconocida recibida de ENTRADASALIDA");
+        if( pcb != NULL){ // Si pcb == NULL => significa que el proceso fue finalizado mientras esperaba a que se ejecute su solicitud de io, por lo que descarto la solicitud
+            if( enviar_paquete(fd_interfaz, solicitud_io_get_paquete_solicitud_io(solicitud_io)) > 0 ){
+                eliminar_solicitud_io(solicitud_io);
+                if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) > 0 ){
+                    switch(codigo_operacion){
+                        case IO_FIN_OPERACION:
+                            if( pcb != NULL){ // Si pcb == NULL => significa que el proceso fue finalizado mientras se hacia la io, por lo que lo descarto
+                                sem_wait(&sem_estado_planificacion_blocked_to_ready);
+                                // Desbloquear proceso
+                                estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb));
+                                // ACA PODRIA HACER UN IF(ESTA_EN_LA_BLACK_LIST(PCB)){LO MATO}ELSE{ PROCESO_A_READY(PCB)}
+                                // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
+                                proceso_a_ready(pcb);
+                                sem_post(&sem_estado_planificacion_blocked_to_ready);
+                            }
+                            break;
+                        default:
+                            log_warning(kernel_logger, "KERNEL: Operacion desconocida recibida de ENTRADASALIDA");
+                    }
                 }
-		    }
+                else{
+                    log_info(kernel_logger, "La interfaz %s se desconecto!", (char *)nombre_interfaz);
+
+                    if( pcb != NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras se hacia la io, por lo que lo descarto
+                        // Elimino la solicitud y envio al proceso que estaba esperando por la io a exit
+                        eliminar_solicitud_io(solicitud_io);
+                        proceso_a_exit(pcb, FINALIZACION_DESCONEXION_INTERFAZ);
+                        // sem_post(&sem_grado_multiprogramacion);
+                    }
+
+                    // Elimino la interfaz del diccionario (siempre y cuando nadie haya accedido al diccionario ni se este usando la instancia de t_interfaz)
+                    pthread_mutex_lock(&mutex_diccionario_interfaces);
+                    sem_wait(interfaz_get_sem_control_uso_interfaz(interfaz));
+                    diccionario_interfaces_eliminar_interfaz(diccionario_interfaces, nombre_interfaz);
+                    // el post del semaforo no lo hago porq para este momento la interfaz ya no existe y,en consecuencia, el semaforo tmp
+                    pthread_mutex_unlock(&mutex_diccionario_interfaces);
+                }
+            }
             else{
                 log_info(kernel_logger, "La interfaz %s se desconecto!", (char *)nombre_interfaz);
-            
-                // Elimino la solicitud y envio al proceso que estaba esperando por la io a exit
-                eliminar_solicitud_io(solicitud_io);
-                proceso_a_exit(pcb, FINALIZACION_DESCONEXION_INTERFAZ);
-                // sem_post(&sem_grado_multiprogramacion);
+                
+                if( pcb != NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras se hacia el envio del paquete, por lo que lo descarto
+                    // Elimino la solicitud y envio al proceso que estaba esperando por la io a exit
+                    eliminar_solicitud_io(solicitud_io);
+                    proceso_a_exit(pcb, FINALIZACION_DESCONEXION_INTERFAZ);
+                    // sem_post(&sem_grado_multiprogramacion);
+                }
 
                 // Elimino la interfaz del diccionario (siempre y cuando nadie haya accedido al diccionario ni se este usando la instancia de t_interfaz)
                 pthread_mutex_lock(&mutex_diccionario_interfaces);
@@ -42,22 +66,7 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                 pthread_mutex_unlock(&mutex_diccionario_interfaces);
             }
         }
-        else{
-            log_info(kernel_logger, "La interfaz %s se desconecto!", (char *)nombre_interfaz);
-            
-            // Elimino la solicitud y envio al proceso que estaba esperando por la io a exit
-            eliminar_solicitud_io(solicitud_io);
-            proceso_a_exit(pcb, FINALIZACION_DESCONEXION_INTERFAZ);
-            // sem_post(&sem_grado_multiprogramacion);
-
-            // Elimino la interfaz del diccionario (siempre y cuando nadie haya accedido al diccionario ni se este usando la instancia de t_interfaz)
-            pthread_mutex_lock(&mutex_diccionario_interfaces);
-            sem_wait(interfaz_get_sem_control_uso_interfaz(interfaz));
-            diccionario_interfaces_eliminar_interfaz(diccionario_interfaces, nombre_interfaz);
-            // el post del semaforo no lo hago porq para este momento la interfaz ya no existe y,en consecuencia, el semaforo tmp
-            pthread_mutex_unlock(&mutex_diccionario_interfaces);
-        }
-	}
+    }
 }
 
 // INTERFAZ --------------------------------------------------

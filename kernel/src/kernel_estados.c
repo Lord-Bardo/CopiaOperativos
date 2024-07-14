@@ -103,7 +103,7 @@ t_pcb *estado_desencolar_pcb_por_pid(t_estado *estado, int pid){
     // if( index != -1 ){
     //     pcb = list_remove(estado_get_lista_procesos(estado), index);
     // }
-    bool pcb_comparar_pid(void *pcb){ return pcb_get_pid((t_pcb *) pcb) == pid; }
+    bool pcb_comparar_pid(void *pcb){ return pcb_get_pid((t_pcb *) pcb) == pid; } // "nested function"
     t_pcb *pcb = list_remove_by_condition(estado_get_lista_procesos(estado), pcb_comparar_pid);
     pthread_mutex_unlock(estado_get_mutex(estado));
 
@@ -128,43 +128,43 @@ int list_get_index(t_list *list, bool (*cutting_condition)(void *temp, void *tar
 }
 
 
+t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
+    t_pcb* pcb = NULL;
+    
+    if( estado_contiene_pcbs(estado_new) ){
+        pcb = estado_desencolar_pcb_por_pid(estado_new, pid);
+        if( pcb != NULL ){
+            return pcb;
+        }
+    }
+    if( estado_contiene_pcbs(estado_ready) ){
+        pcb = estado_desencolar_pcb_por_pid(estado_ready, pid);
+        if( pcb != NULL ){
+            return pcb;
+        }
+    }
+    if( estado_contiene_pcbs(estado_ready_plus) ){
+        pcb = estado_desencolar_pcb_por_pid(estado_ready_plus, pid);
+        if( pcb != NULL ){
+            return pcb;
+        }
+    }
+    if( estado_contiene_pcbs(estado_blocked) ){
+        pcb = estado_desencolar_pcb_por_pid(estado_blocked, pid);
+        if( pcb != NULL ){
+            return pcb;
+        }
+    }
+    if( estado_contiene_pcbs(estado_exec) ){
+        pcb = estado_desencolar_pcb_por_pid(estado_exec, pid);
+        if( pcb != NULL ){
+            return pcb;
+        }
+    }
+    
+    return pcb;
+}
 
-// t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
-//     t_pcb* pcb = NULL;
-    
-//     if( estado_contiene_pcbs(estado_new) ){
-//         pcb = estado_desencolar_pcb_por_pid(estado_new, pid);
-//         if( pcb != NULL ){
-//             return pcb;
-//         }
-//     }
-//     if( estado_contiene_pcbs(estado_ready) ){
-//         pcb = estado_desencolar_pcb_por_pid(estado_ready, pid);
-//         if( pcb != NULL ){
-//             return pcb;
-//         }
-//     }
-//     if( estado_contiene_pcbs(estado_ready_plus) ){
-//         pcb = estado_desencolar_pcb_por_pid(estado_ready_plus, pid);
-//         if( pcb != NULL ){
-//             return pcb;
-//         }
-//     }
-//     if( estado_contiene_pcbs(estado_blocked) ){
-//         pcb = estado_desencolar_pcb_por_pid(estado_blocked, pid);
-//         if( pcb != NULL ){
-//             return pcb;
-//         }
-//     }
-//     if( estado_contiene_pcbs(estado_exec) ){
-//         pcb = estado_desencolar_pcb_por_pid(estado_exec, pid);
-//         if( pcb != NULL ){
-//             return pcb;
-//         }
-//     }
-    
-//     return pcb;
-// }
 
 bool estado_contiene_pcbs(t_estado *estado){
     return !list_is_empty(estado_get_lista_procesos(estado));
