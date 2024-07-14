@@ -7,6 +7,17 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
+	detener_planificacion();
+	t_pcb *pcb1 = crear_pcb(0, "p");
+	estado_encolar_pcb(estado_new, pcb1);
+	t_pcb *pcb2 = crear_pcb(1, "p");
+	estado_encolar_pcb(estado_new, pcb2);
+	t_pcb *pcb3 = crear_pcb(2, "p");
+	estado_encolar_pcb(estado_new, pcb3);
+
+	t_pcb *pcb4 = estado_rastrear_y_desencolar_pcb_por_pid(2);
+	log_info(kernel_logger, "%d", pcb_get_pid(pcb4));
+
 	iniciar_consola_interactiva();
 
 	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)

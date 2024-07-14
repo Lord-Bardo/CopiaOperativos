@@ -57,7 +57,7 @@ typedef enum{
     DATO, 
     PCB,//usado para mov_in y mov_out
     FRAME,
-    OP_RESIZE
+    OP_RESIZE,
     // ...
     //ENTRADASALIDA - MEMORIA
     SOLICITUD_ESCRITURA,

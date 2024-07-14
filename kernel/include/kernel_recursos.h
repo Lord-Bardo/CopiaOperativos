@@ -8,8 +8,11 @@
 // RECURSO
 t_recurso *crear_recurso(int instancias);
 void eliminar_recurso(void *recurso);
-t_estado *recurso_get_estado_recurso(t_recurso *recurso);
 int recurso_get_instancias(t_recurso *recurso);
+t_list *recurso_get_lista_procesos_bloqueados(t_recurso *recurso);
+pthread_mutex_t *recurso_get_mutex_lista_procesos_bloqueados(t_recurso *recurso);
+sem_t *estado_get_sem_lista_procesos_bloqueados(t_recurso *recurso);
+pthread_mutex_t *recurso_get_mutex_recurso(t_recurso *recurso);
 void recurso_wait(t_recurso *recurso);
 void recurso_signal(t_recurso *recurso);
 bool recurso_debe_desbloquear_proceso(t_recurso *recurso);

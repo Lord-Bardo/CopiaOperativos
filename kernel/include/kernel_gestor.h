@@ -30,8 +30,7 @@ typedef enum{
     READY_PLUS,
     EXEC,
     BLOCKED,
-    EXIT,
-    RECURSO
+    EXIT
 } t_nombre_estado;
 
 typedef struct{
@@ -55,7 +54,10 @@ typedef struct{
 // Recurso
 typedef struct{
     int instancias;
-    t_estado *estado_recurso;
+    t_list *lista_procesos_bloqueados;
+    pthread_mutex_t *mutex_lista_procesos_bloqueados;
+    sem_t *sem_lista_procesos_bloqueados;
+    pthread_mutex_t *mutex_recurso;
 } t_recurso;
 
 // Interfaz e/s

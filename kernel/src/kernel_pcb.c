@@ -25,7 +25,7 @@ t_pcb *crear_pcb(int pid, char* path){
     return pcb;
 }
 
-void eliminar_pcb(t_pcb *pcb){ // agregar diccionario
+void eliminar_pcb(t_pcb *pcb){
     if( pcb != NULL ){
         if( pcb->registros != NULL ){
             eliminar_registros(pcb->registros);
@@ -39,6 +39,7 @@ void eliminar_pcb(t_pcb *pcb){ // agregar diccionario
         }
 
         free(pcb);
+        pcb = NULL; // para realizar comprobacion de si el proceso ya fue finalizado (en kernel_entradasalida.c por ejemplo)
     }
 }
 
