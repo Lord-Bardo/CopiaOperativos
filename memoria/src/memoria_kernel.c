@@ -38,7 +38,11 @@ void atender_memoria_kernel(){
                 break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
-                //TODO
+                int pid_recibido;
+                buffer_desempaquetar(buffer, pid_recibido);
+                finalizar_proceso(pid_recibido);
+                eliminar_buffer(buffer);
+                break;
 			case -1:
 				log_error(memoria_logger, "Se perdio la conexion con KERNEL!");
 				continuar = 0;
@@ -104,7 +108,7 @@ void crear_proceso(t_pcb_memoria *proceso)
         }
         num_instruccion++;
     }
-    agregar_proceso_a_procesos(*proceso); // Función hecha en utils de memoria.
+    agregar_proceso(*proceso); // Agreso el proceso a lista de procesos.
 //  enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); //DESCOMENTAR UNA VEZ TERMINADO EL TEST
 
     // Cerrar el archivo
@@ -119,3 +123,17 @@ void crear_proceso(t_pcb_memoria *proceso)
 	liberar_pcb_memoria(proceso); 
 }
 
+void finalizar_proceso(int pid_recibido)
+{
+    //Encuentro índice del proceso en cuestión.
+    int i = encontrar_proceso(pid_recibido);
+
+    //Libero memoria del proceso 
+    liberar_pcb_memoria(procesos[i]); // Supongo que con el free de tabla de paginas, los frames pasan a estar disponibles (no se debe borrar la info del frame a pesar de finalizar proceso).
+
+    //Elimino proceso de lista de procesos
+    eliminar_proceso(index);
+
+    //Avisar a KERNEL (creo)
+    enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_FINALIZADO);
+}
