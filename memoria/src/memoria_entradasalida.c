@@ -95,7 +95,7 @@ int escribir_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
 
 int leer_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
     // Verificar que la lectura no exceda los límites de la memoria
-    if (direccion_fisica + tamanio > TAMANIO_MEMORIA) {
+    if (direccion_fisica + tamanio > TAM_MEMORIA) {
         fprintf(stderr, "Lectura fuera de los límites de la memoria\n");
         return -1;
     }
@@ -104,12 +104,3 @@ int leer_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
     memcpy(buffer, espacio_usuario + direccion_fisica, tamanio);
     return 0;
 }
-
-int obtener_cantidad_procesos(){
-    int i = 0;
-    while (procesos[i].pid!= -1) //cumplirá lo que queremos? -> revisar 
-    {
-        i++;
-    }
-    return i;
-} 
