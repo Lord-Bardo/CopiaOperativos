@@ -13,5 +13,6 @@ extern size_t num_instruccion; // Número de instrucciones leídas de un archivo
 //FUNCIONES
 void atender_memoria_kernel(void);
 void crear_proceso(t_pcb_memoria *proceso);
+void finalizar_proceso(int pid);
 
 #endif

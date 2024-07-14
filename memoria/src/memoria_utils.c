@@ -7,6 +7,7 @@ int encontrar_proceso(int pid)
         if(procesos[i].pid == pid)
             return i;
     }
+    return i;
 }
 
 int agregar_proceso(t_pcb_memoria proceso) // Podría poner esto en un utils, no śe...

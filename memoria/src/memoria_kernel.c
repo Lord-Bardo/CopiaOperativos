@@ -38,9 +38,9 @@ void atender_memoria_kernel(){
                 break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
-                int pid_recibido;
+                int *pid_recibido;
                 buffer_desempaquetar(buffer, pid_recibido);
-                finalizar_proceso(pid_recibido);
+                finalizar_proceso(*pid_recibido);
                 eliminar_buffer(buffer);
                 break;
 			case -1:
@@ -56,8 +56,8 @@ void atender_memoria_kernel(){
 
 void crear_proceso(t_pcb_memoria *proceso)
 {
-    printf("Imprimo path del config: %s\n", PATH_INSTRUCCIONES);
-    printf("Imprimo path del pseudo: %s\n", proceso->path);
+    //printf("Imprimo path del config: %s\n", PATH_INSTRUCCIONES);
+    //printf("Imprimo path del pseudo: %s\n", proceso->path);
     // Inicializo la cadena de ruta completa.
     char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + strlen(proceso->path) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
     if (ruta_completa == NULL) {
@@ -116,23 +116,24 @@ void crear_proceso(t_pcb_memoria *proceso)
     free(ruta_completa);
 
     //borrar una vez terminado el testeo
-    printf("Imprimo primer y ultima instruccion del proceso: %s\n", procesos[0].pid);
+    printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
     printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
 	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
-	log_info(memoria_logger, "Entré y salí de crear proceso y cree proceso existosamente :)");
-	liberar_pcb_memoria(proceso); 
+	log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
+	//liberar_pcb_memoria(proceso); 
 }
 
 void finalizar_proceso(int pid_recibido)
 {
     //Encuentro índice del proceso en cuestión.
     int i = encontrar_proceso(pid_recibido);
+    t_pcb_memoria* proceso = &procesos[i];
 
     //Libero memoria del proceso 
-    liberar_pcb_memoria(procesos[i]); // Supongo que con el free de tabla de paginas, los frames pasan a estar disponibles (no se debe borrar la info del frame a pesar de finalizar proceso).
+    liberar_pcb_memoria(proceso); // Supongo que con el free de tabla de paginas, los frames pasan a estar disponibles (no se debe borrar la info del frame a pesar de finalizar proceso).
 
     //Elimino proceso de lista de procesos
-    eliminar_proceso(index);
+    eliminar_proceso(i);
 
     //Avisar a KERNEL (creo)
     enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_FINALIZADO);
