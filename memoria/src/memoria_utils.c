@@ -1,6 +1,16 @@
 #include "../include/memoria_utils.h"
 
-int agregar_proceso_a_procesos(t_pcb_memoria proceso) // Podría poner esto en un utils, no śe...
+int encontrar_proceso(int pid)
+{
+    int i = 0;
+    while(procesos[i].pid != -1){
+        if(procesos[i].pid == pid)
+            return i;
+    }
+    return i;
+}
+
+int agregar_proceso(t_pcb_memoria proceso) // Podría poner esto en un utils, no śe...
 {
     for (int i = 0; i < (TAM_MEMORIA/TAM_PAGINA); i++) {
         if (procesos[i].pid == -1) { // Celda vacía encontrada
@@ -9,6 +19,20 @@ int agregar_proceso_a_procesos(t_pcb_memoria proceso) // Podría poner esto en u
         }
     }
     return 0; // Error, no hay celdas vacías (supongo que la máxima cant. de procesos que puede haber será TAM_MEMORIA/TAM_PAGINA, es decir procesos de una sola pág.)
+}
+
+int eliminar_proceso(int index)
+{
+//  Si no encuentra el proceso, salgo de la función.
+    if(procesos[index].pid == -1)
+        return 0; // 0 Si no se encontró el proceso
+
+//  Desplazar los elementos del array para llenar el hueco dejado por el proceso eliminado.
+    for (int j = index; j < (TAM_MEMORIA/TAM_PAGINA) - 1; j++) {
+        procesos[j] = procesos[j + 1];
+    }
+
+    return 1; // Éxito, 1 si se encontró el proceso y se eliminó.  
 }
 
 bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida del archivo de pseudocodigo comienza con alguno de estos strings.
@@ -47,5 +71,5 @@ void liberar_pcb_memoria(t_pcb_memoria* proceso)
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria *proceso)
 {
     buffer_desempaquetar(buffer, &(proceso->pid));
-    buffer_desempaquetar(buffer, &(proceso->path));
+    proceso->path = buffer_desempaquetar_string(buffer);
 }

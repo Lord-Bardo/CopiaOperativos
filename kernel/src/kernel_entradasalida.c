@@ -15,10 +15,12 @@ void atender_kernel_interfaz(void *nombre_interfaz){
             if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) > 0 ){
                 switch(codigo_operacion){
                     case IO_FIN_OPERACION:
+                        sem_wait(&sem_estado_planificacion_blocked_to_ready);
                         // Desbloquear proceso
                         estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb));
                         // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
                         proceso_a_ready(pcb);
+                        sem_post(&sem_estado_planificacion_blocked_to_ready);
                         break;
                     default:
                         log_warning(kernel_logger, "KERNEL: Operacion desconocida recibida de ENTRADASALIDA");
@@ -156,19 +158,19 @@ sem_t *interfaz_get_sem_control_uso_interfaz(t_interfaz *interfaz){
 }
 
 t_solicitud_io *interfaz_desencolar_primera_solicitud_io(t_interfaz *interfaz){
-	sem_wait(interfaz_get_sem(interfaz)); // debe haber elementos en la lista para poder desencolar
-    pthread_mutex_lock(interfaz_get_mutex(interfaz));
+	sem_wait(interfaz_get_sem_lista_solicitudes_io(interfaz)); // debe haber elementos en la lista para poder desencolar
+    pthread_mutex_lock(interfaz_get_mutex_lista_solicitudes_io(interfaz));
     t_solicitud_io *solicitud_io = list_remove(interfaz_get_lista_solicitudes_io(interfaz), 0);
-    pthread_mutex_unlock(interfaz_get_mutex(interfaz));
+    pthread_mutex_unlock(interfaz_get_mutex_lista_solicitudes_io(interfaz));
 
     return solicitud_io;
 }
 
 void interfaz_encolar_solicitud_io(t_interfaz *interfaz, t_solicitud_io *solicitud_io){
-	pthread_mutex_lock(interfaz_get_mutex(interfaz));
+	pthread_mutex_lock(interfaz_get_mutex_lista_solicitudes_io(interfaz));
     list_add(interfaz_get_lista_solicitudes_io(interfaz), solicitud_io);
-    pthread_mutex_unlock(interfaz_get_mutex(interfaz));
-    sem_post(interfaz_get_sem(interfaz));
+    pthread_mutex_unlock(interfaz_get_mutex_lista_solicitudes_io(interfaz));
+    sem_post(interfaz_get_sem_lista_solicitudes_io(interfaz));
 }
 
 // DICCIONARIO INTERFACES --------------------------------------------------

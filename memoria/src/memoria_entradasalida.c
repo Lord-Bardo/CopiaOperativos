@@ -83,7 +83,7 @@ void atender_memoria_entradasalida(){
 
 int escribir_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
     // Verificar que la escritura no exceda los límites de la memoria
-    if (direccion_fisica + tamanio > TAMANIO_MEMORIA) {
+    if (direccion_fisica + tamanio > TAM_MEMORIA) {
         fprintf(stderr, "Escritura fuera de los límites de la memoria\n");
         return -1;
     }

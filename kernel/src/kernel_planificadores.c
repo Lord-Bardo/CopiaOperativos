@@ -3,6 +3,10 @@
 // VARIABLES GLOBALES
 // Planificacion
 t_estado_planificacion estado_planificacion;
+sem_t sem_estado_planificacion_new_to_ready;
+sem_t sem_estado_planificacion_ready_to_exec;
+sem_t sem_estado_planificacion_blocked_to_ready;
+sem_t sem_estado_planificacion_exec_to_exec_or_ready_or_blocked;
 
 // Estados
 t_estado *estado_new;
@@ -16,18 +20,20 @@ t_estado *estado_exit;
 int pid_actual;
 pthread_mutex_t mutex_pid;
 
-// Semaforos
-pthread_mutex_t mutex_grado_multiprogramacion;
+// Grado multiprogramacion
 sem_t sem_grado_multiprogramacion;
-pthread_mutex_t mutex_socket_memoria;
-pthread_mutex_t mutex_diccionario_interfaces;
-// CREAR UN MUTEX PARA CADA DICCIONARIO
+sem_t sem_control_cambio_grado_multiprogramacion;
 
 // Recursos
 t_dictionary *diccionario_recursos;
+// CREAR UN MUTEX PARA CADA DICCIONARIO
 
 // Interfaces
 t_dictionary *diccionario_interfaces;
+pthread_mutex_t mutex_diccionario_interfaces;
+
+// Semaforos sockets
+pthread_mutex_t mutex_socket_memoria;
 
 // INICIALIZACION PLANIFICADORES ------------------------------------------
 void iniciar_planificadores(){
@@ -48,10 +54,20 @@ void iniciar_planificadores(){
 }
 
 void inicializar_estructuras(){
+    inicializar_estructuras_planificacion();
     inicializar_estructuras_estados();
     inicializar_estructuras_pid();
-    inicializar_semaforos();
-    inicializar_diccionarios();
+    inicializar_estructuras_grado_multiprogramacion();
+    inicializar_estructuras_diccionarios();
+    inicializar_estructuras_sockets();
+}
+
+void inicializar_estructuras_planificacion(){
+    estado_planificacion = PAUSADA;
+    sem_init(&sem_estado_planificacion_new_to_ready, 0, 0);
+    sem_init(&sem_estado_planificacion_ready_to_exec, 0, 0);
+    sem_init(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked, 0, 0);
+    sem_init(&sem_estado_planificacion_blocked_to_ready, 0, 0); 
 }
 
 void inicializar_estructuras_estados(){
@@ -68,29 +84,43 @@ void inicializar_estructuras_pid(void){
     pthread_mutex_init(&mutex_pid, NULL);
 }
 
-void inicializar_semaforos(){
-    pthread_mutex_init(&mutex_grado_multiprogramacion, NULL);
+void inicializar_estructuras_grado_multiprogramacion(){
     sem_init(&sem_grado_multiprogramacion, 0, GRADO_MULTIPROGRAMACION);
-    pthread_mutex_init(&mutex_socket_memoria, NULL);
-    pthread_mutex_init(&mutex_diccionario_interfaces, NULL);
+    sem_init(&sem_control_cambio_grado_multiprogramacion, 0, 1);
 }
 
-void inicializar_diccionarios(){
+void inicializar_estructuras_diccionarios(){
+    // Diccionario interfaces
     diccionario_recursos = crear_diccionario_recursos(RECURSOS, INSTANCIAS_RECURSOS);
+    pthread_mutex_init(&mutex_diccionario_interfaces, NULL);
+    // Diccionario recursos
     diccionario_interfaces = dictionary_create();
+    // ...
+}
+
+void inicializar_estructuras_sockets(){
+    // Socket memoria
+    pthread_mutex_init(&mutex_socket_memoria, NULL);
 }
 
 void iniciar_planificacion(){
-    estado_planificacion = ACTIVA;
+    if( estado_planificacion == PAUSADA ){
+        sem_post(&sem_estado_planificacion_new_to_ready);
+        sem_post(&sem_estado_planificacion_ready_to_exec);
+        sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
+        sem_post(&sem_estado_planificacion_blocked_to_ready);
+    }
 }
 
 void detener_planificacion(){
-    estado_planificacion = PAUSADA;
+    if( estado_planificacion == ACTIVA ){
+
+    }
 }
 
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
-    pthread_mutex_lock(&mutex_grado_multiprogramacion);
-    
+    sem_wait(&sem_control_cambio_grado_multiprogramacion);
+
     int diferencia = nuevo_grado_multiprogramacion - GRADO_MULTIPROGRAMACION;
     GRADO_MULTIPROGRAMACION = nuevo_grado_multiprogramacion;
     
@@ -105,7 +135,7 @@ void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion){
         }
     }
 
-    pthread_mutex_unlock(&mutex_grado_multiprogramacion);
+    sem_post(&sem_control_cambio_grado_multiprogramacion);
 }
 
 // PLANIFICADOR CORTO PLAZO ---------------------------------------------------
@@ -127,11 +157,13 @@ void planificador_corto_plazo(){
 
 // FIFO
 void planificador_corto_plazo_fifo(){
-    while( estado_planificacion ){
+    while(1){
+        sem_wait(&sem_estado_planificacion_ready_to_exec);
         t_pcb *pcb = elegir_proceso_segun_fifo();
         proceso_a_exec(pcb);
         enviar_contexto_de_ejecucion(pcb);
-        recibir_contexto_de_ejecucion_actualizado(); // Modifica directo al pcb con lo que recibe
+        recibir_contexto_de_ejecucion_actualizado(pcb);
+        sem_post(&sem_estado_planificacion_ready_to_exec);
     }
 }
 
@@ -145,7 +177,7 @@ void planificador_corto_plazo_rr(){ //TERMINAR
         t_pcb *pcb = elegir_proceso_segun_rr();
         proceso_a_exec(pcb);
         enviar_contexto_de_ejecucion(pcb);
-        recibir_contexto_de_ejecucion_actualizado(); // Modifica directo al pcb con lo que recibe
+        recibir_contexto_de_ejecucion_actualizado(pcb);
     }
 }
 
@@ -159,7 +191,7 @@ void planificador_corto_plazo_vrr(){ //TERMINAR
         t_pcb *pcb = elegir_proceso_segun_rr();
         proceso_a_exec(pcb);
         enviar_contexto_de_ejecucion(pcb);
-        recibir_contexto_de_ejecucion_actualizado(); // Modifica directo al pcb con lo que recibe
+        recibir_contexto_de_ejecucion_actualizado(pcb);
         // estado_ordenar_por_quantum_restante(estado_ready_plus); lo comente para q pueda compilar nomas
     }
 }
@@ -173,6 +205,11 @@ t_pcb *elegir_proceso_segun_vrr(){
     }
 }
 
+// void ejecutar_proceso(t_pcb *pcb){
+//     enviar_contexto_de_ejecucion(pcb);
+//     recibir_contexto_de_ejecucion_actualizado(pcb); // Modifica directo al pcb con lo que recibe
+// }
+
 // Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
 void enviar_contexto_de_ejecucion(t_pcb *pcb){
     t_paquete *paquete_contexto_de_ejecucion = crear_paquete(CONTEXTO_DE_EJECUCION);
@@ -181,7 +218,7 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb){
     eliminar_paquete(paquete_contexto_de_ejecucion);
 }
 
-void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
+void recibir_contexto_de_ejecucion_actualizado(t_pcb *pcb){ // TERMINAR
     // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros)
     // Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
     // En cualquier caso se lo debe desencolar de EXEC -> NOTA: no necesariamente, si el proceso quiere hacer un signal deberia seguir ejecutando el mismo proceso
@@ -190,23 +227,40 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
     t_codigo_operacion motivo_desalojo;
     t_buffer *buffer = crear_buffer();
     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
-    t_pcb *pcb = estado_desencolar_primer_pcb(estado_exec); // No se si lo correcto seria desencolarlo por lo del signal por ejemplo -> se podria desencolar, pero al hacer el signal se deberia meter primero en la cola de ready de maxima prioridad
     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
     
+    sem_wait(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
     switch(motivo_desalojo){
         case SUCCESS:
+            proceso_a_exit(pcb, FINALIZACION_SUCCESS);
+            // sem_post(&sem_grado_multiprogramacion);
             break;
         case INTERRUPT_QUANTUM:
             break;
-        case INTERRUPT_USER:
-            break;
-        case OUT_OF_MEMORY:
+        // case INTERRUPT_USER:
+        //     break;
+        case OUT_OF_MEMORY: // Fallo el Resize
+            proceso_a_exit(pcb, FINALIZACION_SUCCESS);
+            // sem_post(&sem_grado_multiprogramacion);
             break;
         case WAIT:
             ejecutar_instruccion_wait(pcb, buffer_desempaquetar_string(buffer));
+            if( pcb_get_estado(pcb) == EXEC ){
+                sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
+                // sem_wait(&sem_estado_planificacion_ready_to_exec); // nose q tan necesario es volver a testear aca el estado porq deberia ser transparente para el q esta ejecutando el corte de la planificacion -> el wait es parte de la ejecucion del proceso, por lo que parar la plani en medio de su ejecucion seria raro -> si no es necesario puedo usar ejecutar_proceso()
+                enviar_contexto_de_ejecucion(pcb);
+                // sem_post(&sem_estado_planificacion_ready_to_exec);
+                recibir_contexto_de_ejecucion_actualizado(pcb);
+            }
             break;
         case SIGNAL:
             ejecutar_instruccion_signal(pcb, buffer_desempaquetar_string(buffer));
+            // Despues del signal siempre sigue ejecutando el mismo proceso
+            sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
+            // sem_wait(&sem_estado_planificacion_ready_to_exec); // nose q tan necesario es volver a testear aca el estado porq deberia ser transparente para el q esta ejecutando el corte de la planificacion -> el wait es parte de la ejecucion del proceso, por lo que parar la plani en medio de su ejecucion seria raro -> si no es necesario puedo usar ejecutar_proceso()
+            enviar_contexto_de_ejecucion(pcb);
+            // sem_post(&sem_estado_planificacion_ready_to_exec);
+            recibir_contexto_de_ejecucion_actualizado(pcb);
             break;
         case IO:
             char *nombre_interfaz = buffer_desempaquetar_string(buffer);
@@ -267,6 +321,7 @@ void recibir_contexto_de_ejecucion_actualizado(){ // TERMINAR
         default:
             log_error(kernel_logger, "Motivo de desalojo desconocido");
     }
+    sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
 
     eliminar_buffer(buffer);
 }
@@ -318,6 +373,8 @@ void finalizar_proceso(int pid){ // TERMINAR
     // detener_planificacion(); -> tiene que frenar las transiciones?
 }
 
+
+
 void planificador_largo_plazo(){
     // Manejar ESTADO -> EXIT
     pthread_t hilo_liberar_procesos_exit;
@@ -325,8 +382,11 @@ void planificador_largo_plazo(){
     pthread_detach(hilo_liberar_procesos_exit);
 
     // Manejar NEW -> READY
-    while( estado_planificacion ){
+    while(1){
+        sem_wait(&sem_estado_planificacion_new_to_ready);
+        sem_wait(&sem_control_cambio_grado_multiprogramacion); // Este semaforo es para garantizar que la modificacion (reduccion enrealidad es lo que genera complicaciones) se haga por completo y no se sigan mandando procesos a ready -> si reduzco el grado tengo que hacer waits, pero si ya estaba en 0 el hilo q reduce se va a bloquear al igual que este hilo al intentar mandar un proceso a ready y el signal tras finalizar un proceso podria activar cualquiera de los dos hilos y, en lugar de reducir el grado seguiria mandando procesos -> con este sem me aseguro q eso no pasa 
         sem_wait(&sem_grado_multiprogramacion);
+        sem_post(&sem_control_cambio_grado_multiprogramacion);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
         t_codigo_operacion respuesta_memoria = pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb));
         if( respuesta_memoria == CONFIRMACION_PROCESO_INICIADO ){
@@ -335,7 +395,8 @@ void planificador_largo_plazo(){
         else{
             proceso_a_exit(pcb, FINALIZACION_ERROR);
             // sem_post(&sem_grado_multiprogramacion);
-        } 
+        }
+        sem_post(&sem_estado_planificacion_new_to_ready);
     }
 
     
@@ -446,11 +507,13 @@ void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
         
         // Compruebo si tras el signal se debe desbloquear algun proceso
         if( recurso_debe_desbloquear_proceso(recurso) ){
+            sem_wait(&sem_estado_planificacion_blocked_to_ready);
             // Desbloqueo al primero proceso
             t_pcb *pcb = recurso_desencolar_primer_proceso(recurso);
             estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
             // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
             proceso_a_ready(pcb);
+            sem_post(&sem_estado_planificacion_blocked_to_ready);
         }
     }
 }

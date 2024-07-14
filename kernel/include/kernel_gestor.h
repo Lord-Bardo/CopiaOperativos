@@ -31,8 +31,7 @@ typedef enum{
     EXEC,
     BLOCKED,
     EXIT,
-    RECURSO,
-    INTERFAZ
+    RECURSO
 } t_nombre_estado;
 
 typedef struct{
@@ -101,6 +100,10 @@ extern int fd_cpu_interrupt;
 
 // Planificacion
 extern t_estado_planificacion estado_planificacion;
+extern sem_t sem_estado_planificacion_new_to_ready;
+extern sem_t sem_estado_planificacion_ready_to_exec;
+extern sem_t sem_estado_planificacion_blocked_to_ready;
+extern sem_t sem_estado_planificacion_exec_to_exec_or_ready_or_blocked;
 
 // Estados
 extern t_estado *estado_new;
@@ -114,16 +117,18 @@ extern t_estado *estado_exit;
 extern int pid_actual;
 extern pthread_mutex_t mutex_pid;
 
-// Semaforos
+// Grado multiprogramacion
 extern pthread_mutex_t mutex_grado_multiprogramacion;
 extern sem_t sem_grado_multiprogramacion;
-extern pthread_mutex_t mutex_socket_memoria;
-extern pthread_mutex_t mutex_diccionario_interfaces;
 
 // Recursos
 extern t_dictionary *diccionario_recursos;
 
 // Interfaces
 extern t_dictionary *diccionario_interfaces;
+extern pthread_mutex_t mutex_diccionario_interfaces;
+
+// Semaforos sockets
+extern pthread_mutex_t mutex_socket_memoria;
 
 #endif
