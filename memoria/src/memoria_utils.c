@@ -20,21 +20,14 @@ int agregar_proceso(t_pcb_memoria proceso) // Podría poner esto en un utils, no
     return 0; // Error, no hay celdas vacías (supongo que la máxima cant. de procesos que puede haber será TAM_MEMORIA/TAM_PAGINA, es decir procesos de una sola pág.)
 }
 
-int eliminar_proceso(t_pcb_memoria proceso)
+int eliminar_proceso(int index)
 {
-//  Busco el índice del proceso con el pid recibido.
-    int i = 0;
-    while(procesos[i].pid != -1){
-        if(procesos[i].pid == pid)
-            break;
-    }
-
 //  Si no encuentra el proceso, salgo de la función.
-    if(procesos[i].pid == -1)
+    if(procesos[index].pid == -1)
         return 0; // 0 Si no se encontró el proceso
 
 //  Desplazar los elementos del array para llenar el hueco dejado por el proceso eliminado.
-    for (int j = i; j < (TAM_MEMORIA/TAM_PAGINA) - 1; j++) {
+    for (int j = index; j < (TAM_MEMORIA/TAM_PAGINA) - 1; j++) {
         procesos[j] = procesos[j + 1];
     }
 
