@@ -24,9 +24,11 @@ int main(int argc, char* argv[]) {
 
 	// HOLA MATI QUERIDO, GRACIAS POR EL ESPACIO Y LA BUENA ONDA, TE LO DEJO COMENTADO PARA NO VOLVERLO A HACER, 
 	// ESPERO NO TE MOLESTE, CUALQUIER COSA CORTÁ Y PEGAMELO EN MEMORIA. TE MANDO UN ABRAZO, CUIDATE <3 
-
+    
 //----------------------------------test: envío de paquete a memoria--------------------------------------------------------------------------------------------
 	/*
+    conectar_a_memoria();
+
 	t_paquete* paquete_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
 	char* path = "/ArchivoPseudocodigo.txt";
 	int pid = 123;
@@ -34,11 +36,13 @@ int main(int argc, char* argv[]) {
 	agregar_a_paquete(paquete_proceso, &pid, sizeof(int));
 	enviar_paquete(fd_memoria, paquete_proceso);
 	eliminar_paquete(paquete_proceso);
-	//nota: genera broken pipe en el send del handshake y segmentation fault en el strcpy de ruta_completa.
+
+	iniciar_consola_interactiva();
+
+	//nota: no se por qué kernel no se conecta a memoria :(
 	*/
 //----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
-
-
+    
 	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
 	log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
@@ -52,16 +56,11 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	
-
 	t_pcb *pcb = crear_pcb(0, "p");
 	ejecutar_instruccion_wait(pcb,"RB");
 	ejecutar_instruccion_wait(pcb,"RA");
 	ejecutar_instruccion_wait(pcb,"RA");
 	ejecutar_instruccion_signal(pcb, "RA");
-
-
-
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();

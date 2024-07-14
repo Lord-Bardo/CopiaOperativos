@@ -9,6 +9,8 @@ void interfaz_generica(int cant_unidades_trabajo) {
     log_info(entradasalida_logger, "E/S: haciendo un sleep");
     sleep(tiempo_total);
     log_info(entradasalida_logger, "E/S: deje de hacer un sleep");
+
+    /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
 }
 
 // SOPORTE: lista de direcciones fisicas - tamaño total (preguntar)
@@ -22,11 +24,14 @@ void interfaz_stdin(char* registro_direccion, char* registro_tamanio){
 
     enviar_texto_a_memoria(registro_direccion, texto, atoi(registro_tamanio));
 
+    /* Agregar que se confirma la escritura del dato en memoria */
+    /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
+
 	free(texto);
 }
 
 void enviar_texto_a_memoria(char* direccion_fisica, char* texto, int tamanio) {
-    t_paquete* paquete = crear_paquete(PAQUETE); // Creo que se usa ese codigo de operacion (PREGUNTAR A MATI)
+    t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); // Creo que se usa ese codigo de operacion (PREGUNTAR A MATI)
     agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
     agregar_a_paquete(paquete, texto, tamanio);
 
@@ -42,6 +47,7 @@ void interfaz_stdout(char* registro_direccion, char* registro_tamanio) {
     
     if (texto != NULL) {
         log_info(entradasalida_logger, "TEXTO LEIDO: %s", texto);
+        /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
         free(texto);
     } else {
         log_error(entradasalida_logger, "Error al recibir datos de memoria.\n");
@@ -49,7 +55,7 @@ void interfaz_stdout(char* registro_direccion, char* registro_tamanio) {
 }
 
 void solicitar_datos_a_memoria(char* direccion_fisica, int tamanio){
-    t_paquete* paquete = crear_paquete(PAQUETE);
+    t_paquete* paquete = crear_paquete(SOLICITUD_LECTURA);
 
     agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
     agregar_a_paquete(paquete, tamanio, sizeof(int));
@@ -61,11 +67,14 @@ void solicitar_datos_a_memoria(char* direccion_fisica, int tamanio){
 
 char* recibir_datos_de_memoria(int tamanio) {
     t_buffer* buffer = crear_buffer();
-    recibir_paquete(fd_memoria, PAQUETE, buffer);
+    t_codigo_operacion cod_operacion;
+    recibir_paquete(fd_memoria, &cod_operacion, buffer);
 
+    /* Poner logica para leer cod operacion */
     char* texto = malloc(tamanio + 1);
     if (texto != NULL) {
         buffer_desempaquetar(buffer, texto);
+        /* Poner desempaquetar string */
         texto[tamanio] = '\0';
     }
 

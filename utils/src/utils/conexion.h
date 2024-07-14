@@ -62,6 +62,7 @@ typedef enum{
     //ENTRADASALIDA - MEMORIA
     SOLICITUD_ESCRITURA,
     SOLICITUD_LECTURA,
+    LECTURA_RESPUESTA
 } t_codigo_operacion;
 
 typedef struct{

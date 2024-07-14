@@ -14,7 +14,7 @@ void atender_memoria_kernel(){
 		switch(cod_op){
 			case SOLICITUD_INICIAR_PROCESO:
                 // Inicializo tabla y lista de instrucciones del proceso recibido.
-                //Quedaría mejor la inicializaci{on en una función aparte, agregar!!
+                //Quedaría mejor la inicialización en una función aparte, agregar!!
 			    t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
                 proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
                 proceso_recibido->path = NULL;
@@ -38,7 +38,11 @@ void atender_memoria_kernel(){
                 break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
-                //TODO
+                int *pid_recibido;
+                buffer_desempaquetar(buffer, pid_recibido);
+                finalizar_proceso(*pid_recibido);
+                eliminar_buffer(buffer);
+                break;
 			case -1:
 				log_error(memoria_logger, "Se perdio la conexion con KERNEL!");
 				continuar = 0;
@@ -52,8 +56,10 @@ void atender_memoria_kernel(){
 
 void crear_proceso(t_pcb_memoria *proceso)
 {
+    //printf("Imprimo path del config: %s\n", PATH_INSTRUCCIONES);
+    //printf("Imprimo path del pseudo: %s\n", proceso->path);
     // Inicializo la cadena de ruta completa.
-    char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
+    char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + strlen(proceso->path) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
     if (ruta_completa == NULL) {
         perror("Error al asignar memoria");
         //enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
@@ -102,18 +108,33 @@ void crear_proceso(t_pcb_memoria *proceso)
         }
         num_instruccion++;
     }
-    agregar_proceso_a_procesos(*proceso); // Función hecha en utils de memoria.
-    //enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); //DESCOMENTAR UNA VEZ TERMINADO EL TEST
+    agregar_proceso(*proceso); // Agreso el proceso a lista de procesos.
+//  enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); //DESCOMENTAR UNA VEZ TERMINADO EL TEST
 
     // Cerrar el archivo
     fclose(archivo);
     free(ruta_completa);
 
     //borrar una vez terminado el testeo
-    printf("Imprimo primer y ultima instruccion del proceso: %s\n", procesos[0].pid);
+    printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
     printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
 	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
-	log_info(memoria_logger, "Entré y salí de crear proceso y cree proceso existosamente :)");
-	liberar_pcb_memoria(proceso); 
+	log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
+	//liberar_pcb_memoria(proceso); 
 }
 
+void finalizar_proceso(int pid_recibido)
+{
+    //Encuentro índice del proceso en cuestión.
+    int i = encontrar_proceso(pid_recibido);
+    t_pcb_memoria* proceso = &procesos[i];
+
+    //Libero memoria del proceso 
+    liberar_pcb_memoria(proceso); // Supongo que con el free de tabla de paginas, los frames pasan a estar disponibles (no se debe borrar la info del frame a pesar de finalizar proceso).
+
+    //Elimino proceso de lista de procesos
+    eliminar_proceso(i);
+
+    //Avisar a KERNEL (creo)
+    enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_FINALIZADO);
+}
