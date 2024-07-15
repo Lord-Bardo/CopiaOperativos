@@ -23,7 +23,7 @@ void atender_memoria_cpu(){
 				t_paquete *paquete_frame = crear_paquete(FRAME);
 				int frame_hardcode = 3; //ACA FRAN DEBERIAS LLAMAR A UNA FUNCION TIPO obtener_frame(nro_pag)
 
-				agregar_a_paquete(paquete_frame,frame_hardcode,sizeof(int));
+				agregar_a_paquete(paquete_frame,&frame_hardcode,sizeof(int));
 			    // lógica para enviar el paquete con la dirección lógica del dato que necesito
 				break; 	
 			case OP_RESIZE:

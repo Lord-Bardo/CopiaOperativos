@@ -1,5 +1,5 @@
 #include "../include/mmu.h"
-
+int tamanio_pagina=4;
 int min(int a, int b) {
     return (a < b) ? a : b;
 }

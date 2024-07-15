@@ -25,6 +25,7 @@ void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
 void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // REVISAR
 
     buffer_desempaquetar(buffer, &(pcb->pid));
+    buffer_desempaquetar(buffer, &(pcb->pc));
     buffer_desempaquetar_registros(buffer, &(pcb->registros));
 }
 

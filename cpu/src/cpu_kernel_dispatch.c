@@ -9,7 +9,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
         
         t_codigo_operacion cod_op;
 		t_buffer * buffer = crear_buffer();
-        t_pcb *pcb_recibido;
+        t_pcb *pcb_recibido = malloc(sizeof(t_pcb));
 
 
 	    recibir_paquete(fd_kernel_dispatch,&cod_op,buffer);
@@ -50,6 +50,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
         }
         //mandar contexto ejecucion
         //eliminar_buffer(buffer);
+        free(pcb_recibido);
         log_info(cpu_logger,"Salgo del while 1");
         break;
     }

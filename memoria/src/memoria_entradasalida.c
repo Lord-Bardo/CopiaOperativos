@@ -1,5 +1,5 @@
 #include "../include/memoria_entradasalida.h"
-
+/*
 int cantidad_procesos = 0; // Definición de las variables globales
 t_pcb_memoria* obtener_proceso(int pid); // Declaración de la función obtener_proceso
 
@@ -103,4 +103,4 @@ int leer_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
     // Realizar la lectura desde la memoria
     memcpy(buffer, espacio_usuario + direccion_fisica, tamanio);
     return 0;
-}
+} */
