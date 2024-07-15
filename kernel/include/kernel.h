@@ -4,7 +4,6 @@
 #include "kernel_gestor.h"
 #include "inicializar_kernel.h"
 #include "kernel_entradasalida.h"
-#include "kernel_memoria.h"
 #include "kernel_cpu_dispatch.h"
 #include "kernel_planificadores.h"
 #include "consola.h"

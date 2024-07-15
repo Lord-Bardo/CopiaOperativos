@@ -14,7 +14,6 @@
 #include <commons/collections/dictionary.h>
 
 #include <utils/conexion.h>
-#include <utils/registros.h>
 
 // ESTRUCTURAS
 // Planificacion
@@ -42,11 +41,24 @@ typedef struct{
 
 // PCB
 typedef struct{
+    uint8_t AX;
+    uint8_t BX;
+    uint8_t CX;
+    uint8_t DX;
+    uint32_t EAX;
+    uint32_t EBX;
+    uint32_t ECX;
+    uint32_t EDX;
+    uint32_t SI; //contiene la direccion logica de memoria de origen desde donde se va a copir un string
+    uint32_t DI; //contiene la direccion logica de memoria de destino desde donde se va a copir un string
+} t_registros;
+
+typedef struct{
     int pid;
     int quantum;
     t_nombre_estado estado;
     uint32_t PC;
-    t_registros *registros;
+    t_registros registros;
     char *path;
     t_dictionary *diccionario_recursos_usados;
 } t_pcb;

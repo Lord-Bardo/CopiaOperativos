@@ -11,7 +11,16 @@ t_pcb *crear_pcb(int pid, char* path){
     pcb->estado = NEW;
     pcb->quantum = QUANTUM;
     pcb->PC = 0;
-    pcb->registros = crear_registros();
+    pcb->registros.AX = 0;
+    pcb->registros.BX = 0;
+    pcb->registros.CX = 0;
+    pcb->registros.DX = 0;
+    pcb->registros.EAX = 0;
+    pcb->registros.EBX = 0;
+    pcb->registros.ECX = 0;
+    pcb->registros.EDX = 0;
+    pcb->registros.SI = 0;
+    pcb->registros.DI = 0;
 
     pcb->path = string_new();
     if( pcb->path == NULL ){
@@ -27,9 +36,6 @@ t_pcb *crear_pcb(int pid, char* path){
 
 void eliminar_pcb(t_pcb *pcb){
     if( pcb != NULL ){
-        if( pcb->registros != NULL ){
-            eliminar_registros(pcb->registros);
-        }
         if( pcb->path != NULL ){
             free(pcb->path);
         }
@@ -72,94 +78,6 @@ void pcb_cambiar_estado_a(t_pcb *pcb, t_nombre_estado nuevo_estado){
 
 uint32_t pcb_get_pc(t_pcb *pcb){
     return pcb->PC;
-}
-
-t_registros *pcb_get_registros(t_pcb *pcb){
-    return pcb->registros;
-}
-
-char *pcb_get_registro_ax(t_pcb *pcb){
-    return registros_get_registro_ax(pcb->registros);
-}
-
-char *pcb_get_registro_bx(t_pcb *pcb){
-    return registros_get_registro_bx(pcb->registros);
-}
-
-char *pcb_get_registro_cx(t_pcb *pcb){
-    return registros_get_registro_cx(pcb->registros);
-}
-
-char *pcb_get_registro_dx(t_pcb *pcb){
-    return registros_get_registro_dx(pcb->registros);
-}
-
-char *pcb_get_registro_eax(t_pcb *pcb){
-    return registros_get_registro_eax(pcb->registros);
-}
-
-char *pcb_get_registro_ebx(t_pcb *pcb){
-    return registros_get_registro_ebx(pcb->registros);
-}
-
-char *pcb_get_registro_ecx(t_pcb *pcb){
-    return registros_get_registro_ecx(pcb->registros);
-}
-
-char *pcb_get_registro_edx(t_pcb *pcb){
-    return registros_get_registro_edx(pcb->registros);
-}
-
-char *pcb_get_registro_si(t_pcb *pcb){
-    return registros_get_registro_si(pcb->registros);
-}
-
-char *pcb_get_registro_di(t_pcb *pcb){
-    return registros_get_registro_di(pcb->registros);
-}
-
-void pcb_set_registros(t_pcb *pcb, t_registros *registros){
-    pcb->registros = registros;
-}
-
-void pcb_set_registro_ax(t_pcb *pcb, char *valor){
-    registros_set_registro_ax(pcb->registros, valor);
-}
-
-void pcb_set_registro_bx(t_pcb *pcb, char *valor){
-    registros_set_registro_bx(pcb->registros, valor);
-}
-
-void pcb_set_registro_cx(t_pcb *pcb, char *valor){
-    registros_set_registro_cx(pcb->registros, valor);
-}
-
-void pcb_set_registro_dx(t_pcb *pcb, char *valor){
-    registros_set_registro_dx(pcb->registros, valor);
-}
-
-void pcb_set_registro_eax(t_pcb *pcb, char *valor){
-    registros_set_registro_eax(pcb->registros, valor);
-}
-
-void pcb_set_registro_ebx(t_pcb *pcb, char *valor){
-    registros_set_registro_ebx(pcb->registros, valor);
-}
-
-void pcb_set_registro_ecx(t_pcb *pcb, char *valor){
-    registros_set_registro_ecx(pcb->registros, valor);
-}
-
-void pcb_set_registro_edx(t_pcb *pcb, char *valor){
-    registros_set_registro_edx(pcb->registros, valor);
-}
-
-void pcb_set_registro_si(t_pcb *pcb, char *valor){
-    registros_set_registro_si(pcb->registros, valor);
-}
-
-void pcb_set_registro_di(t_pcb *pcb, char *valor){
-    registros_set_registro_di(pcb->registros, valor);
 }
 
 char* pcb_get_path(t_pcb *pcb){

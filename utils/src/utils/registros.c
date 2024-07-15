@@ -222,3 +222,203 @@ void registros_set_registro_di(t_registros *registros, char *valor){
 //     memmove(*registro, valor, bytes_registro);
 //     memmove(*registro + bytes_registro, "\0", 1);
 // }
+
+// PCB KERNEL ---------------------------
+// t_pcb *crear_pcb(int pid, char* path){
+//     t_pcb *pcb = malloc(sizeof(t_pcb));
+//     if( pcb == NULL ){
+//         log_error(kernel_logger, "Error al asignar memoria para el PCB");
+//         return NULL;
+//     }
+
+//     pcb->pid = pid;
+//     pcb->estado = NEW;
+//     pcb->quantum = QUANTUM;
+//     pcb->PC = 0;
+//     pcb->registros = crear_registros();
+
+//     pcb->path = string_new();
+//     if( pcb->path == NULL ){
+//         log_error(kernel_logger, "Error al asignar memoria para el PATH");
+//         return NULL;
+//     }
+//     string_append(&(pcb->path), path);
+
+//     pcb->diccionario_recursos_usados = dictionary_create(); // KEY: Nombre del recurso - Value: Cantidad de instancias usadas
+
+//     return pcb;
+// }
+
+// void eliminar_pcb(t_pcb *pcb){
+//     if( pcb != NULL ){
+//         if( pcb->registros != NULL ){
+//             eliminar_registros(pcb->registros);
+//         }
+//         if( pcb->path != NULL ){
+//             free(pcb->path);
+//         }
+
+//         if( pcb->diccionario_recursos_usados != NULL ){
+//             dictionary_destroy(pcb->diccionario_recursos_usados);
+//         }
+
+//         free(pcb);
+//         pcb = NULL; // para realizar comprobacion de si el proceso ya fue finalizado (en kernel_entradasalida.c por ejemplo)
+//     }
+// }
+
+// t_registros *pcb_get_registros(t_pcb *pcb){
+//     return pcb->registros;
+// }
+
+// char *pcb_get_registro_ax(t_pcb *pcb){
+//     return registros_get_registro_ax(pcb->registros);
+// }
+
+// char *pcb_get_registro_bx(t_pcb *pcb){
+//     return registros_get_registro_bx(pcb->registros);
+// }
+
+// char *pcb_get_registro_cx(t_pcb *pcb){
+//     return registros_get_registro_cx(pcb->registros);
+// }
+
+// char *pcb_get_registro_dx(t_pcb *pcb){
+//     return registros_get_registro_dx(pcb->registros);
+// }
+
+// char *pcb_get_registro_eax(t_pcb *pcb){
+//     return registros_get_registro_eax(pcb->registros);
+// }
+
+// char *pcb_get_registro_ebx(t_pcb *pcb){
+//     return registros_get_registro_ebx(pcb->registros);
+// }
+
+// char *pcb_get_registro_ecx(t_pcb *pcb){
+//     return registros_get_registro_ecx(pcb->registros);
+// }
+
+// char *pcb_get_registro_edx(t_pcb *pcb){
+//     return registros_get_registro_edx(pcb->registros);
+// }
+
+// char *pcb_get_registro_si(t_pcb *pcb){
+//     return registros_get_registro_si(pcb->registros);
+// }
+
+// char *pcb_get_registro_di(t_pcb *pcb){
+//     return registros_get_registro_di(pcb->registros);
+// }
+
+// void pcb_set_registros(t_pcb *pcb, t_registros *registros){
+//     pcb->registros = registros;
+// }
+
+// void pcb_set_registro_ax(t_pcb *pcb, char *valor){
+//     registros_set_registro_ax(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_bx(t_pcb *pcb, char *valor){
+//     registros_set_registro_bx(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_cx(t_pcb *pcb, char *valor){
+//     registros_set_registro_cx(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_dx(t_pcb *pcb, char *valor){
+//     registros_set_registro_dx(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_eax(t_pcb *pcb, char *valor){
+//     registros_set_registro_eax(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_ebx(t_pcb *pcb, char *valor){
+//     registros_set_registro_ebx(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_ecx(t_pcb *pcb, char *valor){
+//     registros_set_registro_ecx(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_edx(t_pcb *pcb, char *valor){
+//     registros_set_registro_edx(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_si(t_pcb *pcb, char *valor){
+//     registros_set_registro_si(pcb->registros, valor);
+// }
+
+// void pcb_set_registro_di(t_pcb *pcb, char *valor){
+//     registros_set_registro_di(pcb->registros, valor);
+// }
+
+// UTILS KERNEL
+// void agregar_registros_a_paquete(t_paquete *paquete, t_registros *registros){
+//     char *ax = registros_get_registro_ax(registros);
+//     agregar_string_a_paquete(paquete, ax);
+//     free(ax);
+
+//     char *bx = registros_get_registro_bx(registros);
+//     agregar_string_a_paquete(paquete, bx);
+//     free(bx);
+
+//     char *cx = registros_get_registro_cx(registros);
+//     agregar_string_a_paquete(paquete, cx);
+//     free(cx);
+
+//     char *dx = registros_get_registro_dx(registros);
+//     agregar_string_a_paquete(paquete, dx);
+//     free(dx);
+
+//     char *eax = registros_get_registro_eax(registros);
+//     agregar_string_a_paquete(paquete, eax);
+//     free(eax);
+
+//     char *ebx = registros_get_registro_ebx(registros);
+//     agregar_string_a_paquete(paquete, ebx);
+//     free(ebx);
+
+//     char *ecx = registros_get_registro_ecx(registros);
+//     agregar_string_a_paquete(paquete, ecx);
+//     free(ecx);
+
+//     char *edx = registros_get_registro_edx(registros);
+//     agregar_string_a_paquete(paquete, edx);
+//     free(edx);
+
+//     char *si = registros_get_registro_si(registros);
+//     agregar_string_a_paquete(paquete, si);
+//     free(si);
+
+//     char *di = registros_get_registro_di(registros);
+//     agregar_string_a_paquete(paquete, di);
+//     free(di);
+// }
+
+// void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
+//     // Si buffer_desempaquetar_string lee "\0", en registros_set_registro se va a dejar al registro como estaba -> Si estaba en NULL queda en NULL y sino quedara con lo q ya tenga
+//     registros_set_registro_ax(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_bx(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_cx(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_dx(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_eax(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_ebx(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_ecx(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_edx(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_si(registros, buffer_desempaquetar_string(buffer));
+//     registros_set_registro_di(registros, buffer_desempaquetar_string(buffer));
+// }
+
+// void buffer_desempaquetar_contexto_ejecucion(t_buffer *buffer, t_pcb* pcb){
+//     int pid_recibido;
+//     buffer_desempaquetar(buffer, &pid_recibido);
+//     if( pid_recibido != pcb_get_pid(pcb) ){
+//         log_error(kernel_logger, "El PID recibido no se corresponde con el PID del proceso en ejecucion");
+//     }
+    
+//     buffer_desempaquetar(buffer, &(pcb->PC));
+//     buffer_desempaquetar_registros(buffer, pcb_get_registros(pcb));
+// }

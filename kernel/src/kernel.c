@@ -7,18 +7,20 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
-	detener_planificacion();
-	t_pcb *pcb1 = crear_pcb(0, "p");
-	estado_encolar_pcb(estado_new, pcb1);
-	t_pcb *pcb2 = crear_pcb(1, "p");
-	estado_encolar_pcb(estado_new, pcb2);
-	t_pcb *pcb3 = crear_pcb(2, "p");
-	estado_encolar_pcb(estado_new, pcb3);
+	// iniciar_consola_interactiva();
 
-	t_pcb *pcb4 = estado_rastrear_y_desencolar_pcb_por_pid(2);
-	log_info(kernel_logger, "%d", pcb_get_pid(pcb4));
+	// detener_planificacion();
+	// t_pcb *pcb1 = crear_pcb(0, "p");
+	// estado_encolar_pcb(estado_new, pcb1);
+	// t_pcb *pcb2 = crear_pcb(1, "p");
+	// estado_encolar_pcb(estado_new, pcb2);
+	// t_pcb *pcb3 = crear_pcb(2, "p");
+	// estado_encolar_pcb(estado_new, pcb3);
 
-	iniciar_consola_interactiva();
+	// t_pcb *pcb4 = estado_rastrear_y_desencolar_pcb_por_pid(2);
+	// log_info(kernel_logger, "%d", pcb_get_pid(pcb4));
+
+	
 
 	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)
 
@@ -43,24 +45,26 @@ int main(int argc, char* argv[]) {
 	*/
 //----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
     
-	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
-	log_info(kernel_logger, "Servidor KERNEL iniciado!");
+	// fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
+	// log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
-	int fd_interfaz = esperar_cliente(fd_kernel);
-	if( recibir_handshake(fd_interfaz) == HANDSHAKE_ENTRADASALIDA ){
-		enviar_handshake(fd_interfaz, HANDSHAKE_OK);
-		t_codigo_operacion codigo_operacion;
-		if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) <= 0 ){
-			log_info(kernel_logger, "SE DESCONECTOOOOOOOOOOOOOOOOOOO");
-			// Logica de eliminar la interfaz
-		}
-	}
+	// int fd_interfaz = esperar_cliente(fd_kernel);
+	// if( recibir_handshake(fd_interfaz) == HANDSHAKE_ENTRADASALIDA ){
+	// 	enviar_handshake(fd_interfaz, HANDSHAKE_OK);
+	// 	t_codigo_operacion codigo_operacion;
+	// 	if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) <= 0 ){
+	// 		log_info(kernel_logger, "SE DESCONECTOOOOOOOOOOOOOOOOOOO");
+	// 		// Logica de eliminar la interfaz
+	// 	}
+	// }
 
-	t_pcb *pcb = crear_pcb(0, "p");
-	ejecutar_instruccion_wait(pcb,"RB");
-	ejecutar_instruccion_wait(pcb,"RA");
-	ejecutar_instruccion_wait(pcb,"RA");
-	ejecutar_instruccion_signal(pcb, "RA");
+	// t_pcb *pcb = crear_pcb(0, "p");
+	// ejecutar_instruccion_wait(pcb,"RB");
+	// ejecutar_instruccion_wait(pcb,"RA");
+	// ejecutar_instruccion_wait(pcb,"RA");
+	// ejecutar_instruccion_signal(pcb, "RA");
+
+	
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();
@@ -72,28 +76,23 @@ int main(int argc, char* argv[]) {
 	conectar_a_cpu_interrupt();
  
 	// Iniciar servidor de KERNEL
-	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
-	log_info(kernel_logger, "Servidor KERNEL iniciado!");
+	// fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
+	// log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
 	// Esperar conexiones de interfaces ENTRADASALIDA y atender los mensajes de las interfaces ENTRADASALIDA 
-	pthread_t hilo_entradasalida;
-	pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
-
- 	// Atender los mensajes de MEMORIA
-	pthread_t hilo_memoria;
-	pthread_create(&hilo_memoria, NULL, (void*)atender_kernel_memoria, NULL);
+	// pthread_t hilo_entradasalida;
+	// pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
 
     // Atender los mensajes de CPU - DISPATCH
-	pthread_t hilo_cpu_dispatch;
-	pthread_create(&hilo_cpu_dispatch, NULL, (void*)atender_kernel_cpu_dispatch, NULL);
+	// pthread_t hilo_cpu_dispatch;
+	// pthread_create(&hilo_cpu_dispatch, NULL, (void*)atender_kernel_cpu_dispatch, NULL);
 
 	// Iniciar consola interactiva
 	iniciar_consola_interactiva();
 
     // Esperar a que los hilos finalicen su ejecucion
-	pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
-	pthread_join(hilo_memoria, NULL);
-	pthread_join(hilo_cpu_dispatch, NULL);
+	// pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
+	// pthread_join(hilo_cpu_dispatch, NULL);
 
 	// Finalizar KERNEL (liberar memoria usada)
 	terminar_programa();
