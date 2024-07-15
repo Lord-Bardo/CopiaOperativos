@@ -43,10 +43,7 @@ void atender_memoria_kernel(){
                 finalizar_proceso(pid_recibido);
                 eliminar_buffer(buffer);
                 break;
-			case -1:
-				log_error(memoria_logger, "Se perdio la conexion con KERNEL!");
-				continuar = 0;
-				break;
+
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de KERNEL");
 				break;
@@ -56,13 +53,11 @@ void atender_memoria_kernel(){
 
 void crear_proceso(t_pcb_memoria *proceso)
 {
-    printf("Imprimo path del config: %s\n", PATH_INSTRUCCIONES);
-    printf("Imprimo path del pseudo: %s\n", proceso->path);
     // Inicializo la cadena de ruta completa.
     char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + strlen(proceso->path) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
     if (ruta_completa == NULL) {
         perror("Error al asignar memoria");
-        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
+        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     } 
     strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo. Si genera segment fault intentar con: memcpy(ruta_completa, PATH_INSTRUCCIONES, strlen(PATH_INSTRUCCIONES) + 1)
@@ -75,7 +70,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     if (archivo == NULL) {
         perror("Error al abrir el archivo");
         free(ruta_completa);
-        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
+        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     }
 
@@ -92,7 +87,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             fclose(archivo);
             free(ruta_completa);
             liberar_pcb_memoria(proceso);
-            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
+            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
 
@@ -103,24 +98,23 @@ void crear_proceso(t_pcb_memoria *proceso)
             fclose(archivo);
             free(ruta_completa);
             liberar_pcb_memoria(proceso);
-            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); //DESCOMENTAR UNA VEZ FINALIZADO EL TEST
+            enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
         num_instruccion++;
     }
     agregar_proceso(*proceso); // Agreso el proceso a lista de procesos.
-    enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); //DESCOMENTAR UNA VEZ TERMINADO EL TEST
+    enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); 
 
     // Cerrar el archivo
     fclose(archivo);
     free(ruta_completa);
 
-    //borrar una vez terminado el testeo
-    printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
-    printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
-	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
-	log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
-	//liberar_pcb_memoria(proceso); 
+    // Borrar una vez terminado el testeo
+    // printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
+    // printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
+	// printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
+	// log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
 }
 
 void finalizar_proceso(int pid_recibido)

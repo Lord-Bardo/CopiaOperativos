@@ -4,5 +4,6 @@
 #include "memoria_utils.h"
 
 void atender_memoria_cpu(void);
+void obtener_instruccion(int pid, int pc, char* instruccion);
 
 #endif
