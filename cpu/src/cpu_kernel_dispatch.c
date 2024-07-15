@@ -7,19 +7,18 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	inicializarPCB(&pcb);
     while(1){
         
-        // t_codigo_operacion cod_op;
-		// t_buffer * buffer = crear_buffer();
-        // t_pcb *pcb_recibido;
-        pcb.registros.ax=3;
-        pcb.registros.bx=4;
+        t_codigo_operacion cod_op;
+		t_buffer * buffer = crear_buffer();
+        t_pcb *pcb_recibido;
 
-	    // recibir_paquete(fd_kernel_dispatch,&cod_op,buffer);
-        // printf("RECIBI PAQUETE");
+
+	    recibir_paquete(fd_kernel_dispatch,&cod_op,buffer);
+        printf("RECIBI PAQUETE");
         mostrarPCB(pcb);
-		//buffer_desempaquetar_pcb(buffer,pcb_recibido);
+		buffer_desempaquetar_pcb(buffer,pcb_recibido);
         salir_ciclo_instruccion=0;
-        // copiarContexto(*pcb_recibido);
-	    // mostrarPCB(pcb);
+        copiarContexto(*pcb_recibido);
+	    mostrarPCB(pcb);
 
         while(!salir_ciclo_instruccion){
 	        t_instruccion* instr = crear_instruccion();

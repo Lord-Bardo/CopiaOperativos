@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <readline/readline.h>
 #include <time.h>
+#include <math.h>
 
 #include <commons/log.h>
 #include <commons/string.h>
@@ -27,6 +28,12 @@ typedef struct {
 	uint32_t di;
 	uint32_t si;
 }t_registros;
+
+typedef struct{
+	int frame;
+	int offset;
+	int bytes;
+}t_direccion;
 
 typedef struct {
 	int pid;
@@ -60,6 +67,7 @@ extern t_log* cpu_logger;
 extern t_config* cpu_config;
 extern t_pcb pcb;
 extern int salir_ciclo_instruccion;
+extern int tamanio_pagina;
 //HABIRA QUE PONER EL PCB ACA CREO
 extern char* IP_MEMORIA;
 extern char* PUERTO_MEMORIA;

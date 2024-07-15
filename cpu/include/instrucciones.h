@@ -3,7 +3,7 @@
 
 
 #include "procesos.h"
-
+#include "mmu.h"
 
 
 t_instruccion* fetch(int pid, int pc);
