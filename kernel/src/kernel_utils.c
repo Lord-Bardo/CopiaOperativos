@@ -139,7 +139,6 @@ void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb){
 
 // MANEJO BUFFER
 void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
-    buffer_desempaquetar(buffer, &(registros->PC));
     buffer_desempaquetar(buffer, &(registros->AX));
     buffer_desempaquetar(buffer, &(registros->BX));
     buffer_desempaquetar(buffer, &(registros->CX));
