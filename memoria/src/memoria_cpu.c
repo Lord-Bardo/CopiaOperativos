@@ -41,20 +41,49 @@ void atender_memoria_cpu(){
 
 				break;
 
-            case FRAME:
+            case FRAME: //PENDIENTE DE TESTEAR (hacerlo luego de testear escribir)
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
 
-				t_paquete *paquete_frame = crear_paquete(FRAME);
-				int frame_hardcode = 3; //ACA FRAN DEBERIAS LLAMAR A UNA FUNCION TIPO obtener_frame(nro_pag)
+				// Creo estructuras necesarias.
+				int pid2, num_pag, num_frame;
 
-				agregar_a_paquete(paquete_frame,&frame_hardcode,sizeof(int));
-			    // lógica para enviar el paquete con la dirección lógica del dato que necesito
+				// Desempaqueto el buffer y almaceno info recibida.
+				buffer_desempaquetar(buffer, &pid2);
+				buffer_desempaquetar(buffer, &num_pag);
+
+				// Busco y obtengo el frame.
+				obtener_frame(pid2, num_pag, &num_frame);
+
+				// Empaqueto el frame solicitado.
+				t_paquete* paquete2 = crear_paquete(FRAME);
+				agregar_a_paquete(paquete2, &num_frame, sizeof(num_frame));
+				enviar_paquete(fd_cpu, paquete2);
+
+				// Libero memoria.
+				eliminar_buffer(buffer);
+				eliminar_paquete(paquete2);
+
 				break; 	
+
 			case OP_RESIZE:
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
-				//aca recibirias lo demas querido.
+				//TODO
+				break;
+
+			case SOLICITUD_ESCRITURA:
+			    // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+				//TODO
+				break;
+				
+			case SOLICITUD_LECTURA:
+			    // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+				//TODO
+				break;
+
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de CPU");
 				break;
@@ -76,4 +105,20 @@ void obtener_instruccion(int pid, int pc, char* instruccion)
 
 	// Obtengo la instrucción.
 	strcpy(instruccion, procesos[index].memoria_de_instrucciones[pc]);
+}
+
+void obtener_frame(int pid, int num_pag, int* num_frame) //PENDIENTE DE TESTEAR (hacerlo luego de testear escribir)
+{
+	// Obtengo índice del proceso con el pid.
+	int index = encontrar_proceso(pid);
+
+	// Si no encuentro, lanzo error.
+	if(procesos[index].pid == -1 || procesos[index].tabla_paginas[num_pag].num_frame == -1){
+		perror("Error al asignar memoria");
+		enviar_codigo_operacion(fd_cpu, FRAME_ERROR); 
+		exit(EXIT_FAILURE);
+	}
+
+	// Obtengo el frame.
+	*num_frame = procesos[index].tabla_paginas[num_pag].num_frame;
 }

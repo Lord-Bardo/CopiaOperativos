@@ -5,5 +5,6 @@
 
 void atender_memoria_cpu(void);
 void obtener_instruccion(int pid, int pc, char* instruccion);
+void obtener_frame(int pid, int num_pag, int* num_frame);
 
 #endif

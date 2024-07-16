@@ -7,6 +7,9 @@ t_pcb_memoria* inicializar_proceso()
     proceso->path = NULL;
     proceso->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
 
+    for (int i = 0; i < (TAM_MEMORIA / TAM_PAGINA); i++) 
+        proceso->tabla_paginas[i].num_frame = -1;
+
     for (int i = 0; i < TAM_MEMORIA; i++) 
         proceso->memoria_de_instrucciones[i] = malloc(sizeof(char));
 
