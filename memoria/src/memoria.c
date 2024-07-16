@@ -24,8 +24,9 @@ int main(int argc, char* argv[]) {
 														
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 	
-//  ------------TEST CREAR y FINALIZAR PROCESO (SIN ENVÍO Y RECIBO DE PAQUETE)---------------------------------------------------------------------
+//  -----------------------------TEST - FETCH (SIN ENVÍO Y RECIBO DE PAQUETE)---------------------------------------------------------------------
 /*
+	// Creo el proceso
 	t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
 	proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
 	proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
@@ -43,13 +44,21 @@ int main(int argc, char* argv[]) {
 	proceso_recibido->path = "/ArchivoPseudocodigo.txt"; 
 
 	crear_proceso(proceso_recibido);
+	
+	// Hago un FETCH
+	char* instruccion = malloc(sizeof(char));
+	obtener_instruccion(123, 5, instruccion);
+	printf("La instruccion solicitada fue: %s\n", instruccion); 
+	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
 
+    // Finalizo el proceso
 	finalizar_proceso(123);
 
 	printf("PID del espacio vacío: %d\n", procesos[0].pid);
 	log_info(memoria_logger, "Finalizó el proceso existosamente :)");
-*/	 
-//  ------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)----------------------------------------------------------------------------------------
+*/
+//  ----------------------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)----------------------------------------------------------------------------------------
+
 
 //  Esperar conexion de CPU
 	aceptar_conexion_cpu();

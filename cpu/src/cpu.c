@@ -10,38 +10,51 @@ int main(int argc, char *argv[]) {
 
 	//iniciar_ciclo_instruccion(pcb);
 	// Iniciar servidor DISPATCH de CPU
-	fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
-	log_info(cpu_logger, "Servidor CPU DISPATCH iniciado!");
+	// fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
+	// log_info(cpu_logger, "Servidor CPU DISPATCH iniciado!");
 
 	// // Iniciar servidor INTERRUPT de CPU
-	fd_cpu_interrupt = iniciar_servidor(PUERTO_ESCUCHA_INTERRUPT);
-	log_info(cpu_logger, "Servidor CPU INTERRUPT iniciado!");
+	// fd_cpu_interrupt = iniciar_servidor(PUERTO_ESCUCHA_INTERRUPT);
+	// log_info(cpu_logger, "Servidor CPU INTERRUPT iniciado!");
+
+//----------------------------------test: envío de paquete a memoria-------------------------------------------------------------------------------------------------
+
+	t_paquete* paquete = crear_paquete(FETCH);
+	int pid = 123;
+	int pc = 5;
+	agregar_a_paquete(paquete, &pid, sizeof(int));
+	agregar_a_paquete(paquete, &pc, sizeof(int));
+	enviar_paquete(fd_memoria, paquete);
+	eliminar_paquete(paquete);
+
+//-------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
+    
 
 	// Esperar conexion del KERNEL
-	aceptar_conexion_kernel_dispatch();
+	//aceptar_conexion_kernel_dispatch();
 
 	// Esperar conexion del KERNEL
-	aceptar_conexion_kernel_interrupt();
+	//aceptar_conexion_kernel_interrupt();
 
 	// Atender los mensajes de KERNEL - DISPATCH
 	// declaro el hilo
-	pthread_t hilo_kernel_dispatch;
+	//pthread_t hilo_kernel_dispatch;
 	// creo el hilo. Primer parametro: donde guarda el hilo. Segundo: NULL para q se seteen los valores por defecto. Tercero: funcion a ejecutar en el hilo. Cuarto: si la funcion recibe parametros van aca
-	pthread_create(&hilo_kernel_dispatch, NULL, (void*)iniciar_ciclo_instruccion, NULL); // tengo duda con el tercer parametro, xq chatgpt recomienda usar un wrapper de la funcion y q tenga la firma q pide pthread_create q es void* (*)(void*) lo cual describe un puntero a una función que toma un puntero void como argumento y devuelve un puntero void. O la otra es modificar directo la firma de la funcion.
+	//pthread_create(&hilo_kernel_dispatch, NULL, (void*)iniciar_ciclo_instruccion, NULL); // tengo duda con el tercer parametro, xq chatgpt recomienda usar un wrapper de la funcion y q tenga la firma q pide pthread_create q es void* (*)(void*) lo cual describe un puntero a una función que toma un puntero void como argumento y devuelve un puntero void. O la otra es modificar directo la firma de la funcion.
 
 	// Atender los mensajes de KERNEL - INTERRUPT
 	//pthread_t hilo_kernel_interrupt;
 	//pthread_create(&hilo_kernel_interrupt,NULL, (void*)atender_cpu_kernel_interrupt, NULL);
 
 	//Atender los mensajes de MEMORIA
-	// pthread_t hilo_memoria;
-	// pthread_create(&hilo_memoria, NULL, (void*)atender_cpu_memoria, NULL); //no hacen falta hilos
-	// atender_cpu_memoria();
+	pthread_t hilo_memoria;
+	pthread_create(&hilo_memoria, NULL, (void*)atender_cpu_memoria, NULL); //no hacen falta hilos
+	atender_cpu_memoria();
 
 	// Esperar a que los hilos finalicen su ejecucion
-	pthread_join(hilo_kernel_dispatch, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
+	//pthread_join(hilo_kernel_dispatch, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 	//pthread_join(hilo_kernel_interrupt, NULL);
-	// pthread_join(hilo_memoria, NULL);
+	pthread_join(hilo_memoria, NULL);
 
 
 	// Finalizar CPU (liberar memoria usada)

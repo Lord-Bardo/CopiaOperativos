@@ -40,8 +40,6 @@ int main(int argc, char* argv[]) {
 	eliminar_paquete(paquete_proceso);
 
 	iniciar_consola_interactiva();
-
-	//nota: no se por qué kernel no se conecta a memoria :(
 	*/
 //----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
     

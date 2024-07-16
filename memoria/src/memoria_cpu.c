@@ -1,7 +1,5 @@
 #include "../include/memoria_cpu.h"
 
-extern t_pcb_memoria* procesos; 
-
 void atender_memoria_cpu(){
     int continuar = 1;
 	while(continuar){
@@ -12,7 +10,12 @@ void atender_memoria_cpu(){
 			case FETCH: 
 				// Creo estructuras necesarias.
 				int pid, pc;
-				char* instruccion; // Le asigno memoria en obtener_instruccion().
+				char* instruccion = malloc(sizeof(char)); 
+				if (instruccion == NULL) {
+					perror("Error al asignar memoria");
+					enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
+					exit(EXIT_FAILURE);
+				} 
 
 				// Desempaqueto el buffer y almaceno info recibida.
 				buffer_desempaquetar(buffer, &pid);
@@ -21,6 +24,7 @@ void atender_memoria_cpu(){
 
 				// Busco y obtengo la instrucción solicitada
 				obtener_instruccion(pid, pc, instruccion);
+				printf("La instruccion solicitada fue: %s\n", instruccion); // BORRAR una vez finalizado el testeo
 
 				// Empaqueto la instrucción con el opcode correspondiente y lo envío a CPU.
 				t_paquete* paquete = crear_paquete(INSTRUCCION);
@@ -61,14 +65,6 @@ void obtener_instruccion(int pid, int pc, char* instruccion)
 		enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
 		exit(EXIT_FAILURE);
 	}
-
-	// Asigno memoria a instruccion.
-	instrucción = malloc(strlen(procesos[index].memoria_de_instrucciones[pc]) + 1);
-	if (instruccion == NULL) {
-		perror("Error al asignar memoria");
-		enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
-		exit(EXIT_FAILURE);
-	} 
 
 	// Obtengo la instrucción.
 	strcpy(instruccion, procesos[index].memoria_de_instrucciones[pc]);
