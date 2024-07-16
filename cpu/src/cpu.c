@@ -10,23 +10,29 @@ int main(int argc, char *argv[]) {
 
 	//iniciar_ciclo_instruccion(pcb);
 	// Iniciar servidor DISPATCH de CPU
-	// fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
-	// log_info(cpu_logger, "Servidor CPU DISPATCH iniciado!");
+	fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
+	log_info(cpu_logger, "Servidor CPU DISPATCH iniciado!");
 
 	// // Iniciar servidor INTERRUPT de CPU
-	// fd_cpu_interrupt = iniciar_servidor(PUERTO_ESCUCHA_INTERRUPT);
-	// log_info(cpu_logger, "Servidor CPU INTERRUPT iniciado!");
+	fd_cpu_interrupt = iniciar_servidor(PUERTO_ESCUCHA_INTERRUPT);
+	log_info(cpu_logger, "Servidor CPU INTERRUPT iniciado!");
 
 //----------------------------------test: envío de paquete a memoria-------------------------------------------------------------------------------------------------
 
+//  ENGINEER'S NOTE: Para efectuar este test deben conectarse los módulos MEMORIA-KERNEL-CPU (en este orden) y crear un proceso por
+//                   consola desde la terminal de KERNEL. Una vez hecho esto, desde la terminal de CPU procedemos a ingresar cualquier
+//                   letra y presionamos la tecla enter para, efectivamente, ejecutar el código que aparece a continuación (código que
+//                   queremos probar y que simula un FETCH):
+/*
+	readline(">");
 	t_paquete* paquete = crear_paquete(FETCH);
-	int pid = 123;
+	int pid = 0; //KERNEL asigna PIDs incrementalmente comenzando desde el cero.
 	int pc = 5;
 	agregar_a_paquete(paquete, &pid, sizeof(int));
 	agregar_a_paquete(paquete, &pc, sizeof(int));
 	enviar_paquete(fd_memoria, paquete);
 	eliminar_paquete(paquete);
-
+*/
 //-------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
     
 
