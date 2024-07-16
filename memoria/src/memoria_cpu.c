@@ -7,7 +7,10 @@ void atender_memoria_cpu(){
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_cpu, &cod_op, buffer);
 		switch(cod_op){
-			case FETCH: 
+			case FETCH:
+			    // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+
 				// Creo estructuras necesarias.
 				int pid, pc;
 				char* instruccion = malloc(sizeof(char)); 
@@ -39,6 +42,9 @@ void atender_memoria_cpu(){
 				break;
 
             case FRAME:
+			    // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+
 				t_paquete *paquete_frame = crear_paquete(FRAME);
 				int frame_hardcode = 3; //ACA FRAN DEBERIAS LLAMAR A UNA FUNCION TIPO obtener_frame(nro_pag)
 
@@ -46,6 +52,8 @@ void atender_memoria_cpu(){
 			    // lógica para enviar el paquete con la dirección lógica del dato que necesito
 				break; 	
 			case OP_RESIZE:
+			    // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
 				//aca recibirias lo demas querido.
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de CPU");

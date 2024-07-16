@@ -1,5 +1,5 @@
 #include "../include/memoria_entradasalida.h"
-/*
+
 int cantidad_procesos = 0; // Definición de las variables globales
 t_pcb_memoria* obtener_proceso(int pid); // Declaración de la función obtener_proceso
 
@@ -18,7 +18,10 @@ void atender_memoria_entradasalida(){
 		switch(cod_op){ //hasta acá está bien
 			//case SOLICITUD_ACCESO_TABLAS_PAGINAS: //POSIBLE NOMBRE DEL MENSAJE 
 
-			case SOLICITUD_ESCRITURA: //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H){
+			case SOLICITUD_ESCRITURA: //desp confirmar el nombre con lucho (YA LO PUSE EN EL CONEXION.H)
+                // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+
                 buffer_desempaquetar_proceso(buffer, &direccion_fisica); //manda lo que quiere escribir(char*), la dire fisica (aka frame y desplazamiento) y el tamanio
                 buffer_desempaquetar(buffer, &tamanio);
                 data = malloc(tamanio);
@@ -43,6 +46,9 @@ void atender_memoria_entradasalida(){
                 break;
 
 			case SOLICITUD_LECTURA:
+                // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+                
                 buffer_desempaquetar(buffer, &direccion_fisica);
                 buffer_desempaquetar(buffer, &tamanio);
 
@@ -98,4 +104,4 @@ int leer_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
     // Realizar la lectura desde la memoria
     memcpy(buffer, espacio_usuario + direccion_fisica, tamanio);
     return 0;
-} */
+} 

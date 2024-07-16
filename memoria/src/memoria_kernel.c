@@ -13,6 +13,9 @@ void atender_memoria_kernel(){
 		recibir_paquete(fd_kernel, &cod_op, buffer);
 		switch(cod_op){
 			case SOLICITUD_INICIAR_PROCESO:
+                // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+
                 // Inicializo tabla y lista de instrucciones del proceso recibido.
                 //Quedaría mejor la inicialización en una función aparte, agregar!!
 			    t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
@@ -38,10 +41,19 @@ void atender_memoria_kernel(){
                 break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
+                // TIEMPO DE RETARDO
+                usleep(RETARDO_REPUESTA);
+
+                // Declaro estructura necesaria y desempaqueto lo recibido.
                 int pid_recibido;
                 buffer_desempaquetar(buffer, &pid_recibido);
+
+                // Finalizo el proceso.
                 finalizar_proceso(pid_recibido);
+
+                // Libero memoria.
                 eliminar_buffer(buffer);
+                
                 break;
 
 			default:

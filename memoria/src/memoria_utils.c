@@ -1,14 +1,6 @@
 #include "../include/memoria_utils.h"
 
-int encontrar_proceso(int pid)
-{
-    int i = 0;
-    while(procesos[i].pid != -1){
-        if(procesos[i].pid == pid)
-            return i;
-    }
-    return i;
-}
+
 
 int agregar_proceso(t_pcb_memoria proceso) // Podría poner esto en un utils, no śe...
 {
@@ -33,6 +25,16 @@ int eliminar_proceso(int index)
     }
 
     return 1; // Éxito, 1 si se encontró el proceso y se eliminó.  
+}
+
+int encontrar_proceso(int pid)
+{
+    int i = 0;
+    while(procesos[i].pid != -1){
+        if(procesos[i].pid == pid)
+            return i;
+    }
+    return i;
 }
 
 bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida del archivo de pseudocodigo comienza con alguno de estos strings.
