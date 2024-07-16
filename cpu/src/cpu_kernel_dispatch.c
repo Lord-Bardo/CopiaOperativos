@@ -2,11 +2,12 @@
 
 
 int salir_ciclo_instruccion=0;
+t_codigo_operacion motivo_desalojo = SUCCESS;
 
 void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
-	inicializarPCB(&pcb);
+	
     while(1){
-        
+        inicializarPCB(&pcb);
         t_codigo_operacion cod_op;
 		t_buffer * buffer = crear_buffer();
         t_pcb *pcb_recibido = malloc(sizeof(t_pcb));
@@ -43,17 +44,25 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
             }
             //check interrupt, como hago para fijarme si mellego una interrupcion de kernel?
             //alguna estructura para guardar interrupciones
-            //liberar_instruccion(instr);
+            liberar_instruccion(instr);
             
-            salir_ciclo_instruccion=1;
             
         }
-        //mandar contexto ejecucion
-        //eliminar_buffer(buffer);
+        enviar_pcb_kernel(motivo_desalojo);
+        eliminar_buffer(buffer);
         free(pcb_recibido);
-        log_info(cpu_logger,"Salgo del while 1");
-        break;
+        log_info(cpu_logger,"Cambio de proceso");
+        
     }
 }
 
 
+/*
+    SUCCESS,
+    INTERRUPT_QUANTUM,
+    INTERRUPT_USER,
+    OUT_OF_MEMORY,
+    IO,
+    WAIT,
+    SIGNAL,
+*/

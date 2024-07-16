@@ -29,6 +29,12 @@ void buffer_desempaquetar_pcb(t_buffer *buffer, t_pcb* pcb){ // REVISAR
     buffer_desempaquetar_registros(buffer, &(pcb->registros));
 }
 
+void enviar_pcb_kernel(t_codigo_operacion motivo_desalojo){
+    t_paquete *paquete = crear_paquete(motivo_desalojo);
+    agregar_contexto_ejecucion_a_paquete(paquete,&pcb);
+    enviar_paquete(fd_kernel_dispatch,paquete);
+    eliminar_paquete(paquete);
+}
 void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb){
     agregar_pid_a_paquete(paquete, pcb_get_pid(pcb));
     agregar_uint32_a_paquete(paquete, pcb->pc);

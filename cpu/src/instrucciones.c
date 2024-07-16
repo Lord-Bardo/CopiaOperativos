@@ -86,6 +86,7 @@ void execute(t_instruccion *instruccion){
 	{
 	case EXIT:
 		salir_ciclo_instruccion=1;
+		motivo_desalojo = SUCCESS;
 		log_info(cpu_logger,"ENTRE AL EXIT");
 		break;
 	case SET:
@@ -102,6 +103,8 @@ void execute(t_instruccion *instruccion){
 		break;
 	case INS_IO_GEN_SLEEP:
 		ejecutarIoGenSleep(instruccion->argumentos[0],instruccion->argumentos[1]);
+		salir_ciclo_instruccion =1;
+		motivo_desalojo = IO;
 		break;
 	case MOV_IN:
 		ejecutarMovIn(instruccion->argumentos[0],instruccion->argumentos[1]);
