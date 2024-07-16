@@ -16,28 +16,19 @@ void atender_memoria_kernel(){
                 // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
 
-                // Inicializo tabla y lista de instrucciones del proceso recibido.
-                //Quedaría mejor la inicialización en una función aparte, agregar!!
-			    t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
-                proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
-                proceso_recibido->path = NULL;
-                proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
-
-                for (int i = 0; i < TAM_MEMORIA; i++) 
-                    proceso_recibido->memoria_de_instrucciones[i] = malloc(sizeof(char));
-                
+                // Creo e inicializo estructuras necesarias.
+			    t_pcb_memoria *proceso_recibido = inicializar_proceso();
                 num_instruccion = 0;
-                
-                // Verificar si la asignación de memoria fue exitosa
-                if (proceso_recibido->tabla_paginas == NULL || proceso_recibido->memoria_de_instrucciones == NULL) {
-                    // Manejar el error de asignación de memoria
-                    fprintf(stderr, "Error al asignar memoria\n");
-                    exit(EXIT_FAILURE);
-                }
 
+                // Desempaqueto lo recibido.
 				buffer_desempaquetar_proceso(buffer, proceso_recibido); 
+                
+                // Creo el proceso.
 				crear_proceso(proceso_recibido);
+
+                //Libero memoria.
                 eliminar_buffer(buffer);
+                
                 break;
 
 			case SOLICITUD_FINALIZAR_PROCESO:
@@ -53,7 +44,7 @@ void atender_memoria_kernel(){
 
                 // Libero memoria.
                 eliminar_buffer(buffer);
-                
+
                 break;
 
 			default:
@@ -81,7 +72,9 @@ void crear_proceso(t_pcb_memoria *proceso)
     FILE *archivo = fopen(ruta_completa, "r");
     if (archivo == NULL) {
         perror("Error al abrir el archivo");
+        fclose(archivo);
         free(ruta_completa);
+        liberar_pcb_memoria(proceso);
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     }
@@ -123,10 +116,10 @@ void crear_proceso(t_pcb_memoria *proceso)
     free(ruta_completa);
 
     // Borrar una vez terminado el testeo
-    // printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
-    // printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
-	// printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
-	// log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
+    printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
+    printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
+	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
+	log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
 }
 
 void finalizar_proceso(int pid_recibido)

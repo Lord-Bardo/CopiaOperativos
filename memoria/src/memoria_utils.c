@@ -1,6 +1,25 @@
 #include "../include/memoria_utils.h"
 
+t_pcb_memoria* inicializar_proceso()
+{
+    t_pcb_memoria *proceso = malloc(sizeof(t_pcb_memoria));
+    proceso->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
+    proceso->path = NULL;
+    proceso->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
 
+    for (int i = 0; i < TAM_MEMORIA; i++) 
+        proceso->memoria_de_instrucciones[i] = malloc(sizeof(char));
+
+    // Verificar si la asignación de memoria fue exitosa
+    if (proceso->tabla_paginas == NULL || proceso->memoria_de_instrucciones == NULL) {
+        // Manejar el error de asignación de memoria
+        fprintf(stderr, "Error al asignar memoria\n");
+        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
+        exit(EXIT_FAILURE);
+    }    
+
+    return proceso;
+}
 
 int agregar_proceso(t_pcb_memoria proceso) // Podría poner esto en un utils, no śe...
 {

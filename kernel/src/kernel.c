@@ -28,19 +28,13 @@ int main(int argc, char* argv[]) {
 	// ESPERO NO TE MOLESTE, CUALQUIER COSA CORTÁ Y PEGAMELO EN MEMORIA. TE MANDO UN ABRAZO, CUIDATE <3 
     
 //----------------------------------test: envío de paquete a memoria--------------------------------------------------------------------------------------------
-	/*
+//	ENGINEER'S NOTE: para efectuar este test se debe conectar los modulos MEMORIA-KERNEL (en ese orden), luego, usando la
+//	                 consola interactiva de KERNEL ingresar "INICIAR PROCESO /ArchivoPseudocodigo.txt" y el proceso se creará.
+//                   (verificar en la terminal de MEMORIA que lo impreso por pantalla sea correcto para saber si el test fue exitoso).	
+/* 
     conectar_a_memoria();
-
-	t_paquete* paquete_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
-	char* path = "/ArchivoPseudocodigo.txt";
-	int pid = 123;
-	agregar_a_paquete(paquete_proceso, &path, sizeof(char));
-	agregar_a_paquete(paquete_proceso, &pid, sizeof(int));
-	enviar_paquete(fd_memoria, paquete_proceso);
-	eliminar_paquete(paquete_proceso);
-
 	iniciar_consola_interactiva();
-	*/
+*/	
 //----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
     
 	// fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
