@@ -137,6 +137,99 @@ void recibir_frame(int *frame){
 
 }
 
+void insertar_ordenado_lista_interrupciones(t_interrupt interrupcion_nueva) {
+    nodo_t* actual = lista_interrupciones;
+    nodo_t* anterior = NULL;
+
+    while (actual != NULL && actual->interrupcion.pid != interrupcion_nueva.pid) {
+        anterior = actual;
+        actual = actual->siguiente;
+    }
+
+    if (actual != NULL) {
+        // Si el PID ya existe, solo actualizamos si la nueva interrupción tiene mayor prioridad
+        if (interrupcion_nueva.motivo_desalojo == INTERRUPT_USER) {
+            actual->interrupcion.motivo_desalojo = interrupcion_nueva.motivo_desalojo;
+        }
+    } else {
+        // Si el PID no existe, insertamos una nueva interrupción
+        nodo_t* nuevo_nodo = (nodo_t*)malloc(sizeof(nodo_t));
+        nuevo_nodo->interrupcion = interrupcion_nueva;
+        nuevo_nodo->siguiente = NULL;
+
+        if (anterior == NULL) {
+            // Insertar al inicio de la lista
+            lista_interrupciones = nuevo_nodo;
+        } else {
+            // Insertar en el medio o al final de la lista
+            anterior->siguiente = nuevo_nodo;
+        }
+    }
+}
+
+// Función para quitar una interrupción de la lista por PID
+void quitar_lista_interrupciones(int pid_sacar) {
+    nodo_t* actual = lista_interrupciones;
+    nodo_t* anterior = NULL;
+
+    while (actual != NULL && actual->interrupcion.pid != pid_sacar) {
+        anterior = actual;
+        actual = actual->siguiente;
+    }
+
+    if (actual != NULL) {
+        if (anterior == NULL) {
+            lista_interrupciones = actual->siguiente;
+        } else {
+            anterior->siguiente = actual->siguiente;
+        }
+        free(actual);
+    }
+}
+
+// Función para buscar una interrupción en la lista por PID
+int buscar_lista_interrupciones(int pid_buscar) {
+    nodo_t* actual = lista_interrupciones;
+
+    while (actual != NULL) {
+        if (actual->interrupcion.pid == pid_buscar) {
+            return 1; // Encontrado
+        }
+        actual = actual->siguiente;
+    }
+
+    return 0; // No encontrado
+}
+
+void check_interrupt(){
+    if(buscar_lista_interrupciones(pcb.pid) && (!salir_ciclo_instruccion)){ //deberia hacer esto si la instruccion quiere continuar ejecutando normalmente verdad?
+            salir_ciclo_instruccion=1;
+            motivo_desalojo = obtener_motivo_lista(pcb.pid);
+            enviar_pcb_kernel(motivo_desalojo);
+        }
+}
+
+
+int obtener_motivo_lista(int pid_buscar){
+    nodo_t* actual = lista_interrupciones;
+
+    while (actual != NULL) {
+        if (actual->interrupcion.pid == pid_buscar) {
+            return actual->interrupcion.motivo_desalojo; // Encontrado
+        }
+        actual = actual->siguiente;
+    }
+    return -1;
+}
+// Función de prueba para imprimir la lista
+void imprimir_lista() {
+    nodo_t* actual = lista_interrupciones;
+    while (actual != NULL) {
+        printf("PID: %d, Motivo: %d\n", actual->interrupcion.pid, actual->interrupcion.motivo_desalojo);
+        actual = actual->siguiente;
+    }
+}
+
 /*void recibir_pcb(int socket_cliente){
 	t_list *pcb_como_lista = recibir_paquete(socket_cliente);
 	t_pcb pcb;

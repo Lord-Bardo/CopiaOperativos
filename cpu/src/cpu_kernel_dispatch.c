@@ -8,6 +8,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	
     while(1){
         inicializarPCB(&pcb);
+        motivo_desalojo = SUCCESS;
         t_codigo_operacion cod_op;
 		t_buffer * buffer = crear_buffer();
         t_pcb *pcb_recibido = malloc(sizeof(t_pcb));
@@ -45,17 +46,16 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
             //check interrupt, como hago para fijarme si mellego una interrupcion de kernel?
             //alguna estructura para guardar interrupciones
             liberar_instruccion(instr);
-            
-            
+            //si me desalojo en el execute no tengo que checkear interrupciones ni mandar el pcb despues.
+            check_interrupt();
         }
-        enviar_pcb_kernel(motivo_desalojo);
+        
         eliminar_buffer(buffer);
         free(pcb_recibido);
-        log_info(cpu_logger,"Cambio de proceso");
+       // log_info(cpu_logger,"Cambio de proceso");
         
     }
 }
-
 
 /*
     SUCCESS,

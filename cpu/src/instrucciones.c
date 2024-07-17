@@ -85,9 +85,10 @@ void execute(t_instruccion *instruccion){
 	switch (instruccion->instr_code)
 	{
 	case EXIT:
+		log_info(cpu_logger,"ENTRE AL EXIT");
 		salir_ciclo_instruccion=1;
 		motivo_desalojo = SUCCESS;
-		log_info(cpu_logger,"ENTRE AL EXIT");
+		enviar_pcb_kernel(motivo_desalojo);
 		break;
 	case SET:
 		ejecutarSet(instruccion->argumentos[0],instruccion->argumentos[1]);
@@ -101,11 +102,6 @@ void execute(t_instruccion *instruccion){
 	case JNZ:
 		ejecutarJnz(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
-	case INS_IO_GEN_SLEEP:
-		ejecutarIoGenSleep(instruccion->argumentos[0],instruccion->argumentos[1]);
-		salir_ciclo_instruccion =1;
-		motivo_desalojo = IO;
-		break;
 	case MOV_IN:
 		ejecutarMovIn(instruccion->argumentos[0],instruccion->argumentos[1]);
 		break;
@@ -118,17 +114,40 @@ void execute(t_instruccion *instruccion){
 	case COPY_STRING:
 		ejecutarCopyString(instruccion->argumentos[0]);
 		break;
-	case INS_IO_STDIN_READ:
+	case WAIT:
+		ejecutarWait(instruccion->argumentos[0]);
+		break;
+	case SIGNAL:
+		ejecutarSignal(instruccion->argumentos[0]);
+		break;
+	case IO_GEN_SLEEP:
+		ejecutarIoGenSleep(instruccion->argumentos[0],instruccion->argumentos[1]);
+		salir_ciclo_instruccion =1;
+		motivo_desalojo = IO;
+		break;
+	case IO_STDIN_READ:
 		ejecutarStdRead(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
 		break;
-	case INS_IO_STDOUT_WRITE:
+	case IO_STDOUT_WRITE:
 		ejecutarStdWrite(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
 		break;		
+	case IO_FS_CREATE:
+		ejecutarIOFsCreate(instruccion->argumentos[0],instruccion->argumentos[1]);
+		break;
+	case IO_FS_DELETE:
+		ejecutarIOFsDelete(instruccion->argumentos[0],instruccion->argumentos[1]);
+		break;
+	case IO_FS_TRUNCATE:
+		ejecutarIOFsTruncate(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
+		break;
+	case IO_FS_WRITE:
+		break;
+	case IO_FS_READ:
+		break;
 	default:
 		break;
 	}
 }
-
 void ejecutarSet(char * registro_string, char * valor_string){
 	u_int32_t *registro = obtener_registro(registro_string);
 	
@@ -181,8 +200,21 @@ void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 	}
 
 }
+void ejecutarWait(char * recurso){
+	t_paquete * paquete = crear_paquete(WAIT);
+	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+}
 
-void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){
+void ejecutarSignal(char * recurso){
+	t_paquete * paquete = crear_paquete(SIGNAL);
+	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+}
+
+void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el tiempo
 	t_codigo_operacion op= IO_GEN_SLEEP;
 	t_paquete *paquete =crear_paquete(IO);
 
@@ -228,7 +260,29 @@ void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_t
 void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio){ //entiendo que voy a leer un registro y ese valor es el tamanio
 	//TODO
 }
-
+void ejecutarIOFsCreate(char * interfaz, char * archivo){
+	t_paquete * paquete = crear_paquete(IO_FS_CREATE);
+	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
+	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+}
+void ejecutarIOFsDelete(char * interfaz, char * archivo){
+	t_paquete * paquete = crear_paquete(IO_FS_DELETE);
+	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
+	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+}
+void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio){
+	u_int32_t *valor_registro = obtener_registro(registro_tamanio);
+	t_paquete * paquete = crear_paquete(IO_FS_TRUNCATE);
+	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
+	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
+	agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+}
 
 t_instruccion* pedidoAMemoria(int pid, int pc) {
     // Simulación de obtención de instrucción de memoria
