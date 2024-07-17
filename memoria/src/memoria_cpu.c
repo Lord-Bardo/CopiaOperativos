@@ -69,7 +69,23 @@ void atender_memoria_cpu(){
 			case OP_RESIZE:
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
-				//TODO
+				
+				// Creo estructuras necesarias.
+				int pid_resize, size;
+
+				// Desempaqueto el buffer y almaceno información recibida.
+				buffer_desempaquetar(buffer, &pid_resize);
+				buffer_desempaquetar(buffer, &size);
+
+				// Cambio el tamaño del proceso.
+				resize(pid_resize, size);
+
+				// Envío confirmación de escritura.
+				enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
+
+				// Libero memoria.
+				eliminar_buffer(buffer);
+
 				break;
 
 			case SOLICITUD_ESCRITURA:
@@ -144,5 +160,8 @@ void obtener_frame(int pid, int pag, int* frame) //PENDIENTE DE TESTEAR (hacerlo
 
 void escribir(int frame, int offset, void* dato, int bytes)
 {
+	//TODO
+}
+void resize(int pid, int size){
 	//TODO
 }
