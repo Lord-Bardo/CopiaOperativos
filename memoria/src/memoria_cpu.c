@@ -156,12 +156,16 @@ void obtener_frame(int pid, int pag, int* frame) //PENDIENTE DE TESTEAR (hacerlo
 
 	// Obtengo el frame.
 	*frame = procesos[index].tabla_paginas[pag].num_frame;
+
+	// Log obligatorio.
+	log_info(memoria_logger, "PID: %d\n", procesos[index].pid, " - Pagina: %d\n", pag, " - Marco: %d\n", procesos[index].tabla_paginas[pag].num_frame);
 }
 
 void escribir(int frame, int offset, void* dato, int bytes)
 {
 	//TODO
 }
-void resize(int pid, int size){
+void resize(int pid, int size)
+{
 	//TODO
 }
