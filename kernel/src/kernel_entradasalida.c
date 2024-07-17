@@ -21,8 +21,12 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                                 // Desbloquear proceso
                                 estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb));
                                 // ACA PODRIA HACER UN IF(ESTA_EN_LA_BLACK_LIST(PCB)){LO MATO}ELSE{ PROCESO_A_READY(PCB)}
-                                // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY }
-                                proceso_a_ready(pcb);
+                                if( pcb_get_quantum_restante(pcb) == QUANTUM ){ // es FIFO o RR
+                                    proceso_a_ready(pcb);
+                                }
+                                else{ // es VRR
+                                    proceso_a_ready_plus(pcb);
+                                }
                                 sem_post(&sem_estado_planificacion_blocked_to_ready);
                             }
                             break;

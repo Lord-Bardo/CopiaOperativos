@@ -6,12 +6,15 @@
 #include <pthread.h>
 #include <readline/readline.h>
 #include <semaphore.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
 #include <commons/collections/dictionary.h>
+#include <commons/temporal.h>
 
 #include <utils/conexion.h>
 
@@ -55,7 +58,7 @@ typedef struct{
 
 typedef struct{
     int pid;
-    int quantum;
+    int quantum_restante;
     t_nombre_estado estado;
     uint32_t PC;
     t_registros registros;
@@ -144,5 +147,9 @@ extern pthread_mutex_t mutex_diccionario_interfaces;
 
 // Semaforos sockets
 extern pthread_mutex_t mutex_socket_memoria;
+extern pthread_mutex_t mutex_socket_cpu_interrupt;
+
+// Semaforo quantum
+extern pthread_mutex_t mutex_interrupcion_quantum;
 
 #endif

@@ -21,7 +21,7 @@ void pid_destroyer(void *pid);
 
 // Manejo paquete
 void agregar_pid_a_paquete(t_paquete *paquete, int pid);
-void agregar_quantum_a_paquete(t_paquete *paquete, int quantum);
+void agregar_quantum_a_paquete(t_paquete *paquete, int quantum_restante);
 void agregar_estado_a_paquete(t_paquete *paquete, t_nombre_estado estado);
 void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n);
 void agregar_pc_a_paquete(t_paquete *paquete, uint32_t pc);

@@ -9,7 +9,7 @@ t_pcb *crear_pcb(int pid, char* path){
 
     pcb->pid = pid;
     pcb->estado = NEW;
-    pcb->quantum = QUANTUM;
+    pcb->quantum_restante = QUANTUM;
     pcb->PC = 0;
     pcb->registros.AX = 0;
     pcb->registros.BX = 0;
@@ -66,8 +66,12 @@ t_nombre_estado pcb_get_estado(t_pcb *pcb){
     return pcb->estado;
 }
 
-int pcb_get_quantum(t_pcb *pcb){
-    return pcb->quantum;
+int pcb_get_quantum_restante(t_pcb *pcb){
+    return pcb->quantum_restante;
+}
+
+void pcb_set_quantum_restante(t_pcb *pcb, int quantum){
+    pcb->quantum_restante = quantum;
 }
 
 t_registros pcb_get_registros(t_pcb *pcb){
