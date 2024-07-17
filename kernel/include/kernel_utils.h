@@ -20,13 +20,13 @@ void *pcb_get_pid_transformer(void *pcb);
 void pid_destroyer(void *pid);
 
 // Manejo paquete
-void agregar_pid_a_paquete(t_paquete *paquete, int pid);
-void agregar_quantum_a_paquete(t_paquete *paquete, int quantum_restante);
-void agregar_estado_a_paquete(t_paquete *paquete, t_nombre_estado estado);
-void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n);
-void agregar_pc_a_paquete(t_paquete *paquete, uint32_t pc);
+void agregar_int_a_paquete(t_paquete *paquete, int n);
 void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n);
+void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n);
 void agregar_string_a_paquete(t_paquete *paquete, char *string);
+void agregar_pid_a_paquete(t_paquete *paquete, int pid);
+void agregar_estado_a_paquete(t_paquete *paquete, t_nombre_estado estado);
+void agregar_pc_a_paquete(t_paquete *paquete, uint32_t pc);
 void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros);
 void agregar_contexto_ejecucion_a_paquete(t_paquete *paquete, t_pcb* pcb);
 

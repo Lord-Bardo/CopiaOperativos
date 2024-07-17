@@ -5,7 +5,8 @@
 t_estado_planificacion estado_planificacion;
 sem_t sem_estado_planificacion_new_to_ready;
 sem_t sem_estado_planificacion_ready_to_exec;
-sem_t sem_estado_planificacion_blocked_to_ready;
+sem_t sem_estado_planificacion_blocked_to_ready_recurso;
+sem_t sem_estado_planificacion_blocked_to_ready_interfaz;
 sem_t sem_estado_planificacion_exec_to_exec_or_ready_or_blocked;
 
 // Estados
@@ -70,8 +71,9 @@ void inicializar_estructuras_planificacion(){
     estado_planificacion = PAUSADA;
     sem_init(&sem_estado_planificacion_new_to_ready, 0, 0);
     sem_init(&sem_estado_planificacion_ready_to_exec, 0, 0);
+    sem_init(&sem_estado_planificacion_blocked_to_ready_recurso, 0, 0);
+    sem_init(&sem_estado_planificacion_blocked_to_ready_interfaz, 0, 0);
     sem_init(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked, 0, 0);
-    sem_init(&sem_estado_planificacion_blocked_to_ready, 0, 0); 
 }
 
 void inicializar_estructuras_estados(){
@@ -115,7 +117,8 @@ void iniciar_planificacion(){
         estado_planificacion = ACTIVA;
         sem_post(&sem_estado_planificacion_new_to_ready);
         sem_post(&sem_estado_planificacion_ready_to_exec);
-        sem_post(&sem_estado_planificacion_blocked_to_ready);
+        sem_post(&sem_estado_planificacion_blocked_to_ready_recurso);
+        sem_post(&sem_estado_planificacion_blocked_to_ready_interfaz);
         sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
     }
 }
@@ -123,14 +126,16 @@ void iniciar_planificacion(){
 void detener_planificacion(){
     if( estado_planificacion == ACTIVA ){
         estado_planificacion = PAUSADA;
-        pthread_t hilo_detener_planificacion_new_to_ready, hilo_detener_planificacion_ready_to_exec, hilo_detener_planificacion_blocked_to_ready, hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked;
+        pthread_t hilo_detener_planificacion_new_to_ready, hilo_detener_planificacion_ready_to_exec, hilo_detener_planificacion_blocked_to_ready_recurso, hilo_detener_planificacion_blocked_to_ready_interfaz, hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked;
         pthread_create(&hilo_detener_planificacion_new_to_ready, NULL, (void *)detener_planificacion_new_to_ready, NULL);
         pthread_create(&hilo_detener_planificacion_ready_to_exec, NULL, (void *)detener_planificacion_ready_to_exec, NULL);
-        pthread_create(&hilo_detener_planificacion_blocked_to_ready, NULL, (void *)detener_planificacion_blocked_to_ready, NULL);
+        pthread_create(&hilo_detener_planificacion_blocked_to_ready_recurso, NULL, (void *)detener_planificacion_blocked_to_ready_recurso, NULL);
+        pthread_create(&hilo_detener_planificacion_blocked_to_ready_interfaz, NULL, (void *)detener_planificacion_blocked_to_ready_interfaz, NULL);
         pthread_create(&hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL, (void *)detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL);
         pthread_detach(hilo_detener_planificacion_new_to_ready);
         pthread_detach(hilo_detener_planificacion_ready_to_exec);
-        pthread_detach(hilo_detener_planificacion_blocked_to_ready);
+        pthread_detach(hilo_detener_planificacion_blocked_to_ready_recurso);
+        pthread_detach(hilo_detener_planificacion_blocked_to_ready_interfaz);
         pthread_detach(hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked);
     }
 }
@@ -143,8 +148,12 @@ void detener_planificacion_ready_to_exec(){
     sem_wait(&sem_estado_planificacion_ready_to_exec);
 }
 
-void detener_planificacion_blocked_to_ready(){
-    sem_wait(&sem_estado_planificacion_blocked_to_ready);
+void detener_planificacion_blocked_to_ready_recurso(){
+    sem_wait(&sem_estado_planificacion_blocked_to_ready_recurso);
+}
+
+void detener_planificacion_blocked_to_ready_interfaz(){
+    sem_wait(&sem_estado_planificacion_blocked_to_ready_interfaz);
 }
 
 void detener_planificacion_exec_to_exec_or_ready_or_blocked(){
@@ -317,6 +326,14 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb){
 
 void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_buffer *buffer, t_temporal *clock_exec){
     sem_wait(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
+    
+    if( pcb == NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado luego de ser desalojado por cpu, pero antes de comenzar a manejar el motivo de desalojo
+        motivo_desalojo = INTERRUPT_USER; // en este caso no necesito desencolarlo porq la funcion finalizar_proceso ya lo desencolo, solo me restaria mandarlo a exit, por ello hago que el motivo de desalojo sea INTERRUPT_USER
+    }
+    else{
+        pcb = estado_desencolar_primer_pcb(estado_exec); // desencolo aca y no en el planificador porq sino hay problemas para finalizar un proceso. Si el proceso es finalizado justo dsp de ser desalojado por cpu, pero antes de comenzar a manejar el motivo de desalojo => si desencolo el pcb, no va a quedar en ninguna cola y no lo voy a poder encontrar
+    }
+
     switch(motivo_desalojo){
         case SUCCESS:
             proceso_a_exit(pcb, FINALIZACION_SUCCESS);
@@ -349,9 +366,11 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                 ejecutar_instruccion_wait(pcb, nombre_recurso);
                 if( pcb_get_estado(pcb) == EXEC ){
                     sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked); // Si hago el sem_wait y al toque abajo el sem_post deberia sacar este post
+                    proceso_a_exec(pcb);
                     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
                         enviar_contexto_de_ejecucion(pcb);
                         recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
+                        pcb = estado_desencolar_primer_pcb(estado_exec);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
                         manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
                     }
@@ -369,6 +388,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                         pthread_cancel(hilo_quantum);
                         pthread_mutex_unlock(&mutex_interrupcion_quantum);
+                        pcb = estado_desencolar_primer_pcb(estado_exec);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
                         manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
@@ -387,6 +407,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                         pthread_cancel(hilo_quantum);
                         pthread_mutex_unlock(&mutex_interrupcion_quantum);
+                        pcb = estado_desencolar_primer_pcb(estado_exec);
                         quantum_restante = pcb_get_quantum_restante(pcb) - temporal_gettime(clock_exec);
                         pcb_set_quantum_restante(pcb, quantum_restante);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
@@ -412,9 +433,11 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                 ejecutar_instruccion_signal(pcb, nombre_recurso);
                 // Despues del signal siempre sigue ejecutando el mismo proceso
                 sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked); // Si hago el sem_wait y al toque abajo el sem_post deberia sacar este post
+                proceso_a_exec(pcb);
                 if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
                     enviar_contexto_de_ejecucion(pcb);
                     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
+                    pcb = estado_desencolar_primer_pcb(estado_exec);
                     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
                     manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
                 }
@@ -432,6 +455,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                     pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                     pthread_cancel(hilo_quantum);
                     pthread_mutex_unlock(&mutex_interrupcion_quantum);
+                    pcb = estado_desencolar_primer_pcb(estado_exec);
                     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
                     manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
@@ -450,6 +474,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                     pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                     pthread_cancel(hilo_quantum);
                     pthread_mutex_unlock(&mutex_interrupcion_quantum);
+                    pcb = estado_desencolar_primer_pcb(estado_exec);
                     quantum_restante = pcb_get_quantum_restante(pcb) - temporal_gettime(clock_exec);
                     pcb_set_quantum_restante(pcb, quantum_restante);
                     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
@@ -478,11 +503,12 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         switch( operacion ){
                             case IO_GEN_SLEEP:
                                 // Desempaqueto los parametros de la operacion
-                                char *parametros = buffer_desempaquetar_string(buffer);
+                                int unidades_de_trabajo;
+                                buffer_desempaquetar(buffer, &unidades_de_trabajo);
 
                                 // Creo el paquete con la operacion a realizar y sus parametros
                                 t_paquete *paquete_solicitud_io = crear_paquete(operacion);
-                                agregar_string_a_paquete(paquete_solicitud_io, parametros);
+                                agregar_int_a_paquete(paquete_solicitud_io, unidades_de_trabajo);
                                 
                                 // Creo la solicitud de entrada salida
                                 t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
@@ -548,23 +574,23 @@ void finalizar_proceso(int pid){ // TERMINAR
     // }// podria consultar si ya se encontro dsp de buscar en cada lista
     if( pcb != NULL ){
         switch( pcb_get_estado(pcb) ){
-            case NEW:
+            case NEW: // OK
                 proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
                 // sem_post(&sem_grado_multiprogramacion);
                 break;
-            case READY:
+            case READY: // OK
                 proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
                 // sem_post(&sem_grado_multiprogramacion);
                 break;
-            case READY_PLUS:
+            case READY_PLUS: // OK
                 proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
                 // sem_post(&sem_grado_multiprogramacion);
                 break;
-            case BLOCKED:
+            case BLOCKED: // REVISAR
                 proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
                 // sem_post(&sem_grado_multiprogramacion);
                 break;
-            case EXEC:
+            case EXEC: // REVISAR
                 // Mandar interrupcion a CPU y la respuesta es manejada en manejar motivo desalojo
                 pthread_mutex_lock(&mutex_socket_cpu_interrupt);
                 enviar_codigo_operacion(fd_cpu_interrupt, INTERRUPT_USER);
@@ -705,15 +731,15 @@ void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
     }
     
     // Compruebo si tras el signal se debe desbloquear algun proceso
+    sem_wait(&sem_estado_planificacion_blocked_to_ready_recurso);
+    sem_post(&sem_estado_planificacion_blocked_to_ready_recurso);
     if( recurso_debe_desbloquear_proceso(recurso) ){
-        sem_wait(&sem_estado_planificacion_blocked_to_ready);
         // Desbloqueo al primero proceso
         t_pcb *pcb_bloqueado = recurso_desencolar_primer_proceso(recurso);
         estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb_bloqueado)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
         // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY } -> NO! Por lo de abajo
         pcb_set_quantum_restante(pcb_bloqueado, QUANTUM); // -> si no entendi mal, cuando un proceso se bloquea por wait, al desbloquearse siempre vuelve a ready y con el quantum inicial. Si el algoritmo es vrr, esto tmb se debe cumplir, xq la idea del mismo es beneficiar a los procesos que hacen io, por lo q un bloqueo por recurso no deberia ser beneficiado
         proceso_a_ready(pcb_bloqueado);
-        sem_post(&sem_estado_planificacion_blocked_to_ready);
     }
 
     pthread_mutex_unlock(recurso_get_mutex_recurso(recurso));

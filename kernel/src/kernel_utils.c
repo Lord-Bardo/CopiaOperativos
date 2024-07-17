@@ -9,6 +9,7 @@ void log_fin_proceso(t_pcb *pcb, char *motivo_finalizacion){
     log_info(kernel_logger_min_y_obl, "Finaliza el proceso: %d - Motivo: %s", pcb_get_pid(pcb), motivo_finalizacion);
 }
 
+// podria agregar una validacion para corroborar que el estado anterior sea diferente del estado nuevo. Si son iguales no loggeo nada, xq en el signal o wait puede pasar de q pase de exec a exec
 void log_cambio_estado(t_pcb *pcb, t_nombre_estado estado_anterior, t_nombre_estado nuevo_estado){
     log_info(kernel_logger_min_y_obl, "PID: %d - Estado Anterior: %s - Estado Actual: %s", pcb_get_pid(pcb), estado_get_nombre_estado_string(estado_anterior), estado_get_nombre_estado_string(nuevo_estado));
 }
@@ -93,29 +94,32 @@ void pid_destroyer(void *pid){
 }
 
 // MANEJO PAQUETE ------------------------------------------------------------------
-// Se podria generalizar a agregar_int_a_paquete(), pero me parecio mas representativo esto (pueden estar las dos de todas formas)
-void agregar_pid_a_paquete(t_paquete *paquete, int pid){
-    agregar_a_paquete(paquete, &pid, sizeof(pid));
-}
-
-void agregar_estado_a_paquete(t_paquete *paquete, t_nombre_estado estado){
-    agregar_a_paquete(paquete, &estado, sizeof(estado));
-}
-
-void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint32_t));
-}
-
-void agregar_pc_a_paquete(t_paquete *paquete, uint32_t pc){
-    agregar_uint32_a_paquete(paquete, pc);
+void agregar_int_a_paquete(t_paquete *paquete, int n){
+    agregar_a_paquete(paquete, &n, sizeof(int));
 }
 
 void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){
     agregar_a_paquete(paquete, &n, sizeof(uint8_t));
 }
 
+void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
+    agregar_a_paquete(paquete, &n, sizeof(uint32_t));
+}
+
 void agregar_string_a_paquete(t_paquete *paquete, char *string){
     agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
+}
+
+void agregar_pid_a_paquete(t_paquete *paquete, int pid){
+    agregar_int_a_paquete(paquete, pid);
+}
+
+void agregar_estado_a_paquete(t_paquete *paquete, t_nombre_estado estado){
+    agregar_a_paquete(paquete, &estado, sizeof(estado));
+}
+
+void agregar_pc_a_paquete(t_paquete *paquete, uint32_t pc){
+    agregar_uint32_a_paquete(paquete, pc);
 }
 
 void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros){

@@ -119,7 +119,8 @@ extern int fd_cpu_interrupt;
 extern t_estado_planificacion estado_planificacion;
 extern sem_t sem_estado_planificacion_new_to_ready;
 extern sem_t sem_estado_planificacion_ready_to_exec;
-extern sem_t sem_estado_planificacion_blocked_to_ready;
+extern sem_t sem_estado_planificacion_blocked_to_ready_recurso;
+extern sem_t sem_estado_planificacion_blocked_to_ready_interfaz;
 extern sem_t sem_estado_planificacion_exec_to_exec_or_ready_or_blocked;
 
 // Estados
