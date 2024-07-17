@@ -22,7 +22,11 @@ void ejecutarIoGenSleep(char* interfaz, char* tiempo_string);
 void ejecutarCopyString(char *tamanio);
 void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_tamanio);
 void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio);
-
+void ejecutarWait(char * recurso);
+void ejecutarSignal(char * recurso);
+void ejecutarIOFsCreate(char * interfaz, char * archivo);
+void ejecutarIOFsDelete(char * interfaz, char * archivo);
+void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio);
 
 t_instruccion* crear_instruccion();
 void inicializarInstruccion(t_instruccion* instr, t_instr_code code, char* args[5]);

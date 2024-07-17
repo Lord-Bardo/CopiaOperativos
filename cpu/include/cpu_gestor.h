@@ -16,6 +16,17 @@
 
 #include <utils/conexion.h>
 
+
+typedef struct{
+	t_codigo_operacion motivo_desalojo;
+	int pid;
+}t_interrupt;
+
+typedef struct nodo {
+    t_interrupt interrupcion;
+    struct nodo* siguiente;
+} nodo_t;
+
 typedef struct {
 	uint8_t ax;
 	uint8_t bx;
@@ -51,8 +62,15 @@ typedef enum{
     MOV_OUT, 
     RESIZE, 
     COPY_STRING, 
-    INS_IO_STDIN_READ, 
-    INS_IO_STDOUT_WRITE,
+	WAIT,
+	SIGNAL,
+    IO_STDIN_READ, 
+    IO_STDOUT_WRITE,
+	IO_FS_CREATE,
+	IO_FS_DELETE,
+	IO_FS_TRUNCATE,
+	IO_FS_WRITE,
+	IO_FS_READ,
 	EXIT
 } t_instr_code;
 
@@ -69,6 +87,7 @@ extern t_pcb pcb;
 extern int salir_ciclo_instruccion;
 extern int tamanio_pagina;
 extern t_codigo_operacion motivo_desalojo;
+extern nodo_t *lista_interrupciones;
 //HABIRA QUE PONER EL PCB ACA CREO
 extern char* IP_MEMORIA;
 extern char* PUERTO_MEMORIA;
