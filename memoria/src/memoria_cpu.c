@@ -158,14 +158,28 @@ void obtener_frame(int pid, int pag, int* frame) //PENDIENTE DE TESTEAR (hacerlo
 	*frame = procesos[index].tabla_paginas[pag].num_frame;
 
 	// Log obligatorio.
-	log_info(memoria_logger, "PID: %d\n", procesos[index].pid, " - Pagina: %d\n", pag, " - Marco: %d\n", procesos[index].tabla_paginas[pag].num_frame);
+	log_info(memoria_logger, "PID: %d - Pagina: %d - Marco: %d\n", procesos[index].pid, pag, procesos[index].tabla_paginas[pag].num_frame);
 }
 
 void escribir(int frame, int offset, void* dato, int bytes)
 {
-	//TODO
+	//TODO - hacer en utils porque es compartida con ENTRADA-SALIDA (en realidad todas deberían estar en utils opino).
 }
 void resize(int pid, int size)
 {
-	//TODO
+	// Obtengo índice del proceso con el pid.
+	int index = encontrar_proceso(pid);
+	
+	// Si el proceso no tiene asignado páginas aún, se las creo por primera vez.
+	if(procesos[index].tabla_paginas[0].num_frame == -1)
+	    asignar_size_proceso(index, size);
+	
+
+	// Si el proceso tiene menos páginas que el size, aumento su tamaño.
+	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(index) < size)
+	    aumentar_proceso(index, size);
+	
+	// Si el proceso tiene más páginas que el size, disminuyo su tamaño.
+	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(index) > size)
+	    reducir_proceso(index, size);
 }

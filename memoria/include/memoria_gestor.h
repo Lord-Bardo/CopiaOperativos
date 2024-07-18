@@ -48,7 +48,7 @@ extern int fd_entradasalida;
 extern int fd_memoria;
 
 extern void* espacio_usuario; 
-extern void* puntero_espacio_usuario;
+extern int frame_libre;
 extern t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
 extern size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
 

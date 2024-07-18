@@ -1,7 +1,7 @@
 #include "../include/memoria_kernel.h"
 
 void* espacio_usuario; 
-void* puntero_espacio_usuario;
+int frame_libre; //contendrá el índice del siguiente frame vacío del espacio_usuario
 t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
 size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
 
@@ -74,7 +74,7 @@ void crear_proceso(t_pcb_memoria *proceso)
         perror("Error al abrir el archivo");
         fclose(archivo);
         free(ruta_completa);
-        liberar_pcb_memoria(proceso);
+        liberar_proceso(proceso);
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     }
@@ -91,7 +91,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Instrucción inválida en el archivo");
             fclose(archivo);
             free(ruta_completa);
-            liberar_pcb_memoria(proceso);
+            liberar_proceso(proceso);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
@@ -102,7 +102,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Error al duplicar la cadena");
             fclose(archivo);
             free(ruta_completa);
-            liberar_pcb_memoria(proceso);
+            liberar_proceso(proceso);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
@@ -129,7 +129,7 @@ void finalizar_proceso(int pid_recibido)
     t_pcb_memoria* proceso = &procesos[i];
 
     //Libero memoria del proceso 
-    liberar_pcb_memoria(proceso); // Supongo que con el free de tabla de paginas, los frames pasan a estar disponibles (no se debe borrar la info del frame a pesar de finalizar proceso).
+    liberar_proceso(proceso); // Supongo que con el free de tabla de paginas, los frames pasan a estar disponibles (no se debe borrar la info del frame a pesar de finalizar proceso).
 
     //Elimino proceso de lista de procesos
     eliminar_proceso(i);
