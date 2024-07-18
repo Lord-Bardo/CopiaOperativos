@@ -182,4 +182,10 @@ void resize(int pid, int size)
 	// Si el proceso tiene más páginas que el size, disminuyo su tamaño.
 	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(index) > size)
 	    reducir_proceso(index, size);
+
+	// ENGINEER'S NOTE: NO ENTIENDO cómo saber cuáles son los frames libres (para asignar), 
+	//                  incluyendo a los frames que se liberan al reducir el tamaño de un 
+	//                  proceso. Posible solución: usar una estructura a parte del espacio
+	//                  de usuario que contenga a todos los frames y que indiquen si estos 
+	//                  estan disponibles o no (se deberá actualizar con cada resize). 	
 }
