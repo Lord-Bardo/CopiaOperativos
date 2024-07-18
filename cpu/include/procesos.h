@@ -3,7 +3,7 @@
 
 
 #include "cpu_gestor.h"
-
+#include "cpu_utils.h"
 
 
 void inicializarPCBAleatorio(t_pcb *pcb);

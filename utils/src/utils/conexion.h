@@ -57,7 +57,7 @@ typedef enum{
     DATO, 
     PCB,//usado para mov_in y mov_out
     FRAME,
-    OP_RESIZE,
+    COP_RESIZE,
     FETCH_ERROR,
     FRAME_ERROR,
     CONFIRMACION_ESCRITURA,

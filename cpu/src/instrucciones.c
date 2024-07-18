@@ -201,23 +201,23 @@ void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 
 }
 void ejecutarWait(char * recurso){
-	t_paquete * paquete = crear_paquete(WAIT);
+	t_paquete * paquete = crear_paquete(COP_WAIT);
 	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 }
 
 void ejecutarSignal(char * recurso){
-	t_paquete * paquete = crear_paquete(SIGNAL);
+	t_paquete * paquete = crear_paquete(COP_SIGNAL);
 	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 }
 
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el tiempo
-	t_codigo_operacion op= IO_GEN_SLEEP;
+	t_codigo_operacion op= COP_IO_GEN_SLEEP;
 	t_paquete *paquete =crear_paquete(IO);
-
+	int tiempo_int;
 	agregar_a_paquete(paquete,interfaz,sizeof(interfaz)+1);
 
 	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
@@ -232,7 +232,7 @@ void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el
 }
 
 void ejecutarResize(char *tamanio){
-	t_paquete * paquete = crear_paquete(RESIZE); //este nombre deberia ser otro para no pisar el de las instrucicones MEM_RESIZE por ejemplo
+	t_paquete * paquete = crear_paquete(COP_RESIZE); //este nombre deberia ser otro para no pisar el de las instrucicones MEM_RESIZE por ejemplo
 	int tamanio_int = atoi(tamanio);
 	
 	agregar_a_paquete(paquete,&tamanio_int,sizeof(int));
@@ -261,14 +261,14 @@ void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro
 	//TODO
 }
 void ejecutarIOFsCreate(char * interfaz, char * archivo){
-	t_paquete * paquete = crear_paquete(IO_FS_CREATE);
+	t_paquete * paquete = crear_paquete(COP_IO_FS_CREATE);
 	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
 	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 }
 void ejecutarIOFsDelete(char * interfaz, char * archivo){
-	t_paquete * paquete = crear_paquete(IO_FS_DELETE);
+	t_paquete * paquete = crear_paquete(COP_IO_FS_DELETE);
 	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
 	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
 	enviar_paquete(fd_kernel_dispatch,paquete);
@@ -276,7 +276,7 @@ void ejecutarIOFsDelete(char * interfaz, char * archivo){
 }
 void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio){
 	u_int32_t *valor_registro = obtener_registro(registro_tamanio);
-	t_paquete * paquete = crear_paquete(IO_FS_TRUNCATE);
+	t_paquete * paquete = crear_paquete(COP_IO_FS_TRUNCATE);
 	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
 	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
 	agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
@@ -303,35 +303,59 @@ int obtener_numero_instruccion(char * cadena){
 	if(strcmp(cadena,"SET")==0){
 		return 0;
 	}
-	if(strcmp(cadena,"SUM")==0){
+	if(strcmp(cadena,"MOV_IN")==0){
 		return 1;
 	}
-	if(strcmp(cadena,"SUB")==0){
+	if(strcmp(cadena,"MOV_OUT")==0){
 		return 2;
 	}
-	if(strcmp(cadena,"JNZ")==0){
+	if(strcmp(cadena,"SUM")==0){
 		return 3;
 	}
-	if(strcmp(cadena,"IO_GEN_SLEEP")==0){
+	if(strcmp(cadena,"SUB")==0){
 		return 4;
 	}
-	if(strcmp(cadena,"MOV_IN")){
+	if(strcmp(cadena,"JNZ")==0){
 		return 5;
 	}
-	if(strcmp(cadena,"MOV_OUT")){
+	if(strcmp(cadena,"RESIZE")==0){
 		return 6;
 	}
-	if(strcmp(cadena,"RESIZE")){
+	if(strcmp(cadena,"COPY_STRING")==0){
 		return 7;
 	}
-	if(strcmp(cadena,"COPY_STRING")){
+	if(strcmp(cadena,"WAIT")==0){
 		return 8;
 	}
-	if(strcmp(cadena,"INS_IO_STDIN_READ")){
+	if(strcmp(cadena,"SIGNAL")==0){
 		return 9;
 	}
-	if(strcmp(cadena,"INS_IO_STDOUT_WRITE")){
+	if(strcmp(cadena,"IO_GEN_SLEEP")==0){
 		return 10;
+	}
+	if(strcmp(cadena,"IO_STDIN_READ")==0){
+		return 11;
+	}
+	if(strcmp(cadena,"IO_STDOUT_WRITE")==0){
+		return 12;
+	}
+	if(strcmp(cadena,"IO_FS_CREATE")==0){
+		return 13;
+	}
+	if(strcmp(cadena,"IO_FS_DELETE")==0){
+		return 14;
+	}
+	if(strcmp(cadena,"IO_FS_TRUNCATE")==0){
+		return 15;
+	}
+	if(strcmp(cadena,"IO_FS_WRITE")==0){
+		return 16;
+	}
+	if(strcmp(cadena,"IO_FS_READ")==0){
+		return 17;
+	}
+	if(strcmp(cadena,"EXIT")==0){
+		return 18;
 	}
 	return -1;
 }
