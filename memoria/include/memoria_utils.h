@@ -16,6 +16,7 @@ void reducir_proceso(int index, int size);
 
 // AUXILIARES.
 bool instruccion_valida(char* instruccion);
+int frame_libre();
 
 // MANEJO DE BUFFERS.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria* proceso);

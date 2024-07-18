@@ -1,7 +1,7 @@
 #include "../include/memoria_kernel.h"
 
 void* espacio_usuario; 
-int frame_libre; //contendrá el índice del siguiente frame vacío del espacio_usuario
+bool* frames_libres; // indicará cuáles frames están libres y cuáles están ocupados.
 t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
 size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
 

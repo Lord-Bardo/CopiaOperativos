@@ -60,7 +60,7 @@ int encontrar_proceso(int pid)
     return i;
 }
 
-int sizeof_proceso(int index){
+int sizeof_proceso(int index){ // El tamaño de un proceso es igual a su cantidad de páginas.
     int size = 0;
     while(procesos[index].tabla_paginas[size].num_frame != -1)
         size++;
@@ -70,13 +70,13 @@ int sizeof_proceso(int index){
 void asignar_size_proceso(int index, int size)
 {
     int i = 0;
-    while(i < size && frame_libre <= TAM_MEMORIA/TAM_PAGINA){
-        procesos[index].tabla_paginas[i].num_frame = frame_libre;
-        procesos[index].tabla_paginas[i].bit_presencia = 0;
-        frame_libre++;
+    while(i < size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+        procesos[index].tabla_paginas[i].num_frame = frame_libre();
+        frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
+        procesos[index].tabla_paginas[i].bit_presencia = false;
         i++;
     }
-    if(i == size - 1 && frame_libre <= TAM_MEMORIA/TAM_PAGINA)
+    if(i == size - 1 && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     else
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
@@ -85,13 +85,13 @@ void asignar_size_proceso(int index, int size)
 void aumentar_proceso(int index, int size)
 {
     int i = 0;
-    while(i < size - sizeof_proceso(index) && frame_libre <= TAM_MEMORIA/TAM_PAGINA){
-        procesos[index].tabla_paginas[i].num_frame = frame_libre;
-        procesos[index].tabla_paginas[i].bit_presencia = 0;
-        frame_libre++;
+    while(i < size - sizeof_proceso(index) && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+        procesos[index].tabla_paginas[i].num_frame = frame_libre();
+        frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
+        procesos[index].tabla_paginas[i].bit_presencia = false;
         i++;
     }
-    if(i == size - sizeof_proceso(index) && frame_libre <= TAM_MEMORIA/TAM_PAGINA)
+    if(i == size - sizeof_proceso(index) && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     else
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
@@ -100,8 +100,10 @@ void aumentar_proceso(int index, int size)
 
 void reducir_proceso(int index, int size)
 {
-    for(int i = sizeof_proceso(index); i >= size; i--)
+    for(int i = sizeof_proceso(index); i >= size; i--){
+        frames_libres[procesos[index].tabla_paginas[i].num_frame] = true;
         procesos[index].tabla_paginas[i].num_frame = -1;
+    }
     enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
 }
 
@@ -136,6 +138,14 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
            strstr(instruccion, "IO_FS_DELETE ") == instruccion ||
            strstr(instruccion, "IO_FS_TRUNCATE") == instruccion ||
            strstr(instruccion, "IO_STDOUT_WRITE") == instruccion;
+}
+
+int frame_libre()
+{
+    int num_frame = 0;
+    while(frames_libres[num_frame] == false && num_frame <= TAM_MEMORIA/TAM_PAGINA)
+        num_frame++;
+    return num_frame;
 }
 
 
