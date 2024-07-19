@@ -46,8 +46,6 @@ void inicializar_fs(){
     // Me permite mapear el archivo de bitmap directamente en la memoria
     // Una vez mapeado el archivo se puede acceder al contenido como si fuera una porción de memoria, lo que puede hacer que las operaciones de lectura y escritura sean más rápidas y eficientes
     
-    // Puntero a una estructura de tipo t_bitarray que se usará para gestionar el bitmap
-    t_bitarray* bitarray; 
     // Puntero que va a apuntar al área de memoria donde el archivo del bitmap va a ser mapeado
     void* bitmap_data = NULL;
     // File descriptor que se va a usar para manejar el archivo bitmap.dat

@@ -82,3 +82,161 @@ char* recibir_datos_de_memoria(int tamanio) {
 
     return texto;
 }
+
+void interfaz_fs_create(char* filename) {
+    // Busca un bloque libre en el bitmap
+    int block_index = -1;
+    for (int i = 0; i < BLOCK_COUNT; i++) {
+        if (!bitarray_test_bit(bitarray, i)) {
+            block_index = i;
+            bitarray_set_bit(bitarray, i);
+            break;
+        }
+    }
+
+    if (block_index == -1) {
+        printf("No hay bloques libres disponibles.\n");
+        /* Ver si tendria que fijarme si hay lugar pero no puedo guardarlo por fragmentacion externa (en ese caso deberia hacer compactacion) */
+        return;
+    }
+
+    // Creo el archivo de metadata
+    FILE* metadata_file = fopen(filename, "w");
+    if (metadata_file == NULL) {
+        perror("Error al crear el archivo de metadata");
+        return;
+    }
+    fprintf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=0\n", block_index);
+    fclose(metadata_file);
+}
+
+void interfaz_fs_delete(char* filename) {
+    // Abro el archivo de metadata
+    FILE* metadata_file = fopen(filename, "r");
+    if (metadata_file == NULL) {
+        perror("Error al abrir el archivo de metadata");
+        return;
+    }
+
+    // Lee el bloque inicial del archivo
+    int block_index;
+    fscanf(metadata_file, "BLOQUE_INICIAL=%d\n", &block_index);
+    fclose(metadata_file);
+
+    // Libera el bloque en el bitmap
+    bitarray_clean_bit(bitarray, block_index);
+
+    // Elimina el archivo de metadata
+    if (remove(filename) != 0) {
+        perror("Error al eliminar el archivo de metadata");
+    }
+}
+
+/* void IO_FS_TRUNCATE(char* filename, int new_size) {
+    // Abre el archivo de metadata
+    FILE* metadata_file = fopen(filename, "r+");
+    if (metadata_file == NULL) {
+        perror("Error al abrir el archivo de metadata");
+        return;
+    }
+
+    // Lee el bloque inicial y el tamaño actual del archivo
+    int block_index, current_size;
+    fscanf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+
+    // Actualiza el tamaño del archivo en el archivo de metadata
+    fseek(metadata_file, 0, SEEK_SET);
+    fprintf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, new_size);
+    fclose(metadata_file);
+
+    // Maneja la lógica de asignación y liberación de bloques según el nuevo tamaño
+    // Aquí podrías necesitar agregar lógica para asignar o liberar bloques adicionales
+} */
+
+/* void IO_FS_WRITE(char* filename, int offset, char* data, int size) {
+    // Abre el archivo de metadata
+    FILE* metadata_file = fopen(filename, "r");
+    if (metadata_file == NULL) {
+        perror("Error al abrir el archivo de metadata");
+        return;
+    }
+
+    // Lee el bloque inicial y el tamaño actual del archivo
+    int block_index, current_size;
+    fscanf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+    fclose(metadata_file);
+
+    // Abre el archivo de bloques
+    FILE* bloques_file = fopen(BLOQUES_PATH, "rb+");
+    if (bloques_file == NULL) {
+        perror("Error al abrir bloques.dat");
+        return;
+    }
+
+    // Escribe los datos en el archivo de bloques en la posición adecuada
+    fseek(bloques_file, block_index * BLOCK_SIZE + offset, SEEK_SET);
+    fwrite(data, 1, size, bloques_file);
+    fclose(bloques_file);
+
+    // Actualiza el tamaño del archivo en el archivo de metadata si es necesario
+    if (offset + size > current_size) {
+        metadata_file = fopen(filename, "r+");
+        if (metadata_file == NULL) {
+            perror("Error al abrir el archivo de metadata");
+            return;
+        }
+        fseek(metadata_file, 0, SEEK_SET);
+        fprintf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, offset + size);
+        fclose(metadata_file);
+    }
+}
+ */
+
+/* void IO_FS_READ(char* filename, int offset, char* buffer, int size) {
+    // Abre el archivo de metadata
+    FILE* metadata_file = fopen(filename, "r");
+    if (metadata_file == NULL) {
+        perror("Error al abrir el archivo de metadata");
+        return;
+    }
+
+    // Lee el bloque inicial y el tamaño actual del archivo
+    int block_index, current_size;
+    fscanf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+    fclose(metadata_file);
+
+    // Asegúrate de no leer más allá del final del archivo
+    if (offset + size > current_size) {
+        size = current_size - offset;
+    }
+
+    // Abre el archivo de bloques
+    FILE* bloques_file = fopen(BLOQUES_PATH, "rb");
+    if (bloques_file == NULL) {
+        perror("Error al abrir bloques.dat");
+        return;
+    }
+
+    // Lee los datos del archivo de bloques en la posición adecuada
+    fseek(bloques_file, block_index * BLOCK_SIZE + offset, SEEK_SET);
+    fread(buffer, 1, size, bloques_file);
+    fclose(bloques_file);
+}
+ */
+
+
+/* int asignar_bloque() {
+    for (int i = 0; i < BLOCK_COUNT; i++) {
+        if (!bitarray_test_bit(bitarray, i)) {
+            bitarray_set_bit(bitarray, i);
+            return i;
+        }
+    }
+    return -1; // No hay bloques disponibles
+}
+
+void liberar_bloque(int block_index) {
+    if (block_index >= 0 && block_index < BLOCK_COUNT) {
+        bitarray_clean_bit(bitarray, block_index);
+    }
+} */

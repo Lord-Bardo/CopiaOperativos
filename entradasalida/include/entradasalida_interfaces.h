@@ -9,5 +9,7 @@ void enviar_texto_a_memoria(char* direccion_fisica, char* texto, int tamanio);
 void interfaz_stdout(char* registro_direccion, char* registro_tamanio);
 void solicitar_datos_a_memoria(char* direccion_fisica, int tamanio);
 char* recibir_datos_de_memoria(int tamanio);
+void interfaz_fs_create(char* filename);
+void interfaz_fs_delete(char* filename);
 
 #endif
