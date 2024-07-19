@@ -119,7 +119,7 @@ void enviar_fetch_memoria(int pid, u_int32_t pc){
 }
 void pedir_frame_memoria(int pagina){
     t_paquete *paquete = crear_paquete(FRAME);
-    agregar_a_paquete(paquete,pagina,sizeof(int));
+    agregar_a_paquete(paquete,&pagina,sizeof(int));
     enviar_paquete(fd_memoria,paquete);
 }
 void recibir_frame(int *frame){
@@ -202,11 +202,18 @@ int buscar_lista_interrupciones(int pid_buscar) {
 }
 
 void check_interrupt(){
-    if(buscar_lista_interrupciones(pcb.pid) && (!salir_ciclo_instruccion)){ //deberia hacer esto si la instruccion quiere continuar ejecutando normalmente verdad?
+    if (salir_ciclo_instruccion){
+        //limpiar
+        quitar_lista_interrupciones(pcb.pid);
+    }
+    else{
+        if(buscar_lista_interrupciones(pcb.pid)){ //deberia hacer esto si la instruccion quiere continuar ejecutando normalmente verdad?
             salir_ciclo_instruccion=1;
             motivo_desalojo = obtener_motivo_lista(pcb.pid);
             enviar_pcb_kernel(motivo_desalojo);
         }
+    }
+    
 }
 
 

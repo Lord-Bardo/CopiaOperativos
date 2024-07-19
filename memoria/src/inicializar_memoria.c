@@ -35,7 +35,9 @@ void iniciar_variables(void)
 {
 	espacio_usuario = malloc(TAM_MEMORIA);
     memset(espacio_usuario, 0, TAM_MEMORIA);
-    puntero_espacio_usuario = espacio_usuario; //puntero hacia el primer frame.
+    frames_libres = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(bool));
+	for(int i=0; i<(TAM_MEMORIA/TAM_PAGINA); i++)
+        frames_libres[i] = false;
 	procesos = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pcb_memoria)); //array es dinámico porque la info viene en el momento
     for(int i=0; i<(TAM_MEMORIA/TAM_PAGINA); i++)
         procesos[i].pid = -1; // Inicializo mi array de procesos con procesos con PID = -1 para indicar que las celdas del array están vacías.

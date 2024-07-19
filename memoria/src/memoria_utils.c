@@ -1,5 +1,6 @@
 #include "../include/memoria_utils.h"
 
+// PROCESOS.
 t_pcb_memoria* inicializar_proceso()
 {
     t_pcb_memoria *proceso = malloc(sizeof(t_pcb_memoria));
@@ -59,6 +60,63 @@ int encontrar_proceso(int pid)
     return i;
 }
 
+int sizeof_proceso(int index){ // El tamaño de un proceso es igual a su cantidad de páginas.
+    int size = 0;
+    while(procesos[index].tabla_paginas[size].num_frame != -1)
+        size++;
+    return size;
+}
+
+void asignar_size_proceso(int index, int size)
+{
+    int i = 0;
+    while(i < size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+        procesos[index].tabla_paginas[i].num_frame = frame_libre();
+        frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
+        procesos[index].tabla_paginas[i].bit_presencia = false;
+        i++;
+    }
+    if(i == size - 1 && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
+        enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
+    else
+        enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
+}
+
+void aumentar_proceso(int index, int size)
+{
+    int i = 0;
+    while(i < size - sizeof_proceso(index) && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+        procesos[index].tabla_paginas[i].num_frame = frame_libre();
+        frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
+        procesos[index].tabla_paginas[i].bit_presencia = false;
+        i++;
+    }
+    if(i == size - sizeof_proceso(index) && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
+        enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
+    else
+        enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
+
+}
+
+void reducir_proceso(int index, int size)
+{
+    for(int i = sizeof_proceso(index); i >= size; i--){
+        frames_libres[procesos[index].tabla_paginas[i].num_frame] = true;
+        procesos[index].tabla_paginas[i].num_frame = -1;
+    }
+    enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
+}
+
+void liberar_proceso(t_pcb_memoria* proceso)
+{
+    for (int i = 0; i < TAM_MEMORIA; i++) 
+        free(proceso->memoria_de_instrucciones[i]);
+        
+    free(proceso->memoria_de_instrucciones);
+    free(proceso->tabla_paginas);
+}
+
+// AUXILIARES.
 bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida del archivo de pseudocodigo comienza con alguno de estos strings.
 {
     return strstr(instruccion, "SET") == instruccion ||
@@ -82,14 +140,14 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
            strstr(instruccion, "IO_STDOUT_WRITE") == instruccion;
 }
 
-void liberar_pcb_memoria(t_pcb_memoria* proceso)
+int frame_libre()
 {
-    for (int i = 0; i < TAM_MEMORIA; i++) 
-        free(proceso->memoria_de_instrucciones[i]);
-        
-    free(proceso->memoria_de_instrucciones);
-    free(proceso->tabla_paginas);
+    int num_frame = 0;
+    while(frames_libres[num_frame] == false && num_frame <= TAM_MEMORIA/TAM_PAGINA)
+        num_frame++;
+    return num_frame;
 }
+
 
 // MANEJO DE BUFFER.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria *proceso)

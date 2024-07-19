@@ -57,7 +57,7 @@ typedef enum{
 	SUM,
     SUB,
     JNZ,
-    INS_IO_GEN_SLEEP,
+    IO_GEN_SLEEP,
     MOV_IN, 
     MOV_OUT, 
     RESIZE, 
