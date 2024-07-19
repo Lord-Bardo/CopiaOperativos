@@ -217,12 +217,12 @@ void ejecutarSignal(char * recurso){
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el tiempo
 	t_codigo_operacion op= COP_IO_GEN_SLEEP;
 	t_paquete *paquete =crear_paquete(IO);
-	int tiempo_int;
+	int tiempo_int = atoi(tiempo_string);
 	agregar_a_paquete(paquete,interfaz,sizeof(interfaz)+1);
 
 	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
 
-	agregar_a_paquete(paquete,tiempo_string,sizeof(tiempo_string)+1);
+	agregar_a_paquete(paquete,&tiempo_int,sizeof(int));
 	
 	
 	enviar_paquete(fd_cpu_dispatch,paquete);
