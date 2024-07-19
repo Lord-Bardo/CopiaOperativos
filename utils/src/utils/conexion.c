@@ -267,6 +267,10 @@ char *buffer_desempaquetar_string(t_buffer *buffer){
 	return string;
 }
 
+void agregar_string_a_paquete(t_paquete *paquete, char *string){
+    agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
+}
+
 // Otra opcion de desempaquetar que sirve para todo, pero es mas quilombo recibir -> Ejemplo de uso: int pid = *(int *)buffer_desempaquetar(buffer); || int *pid = buffer_desempaquetar(buffer);
 // void *buffer_desempaquetar(t_buffer *buffer){
 //     // Chequeo que el buffer tenga contenido para desempaquetar

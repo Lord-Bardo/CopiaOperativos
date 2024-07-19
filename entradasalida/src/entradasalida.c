@@ -45,41 +45,41 @@ int main(int argc, char* argv[]) {
 }
 
 void conectar_a_kernel(char* nombre_interfaz){
-	// fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
-	//t_paquete* paquete = crear_paquete(HANDSHAKE_ENTRADASALIDA);
-	// agregar_string_a_paquete(paquete,nombre_interfaz);
-	
-	/* Esto creo que no era necesario */
-	// if (strcmp(nombre_interfaz,"generica") == 0){
-	// 	agregar_a_paquete(paquete, IO_GEN_SLEEP, sizeof(t_codigo_operacion));
-	// }
-	// else if (strcmp(nombre_interfaz,"dialfs") == 0){
-	// 	agregar_a_paquete(paquete, IO_FS_CREATE, sizeof(t_codigo_operacion));
-	// 	agregar_a_paquete(paquete, IO_FS_DELETE, sizeof(t_codigo_operacion));
-	// 	agregar_a_paquete(paquete, IO_FS_TRUNCATE, sizeof(t_codigo_operacion));
-	// 	agregar_a_paquete(paquete, IO_FS_WRITE, sizeof(t_codigo_operacion));
-	// 	agregar_a_paquete(paquete, IO_FS_READ, sizeof(t_codigo_operacion));
-
-	// }
-
-	// enviar_paquete(fd_kernel,paquete);
-	// eliminar_paquete(paquete);
-
 	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
-	enviar_handshake(fd_kernel, HANDSHAKE_ENTRADASALIDA);
+	t_paquete* paquete = crear_paquete(HANDSHAKE_ENTRADASALIDA);
+	agregar_string_a_paquete(paquete,nombre_interfaz);
 
-	if( recibir_handshake(fd_kernel) == HANDSHAKE_OK ){
-		log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
+	if (strcmp(nombre_interfaz,"generica") == 0){	
+		agregar_a_paquete(paquete,GENERICA,sizeof(t_tipo_interfaz));
 	}
-	else{
-		log_info(entradasalida_logger, "No se pudo establecer conexion con KERNEL!");
+	else if (strcmp(nombre_interfaz,"stdin") == 0){	
+		agregar_a_paquete(paquete,STDIN,sizeof(t_tipo_interfaz));
 	}
+	else if (strcmp(nombre_interfaz,"stdout") == 0){	
+		agregar_a_paquete(paquete,STDOUT,sizeof(t_tipo_interfaz));
+	}
+	else if (strcmp(nombre_interfaz,"dialfs") == 0){	
+		agregar_a_paquete(paquete,DIALFS,sizeof(t_tipo_interfaz));
+	}
+
+	enviar_paquete(fd_kernel,paquete);
+	eliminar_paquete(paquete);
+
+	// fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
+	// enviar_handshake(fd_kernel, HANDSHAKE_ENTRADASALIDA);
+
+	// if( recibir_handshake(fd_kernel) == HANDSHAKE_OK ){
+	// 	log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
+	// }
+	// else{
+	// 	log_info(entradasalida_logger, "No se pudo establecer conexion con KERNEL!");
+	// }
 }
 
 // Recordarle a mati que lo agregue al utils general
-void agregar_string_a_paquete(t_paquete *paquete, char *string){
-    agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
-}
+// void agregar_string_a_paquete(t_paquete *paquete, char *string){
+//     agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
+// }
 
 void conectar_a_memoria(){
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);

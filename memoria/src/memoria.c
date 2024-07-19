@@ -24,32 +24,36 @@ int main(int argc, char* argv[]) {
 														
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 	
-//  -----------------------------TEST - FETCH (SIN ENVÍO Y RECIBO DE PAQUETE)---------------------------------------------------------------------
+//  -----------------------------------TEST (SIN ENVÍO Y RECIBO DE PAQUETE)---------------------------------------------------------------------
 /*
 	// Creo el proceso
-	t_pcb_memoria *proceso_recibido = malloc(sizeof(t_pcb_memoria));
-	proceso_recibido->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
-	proceso_recibido->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
-
-	for (int i = 0; i < TAM_MEMORIA; i++) 
-		proceso_recibido->memoria_de_instrucciones[i] = malloc(sizeof(char));
+	t_pcb_memoria *proceso_recibido = inicializar_proceso();
 	
 	num_instruccion = 0;
-	if (proceso_recibido->tabla_paginas == NULL || proceso_recibido->memoria_de_instrucciones == NULL) {
-		// Manejar el error de asignación de memoria
-		fprintf(stderr, "Error al asignar memoria\n");
-		exit(EXIT_FAILURE);
-	}
+	
 	proceso_recibido->pid = 123;
 	proceso_recibido->path = "/ArchivoPseudocodigo.txt"; 
 
 	crear_proceso(proceso_recibido);
 	
-	// Hago un FETCH
+	// TEST - RESIZE
+	resize(123, 5);
+	printf("El tamanio del proceso es: %d\n", sizeof_proceso(0)); // debería ser 5.
+	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser 4.
+	resize(123, 10); // agrando el proceso.
+	printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(0)); // debería ser 10
+	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
+	resize(123, 4); // reduzco el proceso.
+	printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(0)); // debería ser 4
+	printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1.
+
+
+
+	// TEST - FETCH
 	char* instruccion = malloc(sizeof(char));
 	obtener_instruccion(123, 5, instruccion);
 	printf("La instruccion solicitada fue: %s\n", instruccion); 
-	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
+	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)"); 
 
     // Finalizo el proceso
 	finalizar_proceso(123);
@@ -61,7 +65,7 @@ int main(int argc, char* argv[]) {
 
 
 //  Esperar conexion de CPU
-	//aceptar_conexion_cpu();
+	aceptar_conexion_cpu();
 
 //  Esperar conexion de KERNEL
 	aceptar_conexion_kernel();
@@ -70,8 +74,8 @@ int main(int argc, char* argv[]) {
 // 	aceptar_conexion_entradasalida();
 
 //  Atender los mensajes de CPU
-	//pthread_t hilo_cpu;
-	//pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
+	pthread_t hilo_cpu;
+	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
 
 //  Atender los mensajes de ENTRADASALIDA
 //  pthread_t hilo_entradasalida;
@@ -84,7 +88,7 @@ int main(int argc, char* argv[]) {
 //  Esperar a que los hilos finalicen su ejecucion
 	pthread_join(hilo_kernel, NULL); 
 //  pthread_join(hilo_entradasalida, NULL);
-    //pthread_join(hilo_cpu, NULL);
+    pthread_join(hilo_cpu, NULL);
 
 
 //  Finalizar MEMORIA (liberar memoria usada)

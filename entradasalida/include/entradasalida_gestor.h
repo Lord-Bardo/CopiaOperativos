@@ -41,4 +41,6 @@ extern int fd_kernel;
 extern int fd_memoria;
 extern int fd_entradasalida;
 
+extern t_bitarray* bitarray; 
+
 #endif

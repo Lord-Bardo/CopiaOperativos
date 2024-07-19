@@ -66,7 +66,7 @@ void atender_memoria_cpu(){
 
 				break; 	
 
-			case OP_RESIZE:
+			case COP_RESIZE:
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
 				
@@ -88,7 +88,7 @@ void atender_memoria_cpu(){
 
 				break;
 
-			case SOLICITUD_ESCRITURA:
+			case SOLICITUD_ESCRITURA: // me va a llegar una direc. física que representa la cantidad de bytes que debo desplazarme desde le inicio del espacio de usuario y el dato a escribir.
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
 				
@@ -169,7 +169,7 @@ void resize(int pid, int size)
 {
 	// Obtengo índice del proceso con el pid.
 	int index = encontrar_proceso(pid);
-	
+
 	// Si el proceso no tiene asignado páginas aún, se las creo por primera vez.
 	if(procesos[index].tabla_paginas[0].num_frame == -1)
 	    asignar_size_proceso(index, size);
