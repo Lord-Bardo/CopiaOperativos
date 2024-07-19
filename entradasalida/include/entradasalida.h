@@ -31,7 +31,7 @@ t_bitarray* bitarray;
 
 //FUNCIONES
 void conectar_a_kernel(char* nombre_interfaz);
-void agregar_string_a_paquete(t_paquete *paquete, char *string);
+// void agregar_string_a_paquete(t_paquete *paquete, char *string);
 void conectar_a_memoria();
 void terminar_programa();
 

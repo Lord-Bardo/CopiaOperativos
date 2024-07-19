@@ -14,15 +14,58 @@ void interfaz_generica(int cant_unidades_trabajo) {
 }
 
 // SOPORTE: lista de direcciones fisicas - tamaño total (preguntar)
-void interfaz_stdin(char* registro_direccion, char* registro_tamanio){
+void interfaz_stdin(t_direccion *direcciones, int cant_direcciones){
     char *texto;
-	texto = readline("> ");
+	texto = readline("Ingrese el texto a escribir en MEMORIA: ");
 
-    if (strlen(texto) > atoi(registro_tamanio)) {
-        texto[atoi(registro_tamanio)] = '\0';
+    if(texto == NULL) {
+        log_error(entradasalida_logger,"Error al leer el texto")
+        exit(1);
     }
 
-    enviar_texto_a_memoria(registro_direccion, texto, atoi(registro_tamanio));
+    int bytesTexto = strlen(texto);
+    int bytesLeidos = 0;
+    int direccion = 0;
+
+    while(bytesTexto < bytesLeidos && direccion < cant_direcciones){
+        t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); 
+
+        int df_a_enviar = direcciones[direccion].direccion_fisica;
+        int bytes_a_enviar = direcciones[direccion].bytes;
+
+        agregar_a_paquete(paquete, df_a_enviar, sizeof(int));
+        agregar_a_paquete(paquete, bytes_a_enviar, sizeof(int));
+
+        // Calculo el tamaño del texto a enviar
+        int bytes_restantes = bytesTexto - bytesLeidos;
+        if (bytes_restantes < bytes_a_enviar) {
+            bytes_a_enviar = bytes_restantes;
+        }
+
+        // Creo el texto a enviar
+        char *textoCortado = malloc(bytes_a_enviar + 1);
+        memccpy(textoCortado, texto + bytesLeidos, bytes_a_enviar);
+        textoCortado[bytes_a_enviar] = '\0';
+        
+        agregar_string_a_paquete(paquete, textoCortado);
+
+        enviar_paquete(fd_memoria, paquete);
+
+        eliminar_paquete(paquete);
+
+	    free(textoCortado);
+        
+        bytesLeidos += bytes_a_enviar;
+        direccion++;
+    }
+       // Hola cómo andas/0 --- 16 BYTES
+                // 2 bytes - 11
+                // 8 bytes - 31
+                // 6 bytes - 8
+
+                // Ho
+                // la cómo 
+                // andas/0
 
     /* Agregar que se confirma la escritura del dato en memoria */
     /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
@@ -30,15 +73,15 @@ void interfaz_stdin(char* registro_direccion, char* registro_tamanio){
 	free(texto);
 }
 
-void enviar_texto_a_memoria(char* direccion_fisica, char* texto, int tamanio) {
-    t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); // Creo que se usa ese codigo de operacion (PREGUNTAR A MATI)
-    agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
-    agregar_a_paquete(paquete, texto, tamanio);
+// void enviar_texto_a_memoria(char* direccion_fisica, char* texto, int tamanio) {
+//     t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); 
+//     agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
+//     agregar_a_paquete(paquete, texto, tamanio);
 
-    enviar_paquete(fd_memoria, paquete);
+//     enviar_paquete(fd_memoria, paquete);
 
-    eliminar_paquete(paquete);
-}
+//     eliminar_paquete(paquete);
+// }
 
 void interfaz_stdout(char* registro_direccion, char* registro_tamanio) {
     solicitar_datos_a_memoria(registro_direccion, atoi(registro_tamanio));

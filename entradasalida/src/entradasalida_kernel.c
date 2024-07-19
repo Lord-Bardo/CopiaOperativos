@@ -21,27 +21,31 @@ void atender_entradasalida_kernel(){
                 break; // Para salir del switch, sino intenta desempaquetar denuevo
             case COP_IO_STDIN_READ:
                 // IO_STDIN_READ Int2 EAX AX
-                /* PREGUNTARLE A FABRI COMO QUEDAN LOS REGISTROS AL FINAL */
-                /* VER DE HACER AMBOS REGISTROS GLOBALES - raro porque capaz no los uso si uso la IO genérica */
-                char* registro_tamanio = buffer_desempaquetar_string(buffer);
-                char* registro_direccion = malloc(atoi(buffer_desempaquetar_string(buffer)));
+                int cant_direcciones;
+                buffer_desempaquetar(buffer, &cant_direcciones);
+                
+                t_direccion *direcciones = malloc(cant_direcciones * sizeof(t_direccion));
+                for (int i = 0; i < cant_direcciones; i++)
+                {
+                    buffer_desempaquetar(buffer, &direcciones[i].direccion_fisica);
+                    buffer_desempaquetar(buffer, &direcciones[i].bytes);
+                }              
 
-                interfaz_stdin(registro_direccion, registro_tamanio);
+                interfaz_stdin(direcciones, cant_direcciones);
 
-                free(registro_tamanio);
-                free(registro_direccion);
+                free(direcciones);
 
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
             case COP_IO_STDOUT_WRITE:
                 // IO_STDOUT_WRITE Int3 BX EAX
-                char* registro_taman = buffer_desempaquetar_string(buffer);
-                char* registro_direc = malloc(atoi(buffer_desempaquetar_string(buffer)));
+                // char* registro_taman = buffer_desempaquetar_string(buffer);
+                // char* registro_direc = malloc(atoi(buffer_desempaquetar_string(buffer)));
 
                 interfaz_stdout(registro_direc , registro_taman);
 
-                free(registro_tamanio);
-                free(registro_direccion);
+                // free(registro_tamanio);
+                // free(registro_direccion);
 
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
