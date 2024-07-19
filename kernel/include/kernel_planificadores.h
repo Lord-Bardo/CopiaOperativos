@@ -34,6 +34,7 @@ void detener_planificacion_blocked_to_ready_recurso(void);
 void detener_planificacion_blocked_to_ready_interfaz(void);
 void detener_planificacion_exec_to_exec_or_ready_or_blocked(void);
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion);
+
 // PLANIFICADOR CORTO PLAZO
 void planificador_corto_plazo(void);
 void planificador_corto_plazo_fifo(void);
@@ -45,6 +46,7 @@ void planificador_corto_plazo_vrr(void);
 t_pcb *elegir_proceso_segun_vrr(void);
 void enviar_contexto_de_ejecucion(t_pcb *pcb);
 void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_buffer *buffer, t_temporal *clock_exec);
+
 // PLANIFICADOR LARGO PLAZO
 void iniciar_proceso(char *path);
 void finalizar_proceso(int pid);
@@ -56,6 +58,7 @@ void liberar_recursos_usados(t_pcb *pcb);
 void liberar_recurso(t_pcb *pcb, char *nombre_recurso);
 void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso);
 void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso);
+
 // PROCESO A ...
 void proceso_a_ready(t_pcb *pcb);
 void proceso_a_ready_plus(t_pcb *pcb);

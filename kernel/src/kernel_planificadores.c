@@ -358,7 +358,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
             proceso_a_exit(pcb, FINALIZACION_SUCCESS);
             // sem_post(&sem_grado_multiprogramacion);
             break;
-        case WAIT:
+        case COP_WAIT:
         { // uso "bloques compuestos" para evitar los errores de redefinicion de variables -> cada bloque de estos es como q esta aparte, si no los pongo el compilador me toma al switch como una sola cosa y me tira error de redefinicion con nombre_recurso y demas
             char *nombre_recurso = buffer_desempaquetar_string(buffer);
             // Verifico que el recurso exista
@@ -424,7 +424,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
             }
             break;
         }
-        case SIGNAL:
+        case COP_SIGNAL:
         {
             char *nombre_recurso = buffer_desempaquetar_string(buffer);
             // Verifico que el recurso exista
@@ -513,13 +513,13 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                 switch( interfaz_get_tipo_interfaz(interfaz) ){
                     case GENERICA:
                         switch( operacion ){
-                            case IO_GEN_SLEEP:
-                                // Desempaqueto los parametros de la operacion
+                            case COP_IO_GEN_SLEEP:
+                                // Creo el paquete con la operacion a realizar
+                                t_paquete *paquete_solicitud_io = crear_paquete(operacion);
+                                
+                                // Desempaqueto los parametros de la operacion y los agrego al paquete
                                 int unidades_de_trabajo;
                                 buffer_desempaquetar(buffer, &unidades_de_trabajo);
-
-                                // Creo el paquete con la operacion a realizar y sus parametros
-                                t_paquete *paquete_solicitud_io = crear_paquete(operacion);
                                 agregar_int_a_paquete(paquete_solicitud_io, unidades_de_trabajo);
                                 
                                 // Creo la solicitud de entrada salida
@@ -537,10 +537,87 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         }
                         break;
                     case STDIN:
+                        switch( operacion ){
+                            case COP_IO_STDIN_READ:
+                                // Creo el paquete con la operacion a realizar
+                                t_paquete *paquete_solicitud_io = crear_paquete(operacion);
+                                
+                                // Desempaqueto los parametros de la operacion y los agrego al paquete
+                                int cantidad_direcciones;
+                                buffer_desempaquetar(buffer, &cantidad_direcciones);
+                                agregar_int_a_paquete(paquete_solicitud_io, cantidad_direcciones);
+                                
+                                int direccion_fisica, bytes;
+                                for(int i = 0; i < cantidad_direcciones; i++){
+                                    buffer_desempaquetar(buffer, &direccion_fisica);
+                                    agregar_int_a_paquete(paquete_solicitud_io, direccion_fisica);
+                                    buffer_desempaquetar(buffer, &bytes);
+                                    agregar_int_a_paquete(paquete_solicitud_io, bytes);
+                                }
+                                
+                                // Creo la solicitud de entrada salida
+                                t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
+                                
+                                // Bloqueo al proceso
+                                proceso_a_blocked(pcb, nombre_interfaz);
+                                
+                                // Encolo la solicitud
+                                interfaz_encolar_solicitud_io(interfaz, solicitud_io);
+                                break;
+                            default:
+                                proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+                                // sem_post(&sem_grado_multiprogramacion);
+                        }
                         break;
                     case STDOUT:
+                        switch( operacion ){
+                            case COP_IO_STDOUT_WRITE:
+                                // Creo el paquete con la operacion a realizar
+                                t_paquete *paquete_solicitud_io = crear_paquete(operacion);
+                                
+                                // Desempaqueto los parametros de la operacion y los agrego al paquete
+                                int cantidad_direcciones;
+                                buffer_desempaquetar(buffer, &cantidad_direcciones);
+                                agregar_int_a_paquete(paquete_solicitud_io, cantidad_direcciones);
+                                
+                                int direccion_fisica, bytes;
+                                for(int i = 0; i < cantidad_direcciones; i++){
+                                    buffer_desempaquetar(buffer, &direccion_fisica);
+                                    agregar_int_a_paquete(paquete_solicitud_io, direccion_fisica);
+                                    buffer_desempaquetar(buffer, &bytes);
+                                    agregar_int_a_paquete(paquete_solicitud_io, bytes);
+                                }
+                                
+                                // Creo la solicitud de entrada salida
+                                t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
+                                
+                                // Bloqueo al proceso
+                                proceso_a_blocked(pcb, nombre_interfaz);
+                                
+                                // Encolo la solicitud
+                                interfaz_encolar_solicitud_io(interfaz, solicitud_io);
+                                break;
+                            default:
+                                proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+                                // sem_post(&sem_grado_multiprogramacion);
+                        }
                         break;
                     case DIALFS:
+                        switch( operacion ){
+                            case COP_IO_FS_CREATE:
+                                break;
+                            case COP_IO_FS_DELETE:
+                                break;
+                            case COP_IO_FS_TRUNCATE:
+                                break;
+                            case COP_IO_FS_WRITE:
+                                break;
+                            case COP_IO_FS_READ:
+                                break;
+                            default:
+                                proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
+                                // sem_post(&sem_grado_multiprogramacion);
+                        }
                         break;
                     default:
                         proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
@@ -632,9 +709,12 @@ void finalizar_proceso(int pid){
                 break;
             case EXEC: // OK
                 // Mando interrupcion a CPU y la respuesta es manejada en manejar_motivo_desalojo
+                t_paquete *paquete_interrupt_user = crear_paquete(INTERRUPT_USER);
+                agregar_pid_a_paquete(paquete_interrupt_user, pcb_get_pid(pcb));
                 pthread_mutex_lock(&mutex_socket_cpu_interrupt);
-                enviar_codigo_operacion(fd_cpu_interrupt, INTERRUPT_USER);
+                enviar_paquete(fd_cpu_interrupt, paquete_interrupt_user);
                 pthread_mutex_unlock(&mutex_socket_cpu_interrupt);
+                eliminar_paquete(paquete_interrupt_user);
                 break;
             case EXIT:
                 log_error(kernel_logger, "El PCB solicitado ya esta siendo eliminado del sistema");

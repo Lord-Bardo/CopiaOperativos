@@ -19,6 +19,7 @@ bool recurso_debe_desbloquear_proceso(t_recurso *recurso);
 bool recurso_debe_bloquear_proceso(t_recurso *recurso);
 t_pcb *recurso_desencolar_primer_proceso(t_recurso *recurso);
 void recurso_encolar_proceso(t_recurso *recurso, t_pcb *pcb);
+t_pcb *recurso_desencolar_proceso_por_pid(t_recurso *recurso, int pid);
 
 // DICCIONARIO RECURSOS
 t_dictionary *crear_diccionario_recursos(char** recursos, char** instancias_recursos);

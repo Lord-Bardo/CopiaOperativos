@@ -23,7 +23,8 @@ void pcb_set_nombre_recurso_causa_bloqueo(t_pcb *pcb, char *nombre_recurso_causa
 t_dictionary *pcb_get_diccionario_recursos_usados(t_pcb *pcb);
 bool pcb_usa_recurso(t_pcb *pcb, char *nombre_recurso);
 bool pcb_esta_bloqueado_por_recurso(t_pcb *pcb);
-// Diccionario procesos a finalizar
+
+// DICCIONARIO PROCESOS A FINALIZAR
 void diccionario_procesos_a_finalizar_agregar_proceso(t_dictionary *diccionario_procesos_a_finalizar, t_pcb *pcb);
 bool diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(t_dictionary *diccionario_procesos_a_finalizar, t_pcb *pcb);
 void diccionario_procesos_a_finalizar_remover_proceso(t_dictionary *diccionario_procesos_a_finalizar, t_pcb *pcb);
