@@ -84,14 +84,14 @@ void asignar_size_proceso(int index, int size)
 
 void aumentar_proceso(int index, int size)
 {
-    int i = 0;
-    while(i < size - sizeof_proceso(index) && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+    int i = sizeof_proceso(index);
+    while(i < size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
         procesos[index].tabla_paginas[i].num_frame = frame_libre();
         frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
         procesos[index].tabla_paginas[i].bit_presencia = false;
         i++;
     }
-    if(i == size - sizeof_proceso(index) && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
+    if(i == size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     else
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
