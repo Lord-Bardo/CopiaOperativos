@@ -1,5 +1,6 @@
 #include "../include/kernel_pcb.h"
 
+// PCB
 t_pcb *crear_pcb(int pid, char* path){
     t_pcb *pcb = malloc(sizeof(t_pcb));
     if( pcb == NULL ){
@@ -29,6 +30,12 @@ t_pcb *crear_pcb(int pid, char* path){
     }
     string_append(&(pcb->path), path);
 
+    pcb->nombre_recurso_causa_bloqueo = string_new();
+    if( pcb->nombre_recurso_causa_bloqueo == NULL ){
+        log_error(kernel_logger, "Error al asignar memoria para el NOMBRE RECURSO CAUSA BLOQUEO");
+        return NULL;
+    }
+
     pcb->diccionario_recursos_usados = dictionary_create(); // KEY: Nombre del recurso - Value: Cantidad de instancias usadas
 
     return pcb;
@@ -38,6 +45,10 @@ void eliminar_pcb(t_pcb *pcb){
     if( pcb != NULL ){
         if( pcb->path != NULL ){
             free(pcb->path);
+        }
+
+        if( pcb->nombre_recurso_causa_bloqueo != NULL ){
+            free(pcb->nombre_recurso_causa_bloqueo);
         }
 
         if( pcb->diccionario_recursos_usados != NULL ){
@@ -88,8 +99,22 @@ uint32_t pcb_get_pc(t_pcb *pcb){
     return pcb->PC;
 }
 
-char* pcb_get_path(t_pcb *pcb){
+char *pcb_get_path(t_pcb *pcb){
     return pcb->path;
+}
+
+char *pcb_get_nombre_recurso_causa_bloqueo(t_pcb *pcb){
+    return pcb->nombre_recurso_causa_bloqueo;
+}
+
+void pcb_set_nombre_recurso_causa_bloqueo(t_pcb *pcb, char *nombre_recurso_causa_bloqueo){
+    // Libero la memoria previamente asignada, si existe
+    if (pcb->nombre_recurso_causa_bloqueo != NULL) {
+        free(pcb->nombre_recurso_causa_bloqueo);
+    }
+
+    // Le asigno una nueva cadena al campo
+    pcb->nombre_recurso_causa_bloqueo = string_duplicate(nombre_recurso_causa_bloqueo);
 }
 
 t_dictionary *pcb_get_diccionario_recursos_usados(t_pcb *pcb){
@@ -99,3 +124,36 @@ t_dictionary *pcb_get_diccionario_recursos_usados(t_pcb *pcb){
 bool pcb_usa_recurso(t_pcb *pcb, char *nombre_recurso){
     return dictionary_has_key(pcb_get_diccionario_recursos_usados(pcb), nombre_recurso);
 }
+
+bool pcb_esta_bloqueado_por_recurso(t_pcb *pcb){
+    return !string_is_empty(pcb_get_nombre_recurso_causa_bloqueo(pcb));
+}
+
+// Procesos a finalizar
+// Implementacion con diccionario
+void diccionario_procesos_a_finalizar_agregar_proceso(t_dictionary *diccionario_procesos_a_finalizar, t_pcb *pcb){
+    dictionary_put(diccionario_procesos_a_finalizar, string_itoa(pcb_get_pid(pcb)), NULL);
+}
+
+bool diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(t_dictionary *diccionario_procesos_a_finalizar, t_pcb *pcb){
+    return dictionary_has_key(diccionario_procesos_a_finalizar, string_itoa(pcb_get_pid(pcb)));
+}
+
+void diccionario_procesos_a_finalizar_remover_proceso(t_dictionary *diccionario_procesos_a_finalizar, t_pcb *pcb){
+    dictionary_remove(diccionario_procesos_a_finalizar, string_itoa(pcb_get_pid(pcb)));
+}
+
+// Implementacion con lista (muy enquilombada)
+// void *lista_procesos_a_finalizar_buscar_pid(t_list *lista_procesos_a_finalizar, t_pcb *pcb){
+//     int pid_a_encontrar = pcb_get_pid(pcb);
+//     bool comparar_pid(void *pid){ return pid_a_encontrar == *(int *)pid; } // "nested function"
+//     return list_find(lista_procesos_a_finalizar, comparar_pid);
+// }
+
+// bool diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(t_list *lista_procesos_a_finalizar, t_pcb *pcb){
+//     return lista_procesos_a_finalizar_buscar_pid(lista_procesos_a_finalizar, pcb) != NULL;
+// }
+
+// void diccionario_procesos_a_finalizar_remover_proceso(t_list *lista_procesos_a_finalizar, t_pcb *pcb){
+//     list_remove_element(lista_procesos_a_finalizar, lista_procesos_a_finalizar_buscar_pid(lista_procesos_a_finalizar, pcb));
+// }

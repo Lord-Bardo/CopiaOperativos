@@ -115,6 +115,16 @@ void recurso_encolar_proceso(t_recurso *recurso, t_pcb *pcb){
     sem_post(estado_get_sem_lista_procesos_bloqueados(recurso));
 }
 
+t_pcb *recurso_desencolar_proceso_por_pid(t_recurso *recurso, int pid){
+    sem_wait(estado_get_sem_lista_procesos_bloqueados(recurso)); // debe haber elementos en la lista para poder desencolar
+    pthread_mutex_lock(recurso_get_mutex_lista_procesos_bloqueados(recurso));
+    bool pcb_comparar_pid(void *pcb){ return pcb_get_pid((t_pcb *) pcb) == pid; } // "nested function"
+    t_pcb *pcb = list_remove_by_condition(recurso_get_lista_procesos_bloqueados(recurso), pcb_comparar_pid);
+    pthread_mutex_unlock(recurso_get_mutex_lista_procesos_bloqueados(recurso));
+
+    return pcb;
+}
+
 // DICCIONARIO RECURSOS --------------------------------------------------
 
 t_dictionary *crear_diccionario_recursos(char** recursos, char** instancias_recursos){

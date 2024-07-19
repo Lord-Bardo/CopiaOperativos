@@ -30,7 +30,8 @@ void iniciar_planificacion(void);
 void detener_planificacion(void);
 void detener_planificacion_new_to_ready(void);
 void detener_planificacion_ready_to_exec(void);
-void detener_planificacion_blocked_to_ready(void);
+void detener_planificacion_blocked_to_ready_recurso(void);
+void detener_planificacion_blocked_to_ready_interfaz(void);
 void detener_planificacion_exec_to_exec_or_ready_or_blocked(void);
 void cambiar_grado_multiprogramacion_a(int nuevo_grado_multiprogramacion);
 // PLANIFICADOR CORTO PLAZO

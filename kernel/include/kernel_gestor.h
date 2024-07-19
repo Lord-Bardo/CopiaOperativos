@@ -63,6 +63,7 @@ typedef struct{
     uint32_t PC;
     t_registros registros;
     char *path;
+    char *nombre_recurso_causa_bloqueo;
     t_dictionary *diccionario_recursos_usados;
 } t_pcb;
 
@@ -145,6 +146,10 @@ extern t_dictionary *diccionario_recursos;
 // Interfaces
 extern t_dictionary *diccionario_interfaces;
 extern pthread_mutex_t mutex_diccionario_interfaces;
+
+// Procesos a finalizar
+extern t_dictionary *diccionario_procesos_a_finalizar;
+extern pthread_mutex_t mutex_diccionario_procesos_a_finalizar;
 
 // Semaforos sockets
 extern pthread_mutex_t mutex_socket_memoria;

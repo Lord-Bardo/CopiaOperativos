@@ -33,6 +33,10 @@ pthread_mutex_t mutex_diccionario_recursos;
 t_dictionary *diccionario_interfaces;
 pthread_mutex_t mutex_diccionario_interfaces;
 
+// Procesos a finalizar
+t_dictionary *diccionario_procesos_a_finalizar;
+pthread_mutex_t mutex_diccionario_procesos_a_finalizar;
+
 // Semaforos sockets
 pthread_mutex_t mutex_socket_memoria;
 pthread_mutex_t mutex_socket_cpu_interrupt;
@@ -102,6 +106,9 @@ void inicializar_estructuras_diccionarios(){
     // Diccionario interfaces
     diccionario_interfaces = dictionary_create();
     pthread_mutex_init(&mutex_diccionario_interfaces, NULL);
+    // Diccionario procesos a finalizar
+    diccionario_procesos_a_finalizar = dictionary_create();
+    pthread_mutex_init(&mutex_diccionario_procesos_a_finalizar, NULL);
 }
 
 void inicializar_estructuras_sockets(){
@@ -132,11 +139,12 @@ void detener_planificacion(){
         pthread_create(&hilo_detener_planificacion_blocked_to_ready_recurso, NULL, (void *)detener_planificacion_blocked_to_ready_recurso, NULL);
         pthread_create(&hilo_detener_planificacion_blocked_to_ready_interfaz, NULL, (void *)detener_planificacion_blocked_to_ready_interfaz, NULL);
         pthread_create(&hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL, (void *)detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL);
-        pthread_detach(hilo_detener_planificacion_new_to_ready);
-        pthread_detach(hilo_detener_planificacion_ready_to_exec);
-        pthread_detach(hilo_detener_planificacion_blocked_to_ready_recurso);
-        pthread_detach(hilo_detener_planificacion_blocked_to_ready_interfaz);
-        pthread_detach(hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked);
+        pthread_join(hilo_detener_planificacion_new_to_ready, NULL);
+        pthread_join(hilo_detener_planificacion_ready_to_exec, NULL);
+        pthread_join(hilo_detener_planificacion_blocked_to_ready_recurso, NULL);
+        pthread_join(hilo_detener_planificacion_blocked_to_ready_interfaz, NULL);
+        pthread_join(hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL);
+        // si los hago join, la funcion detener_plani no termina hasta q realmente la plani se detuvo => me aseguro que cuando salga de aca no va a haber mas transiciones (durante el proceso de detencion si puede haber transiciones)
     }
 }
 
@@ -201,9 +209,10 @@ void planificador_corto_plazo(){
 void planificador_corto_plazo_fifo(){
     while(1){
         sem_wait(&sem_estado_planificacion_ready_to_exec);
-        
         t_pcb *pcb = elegir_proceso_segun_fifo();
         proceso_a_exec(pcb);
+        sem_post(&sem_estado_planificacion_ready_to_exec);
+
         enviar_contexto_de_ejecucion(pcb);
         
         t_codigo_operacion motivo_desalojo;
@@ -213,9 +222,7 @@ void planificador_corto_plazo_fifo(){
         
         manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
         
-        eliminar_buffer(buffer);
-        
-        sem_post(&sem_estado_planificacion_ready_to_exec);
+        eliminar_buffer(buffer);        
     }
 }
 
@@ -227,9 +234,10 @@ t_pcb *elegir_proceso_segun_fifo(){
 void planificador_corto_plazo_rr(){
     while(1){
         sem_wait(&sem_estado_planificacion_ready_to_exec);
-        
         t_pcb *pcb = elegir_proceso_segun_rr();
         proceso_a_exec(pcb);
+        sem_post(&sem_estado_planificacion_ready_to_exec);
+
         enviar_contexto_de_ejecucion(pcb);
         t_temporal *clock_exec = temporal_create();
         
@@ -250,8 +258,6 @@ void planificador_corto_plazo_rr(){
         
         eliminar_buffer(buffer);
         temporal_destroy(clock_exec);
-        
-        sem_post(&sem_estado_planificacion_ready_to_exec);
     }
 }
 
@@ -274,9 +280,9 @@ void contar_quantum(void *quantum_void){
 void planificador_corto_plazo_vrr(){
     while(1){
         sem_wait(&sem_estado_planificacion_ready_to_exec);
-        
         t_pcb *pcb = elegir_proceso_segun_vrr();
         proceso_a_exec(pcb);
+        sem_post(&sem_estado_planificacion_ready_to_exec);
 
         int quantum_restante = pcb_get_quantum_restante(pcb);
         enviar_contexto_de_ejecucion(pcb);
@@ -302,8 +308,6 @@ void planificador_corto_plazo_vrr(){
         
         eliminar_buffer(buffer);
         temporal_destroy(clock_exec);
-        
-        sem_post(&sem_estado_planificacion_ready_to_exec);
     }
 }
 
@@ -326,13 +330,16 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb){
 
 void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_buffer *buffer, t_temporal *clock_exec){
     sem_wait(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
-    
-    if( pcb == NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado luego de ser desalojado por cpu, pero antes de comenzar a manejar el motivo de desalojo
-        motivo_desalojo = INTERRUPT_USER; // en este caso no necesito desencolarlo porq la funcion finalizar_proceso ya lo desencolo, solo me restaria mandarlo a exit, por ello hago que el motivo de desalojo sea INTERRUPT_USER
+
+    pthread_mutex_lock(&mutex_diccionario_procesos_a_finalizar); 
+    if( diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(diccionario_procesos_a_finalizar, pcb) ){ // esto es para contemplar los casos donde se mando la interrupcion, pero como el proceso se desalojo por otro motivo y no por la interrupcion, no se devolvio al pcb con motivo_desalojo = INTERRUP_USER. Es decir, esta ejecutando el proceso, se desalojo por un wait/signal/io/etc., pero justo durante la ejecucion se finalizo al proceso, por lo q se manda la interrupcion y se lo pone como pendiente de finalizar. Como se desaloja por otro motivo, no llega como motivo la finalizacion, por eso esta la lista y esta comprobacion
+        motivo_desalojo = INTERRUPT_USER; // si esta pendiente de finalizar no necesito desencolarlo porq la funcion finalizar_proceso ya lo desencolo, solo me restaria mandarlo a exit, por ello hago que el motivo de desalojo sea INTERRUPT_USER
     }
     else{
         pcb = estado_desencolar_primer_pcb(estado_exec); // desencolo aca y no en el planificador porq sino hay problemas para finalizar un proceso. Si el proceso es finalizado justo dsp de ser desalojado por cpu, pero antes de comenzar a manejar el motivo de desalojo => si desencolo el pcb, no va a quedar en ninguna cola y no lo voy a poder encontrar
+        // puedo desencolar xq la plani se detiene una vez q termina el motivo de desalojo (si es q se detuvo mientras ya se estaba manejando). Por lo q se termina de manejar el motivo y el cambio de estado, y recien ahi se detiene la plani
     }
+    pthread_mutex_unlock(&mutex_diccionario_procesos_a_finalizar); 
 
     switch(motivo_desalojo){
         case SUCCESS:
@@ -365,13 +372,14 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                 pthread_mutex_unlock(&mutex_diccionario_recursos);
                 ejecutar_instruccion_wait(pcb, nombre_recurso);
                 if( pcb_get_estado(pcb) == EXEC ){
-                    sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked); // Si hago el sem_wait y al toque abajo el sem_post deberia sacar este post
-                    proceso_a_exec(pcb);
+                    proceso_a_exec(pcb); // lo vuelvo a encolar en exec
+                    sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
                     if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
                         enviar_contexto_de_ejecucion(pcb);
+                        
                         recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
-                        pcb = estado_desencolar_primer_pcb(estado_exec);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
+                        
                         manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
                     }
                     else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
@@ -388,7 +396,6 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                         pthread_cancel(hilo_quantum);
                         pthread_mutex_unlock(&mutex_interrupcion_quantum);
-                        pcb = estado_desencolar_primer_pcb(estado_exec);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
                         manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
@@ -407,7 +414,6 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                         pthread_cancel(hilo_quantum);
                         pthread_mutex_unlock(&mutex_interrupcion_quantum);
-                        pcb = estado_desencolar_primer_pcb(estado_exec);
                         quantum_restante = pcb_get_quantum_restante(pcb) - temporal_gettime(clock_exec);
                         pcb_set_quantum_restante(pcb, quantum_restante);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
@@ -430,15 +436,23 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
             }
             else{
                 pthread_mutex_unlock(&mutex_diccionario_recursos);
+                // Forma 1: con el sanguchito wait-post aca no me convence porq puede q hagas un signal y no haya transicion alguna, pero si lo hago dentro del signal voy a dejar q se hagan cosas con un pcb q capaz es finalizado -> xq una vez haga el POST-EXEC-TO la plani ya se habria detenido por complpeto y se podria mandar a exit al proceso y liberar sus recursos, pero mientras tanto el signal se sigue ejecutando hasta que llegue a la zona critica de verdad. Ademas con el wait no puedo replicar esta metodologia de meter el sanguchito wait-signal dentro, porq hasta q no se completa nose si sigue ejecutando o no y si pongo el sanguchito adentro se nunca saldria y haria el POST-EXEC-TO. Ademas no se haria el unlock del recurso y si el proceso q quiero finalizar fue bloqueado por ese recurso va a darse un deadlock
+                // PROCESO_A_EXEC
+                // POST-EXEC-TO
+                // WAIT-BLOCKED-READY // si hago el POST-EXEC-TO antes de hacer el signal puedo hacer el WAIT-BLOCKED-READY y el POST-BLOCKED-READY dentro del signal
+                // ejecutar_instruccion_signal(pcb, nombre_recurso);
+                // POST-BLOCKED-READY
+                // Forma 2:
                 ejecutar_instruccion_signal(pcb, nombre_recurso);
                 // Despues del signal siempre sigue ejecutando el mismo proceso
-                sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked); // Si hago el sem_wait y al toque abajo el sem_post deberia sacar este post
                 proceso_a_exec(pcb);
+                sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
                 if( strcmp(ALGORITMO_PLANIFICACION, "FIFO") == 0 ){
                     enviar_contexto_de_ejecucion(pcb);
+                    
                     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
-                    pcb = estado_desencolar_primer_pcb(estado_exec);
                     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
+                    
                     manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
                 }
                 else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
@@ -455,7 +469,6 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                     pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                     pthread_cancel(hilo_quantum);
                     pthread_mutex_unlock(&mutex_interrupcion_quantum);
-                    pcb = estado_desencolar_primer_pcb(estado_exec);
                     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
                     manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
@@ -474,7 +487,6 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                     pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                     pthread_cancel(hilo_quantum);
                     pthread_mutex_unlock(&mutex_interrupcion_quantum);
-                    pcb = estado_desencolar_primer_pcb(estado_exec);
                     quantum_restante = pcb_get_quantum_restante(pcb) - temporal_gettime(clock_exec);
                     pcb_set_quantum_restante(pcb, quantum_restante);
                     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
@@ -546,6 +558,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
         default:
             log_error(kernel_logger, "Motivo de desalojo desconocido");
     }
+
     sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
 }
 
@@ -559,19 +572,30 @@ void iniciar_proceso(char *path){
     log_creacion_proceso(pcb);
 }
 
-void finalizar_proceso(int pid){ // TERMINAR
+void finalizar_proceso(int pid){
+    // Detengo la planificacion para evitar las transiciones entre estados
     detener_planificacion(); // si detengo la plani deberia esperar a que se haya frenado por completo, porq si no se paro por completo puede haber procesos q hayan sido desencolados de una cola para poder meterlas en otra y no lo encuentre
+    
     // pthread_mutex_lock(&mutex_lista_procesos_pendientes_a_finalizar);
     // list_add(procesos_pendientes_a_finalizar, pid); // cada vez q modifique la lista de procesos de un estado deberia corroborar que no este queriendo acceder a un proceso q se requiera finalizar
     // pthread_mutex_unlock(&mutex_lista_procesos_pendientes_a_finalizar);
     // FORMA 1
+    
+    // Busco al proceso entre las colas de los estados y lo desencolo cuando lo encuentro
     t_pcb *pcb = estado_rastrear_y_desencolar_pcb_por_pid(pid); // no esta mal porq lo encuentro y lo saco. Si llego no freno la plani, encontrar el estado y dsp aparte desencolarlo es al pedo porq pudo cambiar de estado
+    
+    // Agrego al proceso al diccionario de procesos a finalizar (util para estado exec y blocked)
+    pthread_mutex_lock(&mutex_diccionario_procesos_a_finalizar); //nose si es necesario (el mutex), porq total la consulta en motivo_desalojo no se hace hasta q no se reanude la plani, es decir hasta q finalizar_proceso no termine -> SI ES NECESARIO PORQ LO MODIFICA EL HILO DE LIBERAR_PROCESOS_EXIT CUANDO TERMINA DE LIBERAR UN PROCESO
+    diccionario_procesos_a_finalizar_agregar_proceso(diccionario_procesos_a_finalizar, pcb);
+    pthread_mutex_unlock(&mutex_diccionario_procesos_a_finalizar);
     // t_nombre_estado nombre_estado = estado_get_nombre_estado(pcb_get_estado(pcb));
     // FORMA 2
     // t_estado *estado = estado_rastrear_pcb_por_pid(pid);
     // if( estado == NULL ){
     //     log_error(kernel_logger, "El PCB solicitado no se encuentra en el sistema");
     // }// podria consultar si ya se encontro dsp de buscar en cada lista
+    
+    // Primero corroboro que el proceso buscado exista. En caso de existir actuo dependiendo el estado en el q se encuentre
     if( pcb != NULL ){
         switch( pcb_get_estado(pcb) ){
             case NEW: // OK
@@ -586,12 +610,28 @@ void finalizar_proceso(int pid){ // TERMINAR
                 proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
                 // sem_post(&sem_grado_multiprogramacion);
                 break;
-            case BLOCKED: // REVISAR
+            case BLOCKED: // OK
+                // puedo agregar un atributo al pcb que sea nombre_recurso_causa_bloqueo donde almacene el nombre del recurso y sea mucho mas facil encontrar por q recurso se bloqueo y desbloquearlo
+                // Reviso primero que la causa de bloqueo sea por un recurso. Si es por recurso => lo desencolo del recurso para que no genere inconvenientes el signal, pues si se mantiene en la lista del recurso, tras hacer un signal puede q se desbloquee a este proceso en lugar de a otro q si corresponde desbloquear. O q tras liberar sus recursos se desbloquee a el mismo, cuando de todas formas debe sacarse de esa cola. La liberacion de recursos (hacer los signals) se hace cuando ya esta en exit.
+                if( pcb_esta_bloqueado_por_recurso(pcb) ){ // podria meterlo en una funcion tipo pcb_esta_bloqueado_por_recurso(pcb), aunque dsp tendria q volver a pedir el                 if( !string_is_empty(nombre_recurso_causa_bloqueo) ){ // podria meterlo en una funcion tipo pcb_esta_bloqueado_por_recurso(pcb), aunque dsp tendria q volver a pedir el nombre_recurso_causa_bloqueo dentro del if
+                    // Obtengo el recurso por el cual se bloqueo el proceso
+                    pthread_mutex_lock(&mutex_diccionario_recursos);
+                    t_recurso *recurso = diccionario_recursos_get_recurso(diccionario_recursos, pcb_get_nombre_recurso_causa_bloqueo(pcb));
+                    pthread_mutex_unlock(&mutex_diccionario_recursos);
+
+                    // Desencolo al proceso de la lista de bloqueados del recurso
+                    pthread_mutex_lock(recurso_get_mutex_recurso(recurso));
+                    recurso_desencolar_proceso_por_pid(recurso, pcb_get_pid(pcb));
+                    pthread_mutex_unlock(recurso_get_mutex_recurso(recurso));
+                }
+
+                // Si se bloqueo por interfaz no pasa nada. Si todavia no se atendio su solicitud, cuando sea atendida se descarta. Si la solicitud esta siendo atendida, cuando finaliza la io se descarta. (Para q esto funcione necesito usar la lista de pendiente finalizar, sino no tengo forma de saber q fue finalizado)
+
                 proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);
                 // sem_post(&sem_grado_multiprogramacion);
                 break;
-            case EXEC: // REVISAR
-                // Mandar interrupcion a CPU y la respuesta es manejada en manejar motivo desalojo
+            case EXEC: // OK
+                // Mando interrupcion a CPU y la respuesta es manejada en manejar_motivo_desalojo
                 pthread_mutex_lock(&mutex_socket_cpu_interrupt);
                 enviar_codigo_operacion(fd_cpu_interrupt, INTERRUPT_USER);
                 pthread_mutex_unlock(&mutex_socket_cpu_interrupt);
@@ -605,6 +645,7 @@ void finalizar_proceso(int pid){ // TERMINAR
         log_error(kernel_logger, "El PCB solicitado no se encuentra en el sistema");
     }
 
+    // Reanudo la planificacion
     iniciar_planificacion();
 }
 
@@ -616,11 +657,10 @@ void planificador_largo_plazo(){
 
     // Manejar NEW -> READY
     while(1){
-        sem_wait(&sem_estado_planificacion_new_to_ready);
-        sem_post(&sem_estado_planificacion_new_to_ready);
         sem_wait(&sem_control_cambio_grado_multiprogramacion); // Este semaforo es para garantizar que la modificacion (reduccion enrealidad es lo que genera complicaciones) se haga por completo y no se sigan mandando procesos a ready -> si reduzco el grado tengo que hacer waits, pero si ya estaba en 0 el hilo q reduce se va a bloquear al igual que este hilo al intentar mandar un proceso a ready y el signal tras finalizar un proceso podria activar cualquiera de los dos hilos y, en lugar de reducir el grado seguiria mandando procesos -> con este sem me aseguro q eso no pasa 
         sem_wait(&sem_grado_multiprogramacion);
         sem_post(&sem_control_cambio_grado_multiprogramacion);
+        sem_wait(&sem_estado_planificacion_new_to_ready);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
         t_codigo_operacion respuesta_memoria = pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb));
         if( respuesta_memoria == CONFIRMACION_PROCESO_INICIADO ){
@@ -630,6 +670,7 @@ void planificador_largo_plazo(){
             proceso_a_exit(pcb, FINALIZACION_ERROR);
             // sem_post(&sem_grado_multiprogramacion);
         }
+        sem_post(&sem_estado_planificacion_new_to_ready);
     }
 }
 
@@ -659,6 +700,11 @@ void liberar_procesos_exit(){
             if( !dictionary_is_empty(pcb_get_diccionario_recursos_usados(pcb)) ){
                 liberar_recursos_usados(pcb);
             }
+            pthread_mutex_lock(&mutex_diccionario_procesos_a_finalizar);
+            if( diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(diccionario_procesos_a_finalizar, pcb) ){
+                diccionario_procesos_a_finalizar_remover_proceso(diccionario_procesos_a_finalizar, pcb); // sacarlo del diccionario
+            }
+            pthread_mutex_unlock(&mutex_diccionario_procesos_a_finalizar);
             eliminar_pcb(pcb);
             sem_post(&sem_grado_multiprogramacion);
         }
@@ -688,20 +734,22 @@ t_codigo_operacion pedir_a_memoria_finalizar_proceso(int pid){
 void liberar_recursos_usados(t_pcb *pcb){
     t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
     int size_dict = dictionary_size(diccionario_recursos_usados);
-    t_list *recursos = dictionary_keys(diccionario_recursos_usados);
+    t_list *nombres_recursos = dictionary_keys(diccionario_recursos_usados);
     for(int i = 0; i < size_dict; i++){
-        char *nombre_recurso = list_get(recursos, i);
+        char *nombre_recurso = list_get(nombres_recursos, i);
         liberar_recurso(pcb, nombre_recurso);
     }
 
-    list_destroy_and_destroy_elements(recursos, free);
+    list_destroy_and_destroy_elements(nombres_recursos, free);
 }
 
 void liberar_recurso(t_pcb *pcb, char *nombre_recurso){
     t_dictionary *diccionario_recursos_usados = pcb_get_diccionario_recursos_usados(pcb);
     int instancias_usadas = *(int *) dictionary_get(diccionario_recursos_usados, nombre_recurso);
     for(int i = 0; i < instancias_usadas; i++){
+        sem_wait(&sem_estado_planificacion_blocked_to_ready_recurso); // de momento lo hago solo aca y no en manejar_motivo_desalojo xq ahi espero a terminar el signal para hacer el post de exec_to_... . No lo hago dentro del signal xq sino el post del exec_to_... nunca se llegaria a hacer.
         ejecutar_instruccion_signal(pcb, nombre_recurso);
+        sem_post(&sem_estado_planificacion_blocked_to_ready_recurso);
     }
 }
 
@@ -731,16 +779,18 @@ void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
     }
     
     // Compruebo si tras el signal se debe desbloquear algun proceso
-    sem_wait(&sem_estado_planificacion_blocked_to_ready_recurso);
-    sem_post(&sem_estado_planificacion_blocked_to_ready_recurso);
+    // sem_wait(&sem_estado_planificacion_blocked_to_ready_recurso); -> si dejo este semaforo nunca va a terminar el del motivo de desalojo => nunca se terminaria de detener la plani
+    // OJO! MIENTRAS FINALIZO UNO PUEDE ESTAR HACIENDOSE SIGNALS PORQ SE ESTA LIBERANDO LOS RECURSOS DE OTRO FINALIZADO Y SE SEGUIRIAN HACIENDO LAS TRANSICIONES DE BLOCKED A READY -> PODRIA PONER EL SEMAFORO HACIENDOLE SANGUCHE AL SIGNAL
     if( recurso_debe_desbloquear_proceso(recurso) ){
         // Desbloqueo al primero proceso
         t_pcb *pcb_bloqueado = recurso_desencolar_primer_proceso(recurso);
         estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb_bloqueado)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
+        pcb_set_nombre_recurso_causa_bloqueo(pcb_bloqueado, ""); // Para poder determinar que el proceso ya no esta bloqueado por ningun recurso
         // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY } -> NO! Por lo de abajo
         pcb_set_quantum_restante(pcb_bloqueado, QUANTUM); // -> si no entendi mal, cuando un proceso se bloquea por wait, al desbloquearse siempre vuelve a ready y con el quantum inicial. Si el algoritmo es vrr, esto tmb se debe cumplir, xq la idea del mismo es beneficiar a los procesos que hacen io, por lo q un bloqueo por recurso no deberia ser beneficiado
         proceso_a_ready(pcb_bloqueado);
     }
+    // sem_post(&sem_estado_planificacion_blocked_to_ready_recurso);
 
     pthread_mutex_unlock(recurso_get_mutex_recurso(recurso));
 }
@@ -774,6 +824,7 @@ void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso){
     if( recurso_debe_bloquear_proceso(recurso) ){
         // Bloqueo al proceso (lo encolo en la cola del recurso)
         recurso_encolar_proceso(recurso, pcb);
+        pcb_set_nombre_recurso_causa_bloqueo(pcb, nombre_recurso); // Para poder determinar por cual recurso se bloqueo el proceso
         proceso_a_blocked(pcb, nombre_recurso);
     }
 

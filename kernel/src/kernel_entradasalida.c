@@ -10,15 +10,14 @@ void atender_kernel_interfaz(void *nombre_interfaz){
 	while(1){
 		t_solicitud_io *solicitud_io = interfaz_desencolar_primera_solicitud_io(interfaz);
         t_pcb *pcb = solicitud_io_get_pcb(solicitud_io);
-        if( pcb != NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras esperaba a que se ejecute su solicitud de io, por lo que descarto la solicitud
-            // ESTE IF DE ACA ARRIBA ESTA MEDIO MEDIO XQ CAPAZ EL PROCESO NO SE TERMINO DE BORRAR PERO YA ESTA EN EXIT. EL TEMA ESTA EN Q SI ES NULL NO PUEDO PREGUNTAR SI SU ESTADO ES EXIT -> NOSE SI FUNCIONARA HACER UN OR
+        if( pcb != NULL && !diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(diccionario_procesos_a_finalizar, pcb) ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras esperaba a que se ejecute su solicitud de io, por lo que descarto la solicitud. Si esta pendiente de finalizar significa que fue trasladado a exit, pero aun no se liberaron todos sus recursos ni se elimino el pcb. Necesito q en cualquiera de los casos, no ejecute la solicitud.
             if( enviar_paquete(fd_interfaz, solicitud_io_get_paquete_solicitud_io(solicitud_io)) > 0 ){
                 eliminar_solicitud_io(solicitud_io);
                 if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) > 0 ){
                     switch(codigo_operacion){
                         case IO_FIN_OPERACION:
-                            if( pcb != NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras se hacia la io, por lo que lo descarto
-                                sem_wait(&sem_estado_planificacion_blocked_to_ready_interfaz);
+                            sem_wait(&sem_estado_planificacion_blocked_to_ready_interfaz);
+                            if( pcb != NULL && !diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(diccionario_procesos_a_finalizar, pcb) ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras esperaba a que se ejecute su solicitud de io, por lo que descarto la solicitud. Si esta pendiente de finalizar significa que fue trasladado a exit, pero aun no se liberaron todos sus recursos ni se elimino el pcb. Necesito q en cualquiera de los casos, no ejecute la solicitud.
                                 // Desbloquear proceso
                                 estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb));
                                 // ACA PODRIA HACER UN IF(ESTA_EN_LA_BLACK_LIST(PCB)){LO MATO}ELSE{ PROCESO_A_READY(PCB)}
@@ -28,8 +27,8 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                                 else{ // es VRR
                                     proceso_a_ready_plus(pcb);
                                 }
-                                sem_post(&sem_estado_planificacion_blocked_to_ready_interfaz);
                             }
+                            sem_post(&sem_estado_planificacion_blocked_to_ready_interfaz);
                             break;
                         default:
                             log_warning(kernel_logger, "KERNEL: Operacion desconocida recibida de ENTRADASALIDA");
@@ -38,9 +37,8 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                 else{
                     log_info(kernel_logger, "La interfaz %s se desconecto!", (char *)nombre_interfaz);
 
-                    if( pcb != NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras se hacia la io, por lo que lo descarto
-                        // Elimino la solicitud y envio al proceso que estaba esperando por la io a exit
-                        eliminar_solicitud_io(solicitud_io);
+                    if( pcb != NULL && !diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(diccionario_procesos_a_finalizar, pcb) ){ // Si pcb == NULL o esta pendiente de finalizar => significa que el proceso fue finalizado mientras se hacia la io, por lo que envio a exit al proceso solo si todavia no fue finalizado
+                        // Envio al proceso que estaba esperando por la io a exit
                         proceso_a_exit(pcb, FINALIZACION_DESCONEXION_INTERFAZ);
                         // sem_post(&sem_grado_multiprogramacion);
                     }
@@ -56,9 +54,11 @@ void atender_kernel_interfaz(void *nombre_interfaz){
             else{
                 log_info(kernel_logger, "La interfaz %s se desconecto!", (char *)nombre_interfaz);
                 
-                if( pcb != NULL ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras se hacia el envio del paquete, por lo que lo descarto
-                    // Elimino la solicitud y envio al proceso que estaba esperando por la io a exit
-                    eliminar_solicitud_io(solicitud_io);
+                // Elimino la solicitud
+                eliminar_solicitud_io(solicitud_io);
+
+                if( pcb != NULL && !diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(diccionario_procesos_a_finalizar, pcb) ){ // Si pcb == NULL o esta pendiente de finalizar => significa que el proceso fue finalizado mientras se hacia el envio del paquete, por lo que envio a exit al proceso solo si todavia no fue finalizado
+                    // Envio al proceso que estaba esperando por la io a exit
                     proceso_a_exit(pcb, FINALIZACION_DESCONEXION_INTERFAZ);
                     // sem_post(&sem_grado_multiprogramacion);
                 }
@@ -70,6 +70,9 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                 // el post del semaforo no lo hago porq para este momento la interfaz ya no existe y,en consecuencia, el semaforo tmp
                 pthread_mutex_unlock(&mutex_diccionario_interfaces);
             }
+        }
+        else{
+            eliminar_solicitud_io(solicitud_io);
         }
     }
 }

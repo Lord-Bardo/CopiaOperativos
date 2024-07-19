@@ -85,16 +85,6 @@ t_pcb *estado_desencolar_primer_pcb(t_estado *estado){
     return pcb;
 }
 
-// ---------------------------
-t_pcb *estado_desencolar_pcb_por_indice(t_estado *estado, int indice){
-    sem_wait(estado_get_sem(estado)); // debe haber elementos en la lista para poder desencolar
-    pthread_mutex_lock(estado_get_mutex(estado));
-    t_pcb * pcb = list_remove(estado_get_lista_procesos(estado), indice);
-    pthread_mutex_unlock(estado_get_mutex(estado));
-
-    return pcb;
-}
-
 t_pcb *estado_desencolar_pcb_por_pid(t_estado *estado, int pid){
     sem_wait(estado_get_sem(estado)); // debe haber elementos en la lista para poder desencolar
     pthread_mutex_lock(estado_get_mutex(estado));
@@ -110,23 +100,9 @@ t_pcb *estado_desencolar_pcb_por_pid(t_estado *estado, int pid){
     return pcb;
 }
 
-bool pcb_comparar_pid(void *pcb, void *pid){
-    return pcb_get_pid((t_pcb *) pcb) == *(int *) pid;
+bool estado_contiene_pcbs(t_estado *estado){
+    return !list_is_empty(estado_get_lista_procesos(estado));
 }
-
-int list_get_index(t_list *list, bool (*cutting_condition)(void *temp, void *target), void *target){
-    // Busqueda secuencial hasta encontrar el elemento buscado (target) -> si lo encuentra devuelve el indice, si no lo encuentra devuelve -1
-    for(int i = 0; i < list_size(list); i++){
-        void *temp = list_get(list, i);
-
-        if(cutting_condition(temp, target)){
-            return 1;
-        }
-    }
-
-    return -1;
-}
-
 
 t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
     t_pcb* pcb = NULL;
@@ -165,48 +141,70 @@ t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
     return pcb;
 }
 
+// ---------------------------
+// t_pcb *estado_desencolar_pcb_por_indice(t_estado *estado, int indice){
+//     sem_wait(estado_get_sem(estado)); // debe haber elementos en la lista para poder desencolar
+//     pthread_mutex_lock(estado_get_mutex(estado));
+//     t_pcb * pcb = list_remove(estado_get_lista_procesos(estado), indice);
+//     pthread_mutex_unlock(estado_get_mutex(estado));
 
-bool estado_contiene_pcbs(t_estado *estado){
-    return !list_is_empty(estado_get_lista_procesos(estado));
-}
+//     return pcb;
+// }
 
-t_estado *estado_rastrear_pcb_por_pid(int pid){
-    if( estado_contiene_pcbs(estado_new) ){
-        int index = list_get_index(estado_get_lista_procesos(estado_new), pcb_comparar_pid, &pid);
-        if( index != -1 ){
-            return estado_new;
-        }
-    }
-    if( estado_contiene_pcbs(estado_ready) ){
-        int index = list_get_index(estado_get_lista_procesos(estado_ready), pcb_comparar_pid, &pid);
-        if( index != -1 ){
-            return estado_ready;
-        }
-    }
-    if( estado_contiene_pcbs(estado_ready_plus) ){
-        int index = list_get_index(estado_get_lista_procesos(estado_ready_plus), pcb_comparar_pid, &pid);
-        if( index != -1 ){
-            return estado_ready_plus;
-        }
-    }
-    if( estado_contiene_pcbs(estado_blocked) ){
-        int index = list_get_index(estado_get_lista_procesos(estado_blocked), pcb_comparar_pid, &pid);
-        if( index != -1 ){
-            return estado_blocked;
-        }
-    }
-    if( estado_contiene_pcbs(estado_exec) ){
-        int index = list_get_index(estado_get_lista_procesos(estado_exec), pcb_comparar_pid, &pid);
-        if( index != -1 ){
-            return estado_exec;
-        }
-    }
-    if( estado_contiene_pcbs(estado_exit) ){
-        int index = list_get_index(estado_get_lista_procesos(estado_exit), pcb_comparar_pid, &pid);
-        if( index != -1 ){
-            return estado_exit;
-        }
-    }
+// bool pcb_comparar_pid(void *pcb, void *pid){
+//     return pcb_get_pid((t_pcb *) pcb) == *(int *) pid;
+// }
 
-    return NULL;
-}
+// int list_get_index(t_list *list, bool (*cutting_condition)(void *temp, void *target), void *target){
+//     // Busqueda secuencial hasta encontrar el elemento buscado (target) -> si lo encuentra devuelve el indice, si no lo encuentra devuelve -1
+//     for(int i = 0; i < list_size(list); i++){
+//         void *temp = list_get(list, i);
+
+//         if(cutting_condition(temp, target)){
+//             return i;
+//         }
+//     }
+
+//     return -1;
+// }
+
+// t_estado *estado_rastrear_pcb_por_pid(int pid){
+//     if( estado_contiene_pcbs(estado_new) ){
+//         int index = list_get_index(estado_get_lista_procesos(estado_new), pcb_comparar_pid, &pid);
+//         if( index != -1 ){
+//             return estado_new;
+//         }
+//     }
+//     if( estado_contiene_pcbs(estado_ready) ){
+//         int index = list_get_index(estado_get_lista_procesos(estado_ready), pcb_comparar_pid, &pid);
+//         if( index != -1 ){
+//             return estado_ready;
+//         }
+//     }
+//     if( estado_contiene_pcbs(estado_ready_plus) ){
+//         int index = list_get_index(estado_get_lista_procesos(estado_ready_plus), pcb_comparar_pid, &pid);
+//         if( index != -1 ){
+//             return estado_ready_plus;
+//         }
+//     }
+//     if( estado_contiene_pcbs(estado_blocked) ){
+//         int index = list_get_index(estado_get_lista_procesos(estado_blocked), pcb_comparar_pid, &pid);
+//         if( index != -1 ){
+//             return estado_blocked;
+//         }
+//     }
+//     if( estado_contiene_pcbs(estado_exec) ){
+//         int index = list_get_index(estado_get_lista_procesos(estado_exec), pcb_comparar_pid, &pid);
+//         if( index != -1 ){
+//             return estado_exec;
+//         }
+//     }
+//     if( estado_contiene_pcbs(estado_exit) ){
+//         int index = list_get_index(estado_get_lista_procesos(estado_exit), pcb_comparar_pid, &pid);
+//         if( index != -1 ){
+//             return estado_exit;
+//         }
+//     }
+
+//     return NULL;
+// }
