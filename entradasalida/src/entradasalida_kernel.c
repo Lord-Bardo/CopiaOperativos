@@ -7,6 +7,11 @@ void atender_entradasalida_kernel(){
 
     while (1) {
         recibir_paquete(fd_kernel, &instruccion, buffer);
+        int pid_proceso;
+        buffer_desempaquetar(buffer, &pid_proceso);
+
+        /* Log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
+        log_info(entradasalida_logger_min_y_obl, "Operacion: PID: '%d' - Operacion: '%d'", pid_proceso, instruccion);
     
         // TODO - Debería de modelar la notificación a KERNEL de que ya termine de usar la interfaz
         switch (instruccion){
@@ -23,17 +28,20 @@ void atender_entradasalida_kernel(){
                 // IO_STDIN_READ Int2 EAX AX
                 int cant_direcciones;
                 buffer_desempaquetar(buffer, &cant_direcciones);
+
+                t_list *lista_direcciones = list_create();
                 
-                t_direccion *direcciones = malloc(cant_direcciones * sizeof(t_direccion));
                 for (int i = 0; i < cant_direcciones; i++)
                 {
-                    buffer_desempaquetar(buffer, &direcciones[i].direccion_fisica);
-                    buffer_desempaquetar(buffer, &direcciones[i].bytes);
+                    t_direccion *direccion = malloc(sizeof(t_direccion));
+                    buffer_desempaquetar(buffer, &(direccion->direccion_fisica));
+                    buffer_desempaquetar(buffer, &(direccion->bytes));
+                    list_add(lista_direcciones, direccion);
                 }              
 
-                interfaz_stdin(direcciones, cant_direcciones);
+                interfaz_stdin(lista_direcciones);
 
-                free(direcciones);
+                list_destroy_and_destroy_elements(lista_direcciones, free);
 
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
@@ -68,7 +76,7 @@ void atender_entradasalida_kernel(){
                 break;
             default:
                 log_info(entradasalida_logger, "Instruccion desconocida");
-                enviar_codigo_operacion(fd_kernel, IO_OPERACION_INVALIDA); // Preguntarle a mati que le parece
+                enviar_codigo_operacion(fd_kernel, IO_OPERACION_INVALIDA); // Preguntarle a mati que le parece            
         } 
 
     }

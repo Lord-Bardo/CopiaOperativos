@@ -5,7 +5,7 @@
 
 void interfaz_generica(int cant_unidades_trabajo);
 // void interfaz_stdin(char* registro_direccion, char* registro_tamanio);
-void interfaz_stdin(t_direccion *direcciones, int cant_direcciones);
+void interfaz_stdin(t_list *lista_direcciones);
 // void enviar_texto_a_memoria(char* direccion_fisica, char* texto, int tamanio);
 void interfaz_stdout(char* registro_direccion, char* registro_tamanio);
 void solicitar_datos_a_memoria(char* direccion_fisica, int tamanio);

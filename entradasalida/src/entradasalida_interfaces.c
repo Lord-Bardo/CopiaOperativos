@@ -3,7 +3,7 @@
 // El valor de la cant_unidades_trabajo viene de kernel y se multiplica por el valor que tiene el config de tiempo_unidad_trabajo
 void interfaz_generica(int cant_unidades_trabajo) {
     int tiempo_total = (cant_unidades_trabajo * TIEMPO_UNIDAD_TRABAJO) / 1000;
-    log_info(entradasalida_logger, "%d", tiempo_total);
+    //log_info(entradasalida_logger, "%d", tiempo_total);
 
     // Simular el tiempo de espera
     log_info(entradasalida_logger, "E/S: haciendo un sleep");
@@ -14,24 +14,25 @@ void interfaz_generica(int cant_unidades_trabajo) {
 }
 
 // SOPORTE: lista de direcciones fisicas - tamaño total (preguntar)
-void interfaz_stdin(t_direccion *direcciones, int cant_direcciones){
+void interfaz_stdin(t_list *lista_direcciones){
     char *texto;
 	texto = readline("Ingrese el texto a escribir en MEMORIA: ");
 
     if(texto == NULL) {
-        log_error(entradasalida_logger,"Error al leer el texto")
+        log_error(entradasalida_logger,"Error al leer el texto");
         exit(1);
     }
 
     int bytesTexto = strlen(texto);
     int bytesLeidos = 0;
-    int direccion = 0;
+    int indice = 0;
 
-    while(bytesTexto < bytesLeidos && direccion < cant_direcciones){
+    while(bytesLeidos < bytesTexto){
         t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); 
 
-        int df_a_enviar = direcciones[direccion].direccion_fisica;
-        int bytes_a_enviar = direcciones[direccion].bytes;
+        t_direccion* t_direccion = list_get(lista_direcciones, indice);
+        int df_a_enviar  = t_direccion->direccion_fisica;
+        int bytes_a_enviar = t_direccion->bytes;
 
         agregar_a_paquete(paquete, df_a_enviar, sizeof(int));
         agregar_a_paquete(paquete, bytes_a_enviar, sizeof(int));
@@ -42,11 +43,15 @@ void interfaz_stdin(t_direccion *direcciones, int cant_direcciones){
             bytes_a_enviar = bytes_restantes;
         }
 
+        // Considerando el caso donde bytesLeidos es 10 y bytesTexto es 16:
+        // bytesTexto - bytesLeidos = 6 bytes restantes.
+        // Si el próximo bytes_a_enviar es 8, se ajusta a 6 para no exceder los bytes restantes
+
         // Creo el texto a enviar
         char *textoCortado = malloc(bytes_a_enviar + 1);
-        memccpy(textoCortado, texto + bytesLeidos, bytes_a_enviar);
+        memcpy(textoCortado, texto + bytesLeidos, bytes_a_enviar);
         textoCortado[bytes_a_enviar] = '\0';
-        
+
         agregar_string_a_paquete(paquete, textoCortado);
 
         enviar_paquete(fd_memoria, paquete);
@@ -56,7 +61,7 @@ void interfaz_stdin(t_direccion *direcciones, int cant_direcciones){
 	    free(textoCortado);
         
         bytesLeidos += bytes_a_enviar;
-        direccion++;
+        indice++;
     }
        // Hola cómo andas/0 --- 16 BYTES
                 // 2 bytes - 11
@@ -67,21 +72,11 @@ void interfaz_stdin(t_direccion *direcciones, int cant_direcciones){
                 // la cómo 
                 // andas/0
 
-    /* Agregar que se confirma la escritura del dato en memoria */
-    /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
+    /* DEFINIR CUAL VA A SER EL COD OP*/
+    recibir_codigo_operacion(fd_memoria, CONFIRMACION_ESCRITURA);
 
 	free(texto);
 }
-
-// void enviar_texto_a_memoria(char* direccion_fisica, char* texto, int tamanio) {
-//     t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); 
-//     agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
-//     agregar_a_paquete(paquete, texto, tamanio);
-
-//     enviar_paquete(fd_memoria, paquete);
-
-//     eliminar_paquete(paquete);
-// }
 
 void interfaz_stdout(char* registro_direccion, char* registro_tamanio) {
     solicitar_datos_a_memoria(registro_direccion, atoi(registro_tamanio));
