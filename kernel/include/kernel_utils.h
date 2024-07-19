@@ -13,17 +13,13 @@ void log_cambio_estado(t_pcb *pcb, t_nombre_estado estado_anterior, t_nombre_est
 char *estado_get_nombre_estado_string(t_nombre_estado nombre_estado);
 void log_ingreso_ready(t_estado *estado);
 void log_motivo_bloqueo(t_pcb *pcb, char *motivo_bloqueo);
-void log_fin_quantum(void);
+void log_fin_quantum(t_pcb *pcb);
 void log_ingreso_ready(t_estado *estado);
 char *lista_pids_string(t_estado *estado);
 void *pcb_get_pid_transformer(void *pcb);
 void pid_destroyer(void *pid);
 
 // Manejo paquete
-void agregar_int_a_paquete(t_paquete *paquete, int n);
-void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n);
-void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n);
-void agregar_string_a_paquete(t_paquete *paquete, char *string);
 void agregar_pid_a_paquete(t_paquete *paquete, int pid);
 void agregar_estado_a_paquete(t_paquete *paquete, t_nombre_estado estado);
 void agregar_pc_a_paquete(t_paquete *paquete, uint32_t pc);

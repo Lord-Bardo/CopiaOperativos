@@ -38,8 +38,8 @@ void log_motivo_bloqueo(t_pcb *pcb, char *motivo_bloqueo){
     log_info(kernel_logger_min_y_obl, "PID: %d - Bloqueado por: %s", pcb_get_pid(pcb), motivo_bloqueo);
 }
 
-void log_fin_quantum(){
-
+void log_fin_quantum(t_pcb *pcb){
+    log_info(kernel_logger_min_y_obl, "PID: %d - Desalojado por fin de Quantum", pcb_get_pid(pcb));
 }
 
 // estado puede ser estado_ready o estado_ready_plus
@@ -94,22 +94,6 @@ void pid_destroyer(void *pid){
 }
 
 // MANEJO PAQUETE ------------------------------------------------------------------
-void agregar_int_a_paquete(t_paquete *paquete, int n){
-    agregar_a_paquete(paquete, &n, sizeof(int));
-}
-
-void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint8_t));
-}
-
-void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint32_t));
-}
-
-void agregar_string_a_paquete(t_paquete *paquete, char *string){
-    agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
-}
-
 void agregar_pid_a_paquete(t_paquete *paquete, int pid){
     agregar_int_a_paquete(paquete, pid);
 }

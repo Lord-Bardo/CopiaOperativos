@@ -347,6 +347,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
             // sem_post(&sem_grado_multiprogramacion);
             break;
         case INTERRUPT_QUANTUM:
+            log_fin_quantum(pcb);
             pcb_set_quantum_restante(pcb, QUANTUM);
             proceso_a_ready(pcb);
             break;

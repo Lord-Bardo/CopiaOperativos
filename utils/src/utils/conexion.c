@@ -130,6 +130,22 @@ void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio){
 	paquete->buffer->size += tamanio + sizeof(int); // actualiza el tamaño del buffer
 }
 
+void agregar_int_a_paquete(t_paquete *paquete, int n){
+    agregar_a_paquete(paquete, &n, sizeof(int));
+}
+
+void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){
+    agregar_a_paquete(paquete, &n, sizeof(uint8_t));
+}
+
+void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
+    agregar_a_paquete(paquete, &n, sizeof(uint32_t));
+}
+
+void agregar_string_a_paquete(t_paquete *paquete, char *string){
+    agregar_a_paquete(paquete, string, string_length(string)+1); // +1 para contar el '\0'
+}
+
 void *serializar_paquete(t_paquete *paquete, int bytes){
 	void *magic = malloc(bytes);
 	int desplazamiento = 0;
