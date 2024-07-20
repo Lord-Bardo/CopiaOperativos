@@ -2,7 +2,7 @@
 
 
 int salir_ciclo_instruccion=0;
-t_codigo_operacion motivo_desalojo = SUCCESS;
+t_codigo_operacion motivo_desalojo;
 
 void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	
@@ -24,7 +24,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 
         while(!salir_ciclo_instruccion){
 	        t_instruccion* instr = crear_instruccion();
-
+        
             enviar_fetch_memoria(pcb.pid, pcb.pc);
           
             recibir_instruccion(instr);

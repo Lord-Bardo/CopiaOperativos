@@ -244,11 +244,14 @@ void check_interrupt(){
     if (salir_ciclo_instruccion){
         //limpiar
         quitar_lista_interrupciones(pcb.pid);
+        log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
+        enviar_pcb_kernel(motivo_desalojo);
     }
     else{
         if(buscar_lista_interrupciones(pcb.pid)){ //deberia hacer esto si la instruccion quiere continuar ejecutando normalmente verdad?
             salir_ciclo_instruccion=1;
             motivo_desalojo = obtener_motivo_lista(pcb.pid);
+            log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
             enviar_pcb_kernel(motivo_desalojo);
         }
     }
