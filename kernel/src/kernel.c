@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
-	iniciar_consola_interactiva();
+	//iniciar_consola_interactiva();
 
 	// detener_planificacion();
 	// t_pcb *pcb1 = crear_pcb(0, "p");
@@ -83,16 +83,16 @@ int main(int argc, char* argv[]) {
 	// pthread_t hilo_entradasalida;
 	// pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
 
-    // Atender los mensajes de CPU - DISPATCH
-	// pthread_t hilo_cpu_dispatch;
-	// pthread_create(&hilo_cpu_dispatch, NULL, (void*)atender_kernel_cpu_dispatch, NULL);
+    //Atender los mensajes de CPU - DISPATCH
+	pthread_t hilo_cpu_dispatch;
+	pthread_create(&hilo_cpu_dispatch, NULL, (void*)atender_kernel_cpu_dispatch, NULL);
 
-	// Iniciar consola interactiva
+	//Iniciar consola interactiva
 	iniciar_consola_interactiva();
 
     // Esperar a que los hilos finalicen su ejecucion
 	// pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
-	// pthread_join(hilo_cpu_dispatch, NULL);
+	pthread_join(hilo_cpu_dispatch, NULL);
 
 	// Finalizar KERNEL (liberar memoria usada)
 	terminar_programa();

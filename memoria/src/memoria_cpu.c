@@ -13,7 +13,7 @@ void atender_memoria_cpu(){
 
 				// Creo estructuras necesarias.
 				int pid_fetch, pc;
-				char* instruccion = malloc(sizeof(char)); 
+				char* instruccion = string_new(); 
 				if (instruccion == NULL) {
 					perror("Error al asignar memoria");
 					enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
@@ -31,7 +31,7 @@ void atender_memoria_cpu(){
 
 				// Empaqueto la instrucción con el opcode correspondiente y lo envío a CPU.
 				t_paquete* paquete_fetch = crear_paquete(INSTRUCCION);
-				agregar_a_paquete(paquete_fetch, instruccion, sizeof(instruccion));
+				agregar_string_a_paquete(paquete_fetch, instruccion);
 				enviar_paquete(fd_cpu, paquete_fetch);
 
 				// Libero memoria.
@@ -140,7 +140,8 @@ void obtener_instruccion(int pid, int pc, char* instruccion)
 	}
 
 	// Obtengo la instrucción.
-	strcpy(instruccion, procesos[index].memoria_de_instrucciones[pc]);
+	//strcpy(instruccion, procesos[index].memoria_de_instrucciones[pc]);
+	string_append(&instruccion,procesos[index].memoria_de_instrucciones[pc]);
 }
 
 void obtener_frame(int pid, int pag, int* frame) //PENDIENTE DE TESTEAR (hacerlo luego de testear escribir)

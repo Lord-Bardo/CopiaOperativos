@@ -11,19 +11,19 @@ void log_n_parametros(int n, t_instruccion *instr){
     switch (n)
     {
     case 1:
-        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t%s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0));
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t%s",pcb.pid,instr->instr_code, (char *)list_get(instr->argumentos,0));
         break;
     case 2:
-        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t%s \t%s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1));
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t%s \t%s",pcb.pid,instr->instr_code, (char *)list_get(instr->argumentos,0),(char *)list_get(instr->argumentos,1));
         break;
     case 3:
-        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t %s \t%s \t%s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1),list_get(instr->argumentos,2));
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t %s \t%s \t%s",pcb.pid,instr->instr_code, (char *)list_get(instr->argumentos,0),(char *)list_get(instr->argumentos,1),(char *)list_get(instr->argumentos,2));
         break;
     case 4:
-        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t %s \t%s \t%s\t %s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1),list_get(instr->argumentos,2),list_get(instr->argumentos,3));
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t %s \t%s \t%s\t %s",pcb.pid,instr->instr_code, (char *)list_get(instr->argumentos,0),(char *)list_get(instr->argumentos,1),(char *)list_get(instr->argumentos,2),(char *)list_get(instr->argumentos,3));
         break;
     case 5:
-        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS>\t %s \t %s \t%s \t%s\t %s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1),list_get(instr->argumentos,2),list_get(instr->argumentos,3),list_get(instr->argumentos,4));
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS>\t %s \t %s \t%s \t%s\t %s",pcb.pid,instr->instr_code, (char *)list_get(instr->argumentos,0),(char *)list_get(instr->argumentos,1),(char *)list_get(instr->argumentos,2),(char *)list_get(instr->argumentos,3),(char *)list_get(instr->argumentos,4));
         break;
     default:
         break;
@@ -109,7 +109,6 @@ void convertir_string_a_instruccion(char* cadena, t_instruccion * instruccion) {
         list_add(instruccion->argumentos,token);
         token = strtok(NULL, " ");
     }
-   
 }
 
 void buffer_desempaquetar_instruccion(t_buffer *buffer, t_instruccion * instruccion){
@@ -118,6 +117,7 @@ void buffer_desempaquetar_instruccion(t_buffer *buffer, t_instruccion * instrucc
    
     convertir_string_a_instruccion(instruccion_string,instruccion);
     mostrarInstruccion(*instruccion);
+    free(instruccion_string);
 }
 
 void enviar_fetch_memoria(int pid, u_int32_t pc){

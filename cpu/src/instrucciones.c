@@ -14,7 +14,7 @@ void liberar_instruccion(t_instruccion* instruccion) {
 		printf("La lista es nula, error");
 		return;
 	}
-	list_destroy_and_destroy_elements(instruccion->argumentos,free);
+	list_destroy_and_destroy_elements(instruccion->argumentos,NULL);
 	free(instruccion);
 }
 
@@ -192,9 +192,10 @@ void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el
 void ejecutarResize(char *tamanio){
 	t_paquete * paquete = crear_paquete(COP_RESIZE); //este nombre deberia ser otro para no pisar el de las instrucicones MEM_RESIZE por ejemplo
 	int tamanio_int = atoi(tamanio);
-	
+	agregar_a_paquete(paquete,&pcb.pid,sizeof(int));
 	agregar_a_paquete(paquete,&tamanio_int,sizeof(int));
 	enviar_paquete(fd_memoria,paquete);
+	log_info(cpu_logger,"Envie paquete peticion resize a memoria");
 	eliminar_paquete(paquete);
 
 	//En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
@@ -263,61 +264,61 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 
 int obtener_numero_instruccion(char * cadena){
 	if(strcmp(cadena,"SET")==0){
-		return 0;
+		return SET;
 	}
 	if(strcmp(cadena,"MOV_IN")==0){
-		return 1;
+		return MOV_IN;
 	}
 	if(strcmp(cadena,"MOV_OUT")==0){
-		return 2;
+		return MOV_OUT;
 	}
 	if(strcmp(cadena,"SUM")==0){
-		return 3;
+		return SUM;
 	}
 	if(strcmp(cadena,"SUB")==0){
-		return 4;
+		return SUB;
 	}
 	if(strcmp(cadena,"JNZ")==0){
-		return 5;
+		return JNZ;
 	}
 	if(strcmp(cadena,"RESIZE")==0){
-		return 6;
+		return RESIZE;
 	}
 	if(strcmp(cadena,"COPY_STRING")==0){
-		return 7;
+		return COPY_STRING;
 	}
 	if(strcmp(cadena,"WAIT")==0){
-		return 8;
+		return WAIT;
 	}
 	if(strcmp(cadena,"SIGNAL")==0){
-		return 9;
+		return SIGNAL;
 	}
 	if(strcmp(cadena,"IO_GEN_SLEEP")==0){
-		return 10;
+		return IO_GEN_SLEEP;
 	}
 	if(strcmp(cadena,"IO_STDIN_READ")==0){
-		return 11;
+		return IO_STDIN_READ;
 	}
 	if(strcmp(cadena,"IO_STDOUT_WRITE")==0){
-		return 12;
+		return IO_STDOUT_WRITE;
 	}
 	if(strcmp(cadena,"IO_FS_CREATE")==0){
-		return 13;
+		return IO_FS_CREATE;
 	}
 	if(strcmp(cadena,"IO_FS_DELETE")==0){
-		return 14;
+		return IO_FS_DELETE;
 	}
 	if(strcmp(cadena,"IO_FS_TRUNCATE")==0){
-		return 15;
+		return IO_FS_TRUNCATE;
 	}
 	if(strcmp(cadena,"IO_FS_WRITE")==0){
-		return 16;
+		return IO_FS_WRITE;
 	}
 	if(strcmp(cadena,"IO_FS_READ")==0){
-		return 17;
+		return IO_FS_READ;
 	}
 	if(strcmp(cadena,"EXIT")==0){
-		return 18;
+		return EXIT;
 	}
 	return -1;
 }

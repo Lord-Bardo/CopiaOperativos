@@ -609,12 +609,13 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                     case DIALFS:
                         switch( operacion ){
                             case COP_IO_FS_CREATE:
+                                {
                                 // Creo el paquete con la operacion a realizar y agrego el pid del proceso
                                 t_paquete *paquete_solicitud_io = crear_paquete(operacion);
                                 agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
                                 
                                 // Desempaqueto los parametros de la operacion y los agrego al paquete
-                                char *path_archivo = buffer_desempaquetar_string();
+                                char *path_archivo = buffer_desempaquetar_string(buffer);
                                 agregar_string_a_paquete(paquete_solicitud_io, path_archivo);
                                 
                                 // Creo la solicitud de entrada salida
@@ -626,13 +627,14 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                                 // Encolo la solicitud
                                 interfaz_encolar_solicitud_io(interfaz, solicitud_io);
                                 break;
+                                }
                             case COP_IO_FS_DELETE:
                                 // Creo el paquete con la operacion a realizar y agrego el pid del proceso
                                 t_paquete *paquete_solicitud_io = crear_paquete(operacion);
                                 agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
                                 
                                 // Desempaqueto los parametros de la operacion y los agrego al paquete
-                                char *path_archivo = buffer_desempaquetar_string();
+                                char *path_archivo = buffer_desempaquetar_string(buffer);
                                 agregar_string_a_paquete(paquete_solicitud_io, path_archivo);
                                 
                                 // Creo la solicitud de entrada salida

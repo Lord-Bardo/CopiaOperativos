@@ -26,9 +26,9 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	        t_instruccion* instr = crear_instruccion();
 
             enviar_fetch_memoria(pcb.pid, pcb.pc);
-            log_info(cpu_logger,"PID: %d FETCH - Program Counter: %d",pcb.pid,pcb.pc);
+          
             recibir_instruccion(instr);
-
+            log_info(cpu_logger,"PID: %d FETCH - Program Counter: %d",pcb.pid,pcb.pc);
            
 	        //aca deberiamos mandarle a memoria un pc y pid para que nos devuelva una instruccion.
 

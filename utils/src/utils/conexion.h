@@ -11,7 +11,7 @@
 #include<assert.h>
 #include<commons/log.h>
 #include<commons/collections/list.h>
-
+#include <commons/string.h>
 typedef enum{
     // HANDSHAKE
     HANDSHAKE_KERNEL,

@@ -16,7 +16,7 @@ void atender_cpu_kernel_interrupt(){
 		t_buffer * buffer = crear_buffer();
 		int pid_interrupcion;
 		t_interrupt interrupcion;
-		recibir_paquete(fd_memoria,&cod_op,buffer);
+		recibir_paquete(fd_kernel_interrupt,&cod_op,buffer);
 		switch(cod_op){
 			case INTERRUPT_QUANTUM:
 				log_info(cpu_logger, "Me llego una interrupcion de quantum de kernel");
