@@ -14,7 +14,7 @@ void liberar_instruccion(t_instruccion* instruccion) {
 		printf("La lista es nula, error");
 		return;
 	}
-	list_destroy_and_destroy_elements(instruccion->argumentos,NULL);
+	list_destroy_and_destroy_elements(instruccion->argumentos,free);
 	free(instruccion);
 }
 
@@ -197,7 +197,14 @@ void ejecutarResize(char *tamanio){
 	enviar_paquete(fd_memoria,paquete);
 	log_info(cpu_logger,"Envie paquete peticion resize a memoria");
 	eliminar_paquete(paquete);
-
+	t_codigo_operacion respuesta;
+	recibir_codigo_operacion(fd_memoria,&respuesta);
+	if(respuesta==OUT_OF_MEMORY){
+		motivo_desalojo =OUT_OF_MEMORY;
+		salir_ciclo_instruccion =1;
+	}
+	log_info(cpu_logger,"Confirmacion resize %d",respuesta);
+	//aca deberia esperar recibir el out of memory
 	//En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
 }
 

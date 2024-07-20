@@ -4,6 +4,7 @@
 
 int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
+	printf("ARRANQUE CPU");
 	inicializar_cpu();
 	conectar_a_memoria();
 	//Conexion con MEMORIA
