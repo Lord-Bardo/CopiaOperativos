@@ -57,6 +57,9 @@ void interfaz_stdin(t_list *lista_direcciones){
         enviar_paquete(fd_memoria, paquete);
 
         eliminar_paquete(paquete);
+        
+        /* DEFINIR CUAL VA A SER EL COD OP*/ /* VER SI ESTÁ BIEN COLOCADO ACÁ */ /* VALIDACIONES DE ERRORES */
+        recibir_codigo_operacion(fd_memoria, CONFIRMACION_ESCRITURA);
 
 	    free(textoCortado);
         
@@ -72,54 +75,82 @@ void interfaz_stdin(t_list *lista_direcciones){
                 // la cómo 
                 // andas/0
 
-    /* DEFINIR CUAL VA A SER EL COD OP*/
-    recibir_codigo_operacion(fd_memoria, CONFIRMACION_ESCRITURA);
-
-	free(texto);
+	free(texto); // Es necesario?
 }
 
-void interfaz_stdout(char* registro_direccion, char* registro_tamanio) {
-    solicitar_datos_a_memoria(registro_direccion, atoi(registro_tamanio));
+void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones){
+    char* texto;
+    for (int i = 0; i < cant_direcciones; i++)
+    {
+        t_paquete* paquete = crear_paquete(SOLICITUD_LECTURA);
+        
+        t_direccion* t_direccion = list_get(lista_direcciones, i);
+        int df_a_enviar  = t_direccion->direccion_fisica;
+        int bytes_a_enviar = t_direccion->bytes;
 
-    char* texto = recibir_datos_de_memoria(atoi(registro_tamanio));
-    
+        agregar_a_paquete(paquete, df_a_enviar, sizeof(int));
+        agregar_a_paquete(paquete, bytes_a_enviar, sizeof(int));
+
+        enviar_paquete(fd_memoria, paquete);
+        eliminar_paquete(paquete);
+
+        /* DEFINIR COMO ME VA A TRAER LOS DATOS QUE LE MANDO ASÍ LOS PUEDO GUARDAR EN EL TEXTO */
+    }
+
+
+    /* HACER UN STRCAT PARA UNIR LAS CADENAS */
     if (texto != NULL) {
-        log_info(entradasalida_logger, "TEXTO LEIDO: %s", texto);
-        /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
+        log_info(entradasalida_logger, "TEXTO LEIDO: %s", texto); // Preguntar si puede ser así o tiene que ser un printf u otra cosa
         free(texto);
     } else {
         log_error(entradasalida_logger, "Error al recibir datos de memoria.\n");
     }
+    
 }
 
-void solicitar_datos_a_memoria(char* direccion_fisica, int tamanio){
-    t_paquete* paquete = crear_paquete(SOLICITUD_LECTURA);
+// void interfaz_stdout(char* registro_direccion, char* registro_tamanio) {
+//     solicitar_datos_a_memoria(registro_direccion, atoi(registro_tamanio));
 
-    agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
-    agregar_a_paquete(paquete, tamanio, sizeof(int));
+//     char* texto = recibir_datos_de_memoria(atoi(registro_tamanio));
+    
+//     if (texto != NULL) {
+//         log_info(entradasalida_logger, "TEXTO LEIDO: %s", texto);
+//         /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
+//         free(texto);
+//     } else {
+//         log_error(entradasalida_logger, "Error al recibir datos de memoria.\n");
+//     }
+// }
 
-    enviar_paquete(fd_memoria, paquete);
+/* VER DE USAR ESTA FUNCION ASÍ LA UNIFICO PARA STDIN Y ST */
+// void solicitar_datos_a_memoria(char* direccion_fisica, int tamanio){
+//     t_paquete* paquete = crear_paquete(SOLICITUD_LECTURA);
 
-    eliminar_paquete(paquete);
-}
+//     agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
+//     agregar_a_paquete(paquete, tamanio, sizeof(int));
 
-char* recibir_datos_de_memoria(int tamanio) {
-    t_buffer* buffer = crear_buffer();
-    t_codigo_operacion cod_operacion;
-    recibir_paquete(fd_memoria, &cod_operacion, buffer);
+//     enviar_paquete(fd_memoria, paquete);
 
-    /* Poner logica para leer cod operacion */
-    char* texto = malloc(tamanio + 1);
-    if (texto != NULL) {
-        buffer_desempaquetar(buffer, texto);
-        /* Poner desempaquetar string */
-        texto[tamanio] = '\0';
-    }
+//     eliminar_paquete(paquete);
+// }
 
-    eliminar_buffer(buffer);
+// char* recibir_datos_de_memoria(int tamanio) {
+//     t_buffer* buffer = crear_buffer();
+//     t_codigo_operacion cod_operacion;
+//     recibir_paquete(fd_memoria, &cod_operacion, buffer);
 
-    return texto;
-}
+//     /* Poner logica para leer cod operacion */
+//     char* texto = malloc(tamanio + 1);
+//     if (texto != NULL) {
+//         buffer_desempaquetar(buffer, texto);
+//         /* Poner desempaquetar string */
+//         texto[tamanio] = '\0';
+//     }
+
+//     eliminar_buffer(buffer);
+
+//     return texto;
+// }
 
 void interfaz_fs_create(char* filename) {
     // Busca un bloque libre en el bitmap

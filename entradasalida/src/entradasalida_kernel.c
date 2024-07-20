@@ -47,13 +47,22 @@ void atender_entradasalida_kernel(){
                 break;
             case COP_IO_STDOUT_WRITE:
                 // IO_STDOUT_WRITE Int3 BX EAX
-                // char* registro_taman = buffer_desempaquetar_string(buffer);
-                // char* registro_direc = malloc(atoi(buffer_desempaquetar_string(buffer)));
+                int cant_direcciones;
+                buffer_desempaquetar(buffer, &cant_direcciones);
 
-                interfaz_stdout(registro_direc , registro_taman);
+                t_list *lista_direcciones = list_create();
+                
+                for (int i = 0; i < cant_direcciones; i++)
+                {
+                    t_direccion *direccion = malloc(sizeof(t_direccion));
+                    buffer_desempaquetar(buffer, &(direccion->direccion_fisica));
+                    buffer_desempaquetar(buffer, &(direccion->bytes));
+                    list_add(lista_direcciones, direccion);
+                }              
 
-                // free(registro_tamanio);
-                // free(registro_direccion);
+                interfaz_stdout(lista_direcciones, cant_direcciones);
+                
+                list_destroy_and_destroy_elements(lista_direcciones, free);
 
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
