@@ -609,7 +609,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                     case DIALFS:
                         switch( operacion ){
                             case COP_IO_FS_CREATE:
-                                {
+                            {
                                 // Creo el paquete con la operacion a realizar y agrego el pid del proceso
                                 t_paquete *paquete_solicitud_io = crear_paquete(operacion);
                                 agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
@@ -627,8 +627,9 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                                 // Encolo la solicitud
                                 interfaz_encolar_solicitud_io(interfaz, solicitud_io);
                                 break;
-                                }
+                            }
                             case COP_IO_FS_DELETE:
+                            {
                                 // Creo el paquete con la operacion a realizar y agrego el pid del proceso
                                 t_paquete *paquete_solicitud_io = crear_paquete(operacion);
                                 agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
@@ -646,6 +647,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                                 // Encolo la solicitud
                                 interfaz_encolar_solicitud_io(interfaz, solicitud_io);
                                 break;
+                            }
                             case COP_IO_FS_TRUNCATE:
                                 break;
                             case COP_IO_FS_WRITE:
