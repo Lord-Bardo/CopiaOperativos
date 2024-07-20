@@ -3,12 +3,18 @@
 void inicializarInstruccion(t_instruccion* instr, t_instr_code code, char* args[5]) {
     
 }
-void destroy_element(void *data) {
-    free(data);
-}
+
 void liberar_instruccion(t_instruccion* instruccion) {
     
-	list_destroy_and_destroy_elements(instruccion->argumentos,destroy_element);
+	if(instruccion ==NULL){
+		printf("La instruccion es nula, error");
+		return;
+	}
+	if(instruccion->argumentos ==NULL){
+		printf("La lista es nula, error");
+		return;
+	}
+	list_destroy_and_destroy_elements(instruccion->argumentos,free);
 	free(instruccion);
 }
 
