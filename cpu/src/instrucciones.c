@@ -107,58 +107,60 @@ void execute(t_instruccion *instruccion){
 	}
 }
 void ejecutarSet(char * registro_string, char * valor_string){
-	u_int32_t *registro = obtener_registro(registro_string);
-	
-	if (registro != NULL) {
-    	u_int32_t valor = (u_int32_t)atoi(valor_string);
-		*registro = valor;
-	} 
-	else {
-    	printf("Error: Registro no válido\n");
-    // Manejar el error de alguna manera apropiada
+	if(es_reg_chico(registro_string)){
+		set_reg_chico(registro_string, (uint8_t)atoi(valor_string));
 	}
-	
+	else{
+		set_reg_grande(registro_string,atoi(valor_string));
+	}
 }
 
 
 
 void ejecutarSum(char * registro_destino, char * registro_origen){ //x lo que vi en las pruebas siempre suman mismo tipo registros
 
-	if((strcmp(registro_destino,"AX")==0 )||(strcmp("BX",registro_destino)== 0)||(strcmp("CX",registro_destino)== 0)||(strcmp("DX",registro_destino)== 0)){
-		// uint8_t *registroD = (uint8_t*) obtener_registro(registro_destino);
-		// uint8_t *registroO = (uint8_t*) obtener_registro(registro_origen);
-		// *registroD = *registroD + *registroO;
-		pcb.registros.bx += pcb.registros.ax; 
+	if(es_reg_chico(registro_destino)){
+		uint8_t regd = get_reg_chico(registro_destino);
+		uint8_t rego = get_reg_chico(registro_origen);
+		set_reg_chico(registro_destino, regd + rego);
 	}
 	else{
-		uint32_t *registroD = obtener_registro(registro_destino);
-		uint32_t *registroO = obtener_registro(registro_origen);
-		*registroD += *registroO;
+		uint32_t regd = get_reg_grande(registro_destino);
+		uint32_t rego = get_reg_grande(registro_origen);
+		set_reg_grande(registro_destino, regd + rego);
 	}
 }
 void ejecutarSub(char * registro_destino, char * registro_origen){ //x lo que vi en las pruebas siempre suman mismo tipo registros
 
-	if((strcmp(registro_destino,"AX")==0 )||(strcmp("BX",registro_destino)== 0)||(strcmp("CX",registro_destino)== 0)||(strcmp("DX",registro_destino)== 0)){
-		u_int8_t *registroD = obtener_registro(registro_destino);
-		u_int8_t *registroO = obtener_registro(registro_origen);
-		*registroD -= * registroO;
+	if(es_reg_chico(registro_destino)){
+		uint8_t regd = get_reg_chico(registro_destino);
+		uint8_t rego = get_reg_chico(registro_origen);
+		set_reg_chico(registro_destino, regd - rego);
 	}
 	else{
-		u_int32_t *registroD = obtener_registro(registro_destino);
-		u_int32_t *registroO = obtener_registro(registro_origen);
-		*registroD -= * registroO;
+		uint32_t regd = get_reg_grande(registro_destino);
+		uint32_t rego = get_reg_grande(registro_origen);
+		set_reg_grande(registro_destino, regd - rego);
 	}
 }
 
 void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
-
-	u_int32_t *valor_registro = obtener_registro(registro_string);
 	u_int32_t nro_instruccion = (u_int32_t)atoi(nro_instruccion_string);
-	if(*valor_registro!=0){
-		pcb.pc = nro_instruccion;
+	
+	if(es_reg_chico(registro_string)){
+		uint8_t valor = get_reg_chico(registro_string);
+		if(valor!=0){
+			set_pc(nro_instruccion);
+		}
 	}
-
+	else{
+		uint32_t valor = get_reg_grande(registro_string);
+		if(valor!=0){
+			set_pc(nro_instruccion);
+		}
+	}
 }
+
 void ejecutarWait(char * recurso){
 	t_paquete * paquete = crear_paquete(COP_WAIT);
 	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
@@ -246,13 +248,30 @@ void ejecutarIOFsDelete(char * interfaz, char * archivo){
 	eliminar_paquete(paquete);
 }
 void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio){
-	u_int32_t *valor_registro = obtener_registro(registro_tamanio);
-	t_paquete * paquete = crear_paquete(COP_IO_FS_TRUNCATE);
-	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
-	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
-	agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
-	enviar_paquete(fd_kernel_dispatch,paquete);
-	eliminar_paquete(paquete);
+	
+	if(es_reg_chico(registro_tamanio)){
+
+		uint8_t valor_registro = get_reg_chico(registro_tamanio);
+		t_paquete * paquete = crear_paquete(COP_IO_FS_TRUNCATE);
+		agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
+		agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
+		agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
+		enviar_paquete(fd_kernel_dispatch,paquete);
+		eliminar_paquete(paquete);
+
+	}
+
+	else{
+
+		uint32_t valor_registro = get_reg_grande(registro_tamanio);
+		t_paquete * paquete = crear_paquete(COP_IO_FS_TRUNCATE);
+		agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
+		agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
+		agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
+		enviar_paquete(fd_kernel_dispatch,paquete);
+		eliminar_paquete(paquete);
+		
+	}	
 }
 
 // t_instruccion* pedidoAMemoria(int pid, int pc) {
