@@ -35,7 +35,7 @@ void liberar_instruccion(t_instruccion* instruccion) {
 
     // Liberar la memoria de cada argumento en el arreglo de argumentos
     for (int i = 0; i < 5; i++) {
-        if (instruccion->argumentos[i] != NULL) {
+        if ((instruccion->argumentos[i]) != NULL) {
             free(instruccion->argumentos[i]);
             instruccion->argumentos[i] = NULL; // Importante: marcar como NULL después de liberar
         }
@@ -244,21 +244,25 @@ void ejecutarResize(char *tamanio){
 
 void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
 	//TODO
+	printf("ENTRÉ MOV IN");
 }
 void ejecutarMovOut(char* registro_direrccion,char* registro_datos){
 	//TODO
+	printf("ENTRE MOV OUT");
 }
 void ejecutarCopyString(char *tamanio){
 	/*Toma del string apuntado por el registro SI y copia la cantidad de bytes
 	 indicadas en el parámetro tamaño a la posición de memoria apuntada por el registro DI.*/
-
+    printf("entre copy string");
 }
 
 void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_tamanio){
 	//TODO
+	printf("ENTRE STDREAD");
 }
 void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio){ //entiendo que voy a leer un registro y ese valor es el tamanio
 	//TODO
+	printf("ENTRE STDWRITE");
 }
 void ejecutarIOFsCreate(char * interfaz, char * archivo){
 	t_paquete * paquete = crear_paquete(COP_IO_FS_CREATE);

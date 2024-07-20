@@ -55,13 +55,6 @@ void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros){
 void agregar_pid_a_paquete(t_paquete *paquete, int pid){
     agregar_a_paquete(paquete, &pid, sizeof(pid));
 }
-void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint32_t));
-}
-
-void agregar_uint8_a_paquete(t_paquete *paquete, uint8_t n){
-    agregar_a_paquete(paquete, &n, sizeof(uint8_t));
-}
 
 int pcb_get_pid(t_pcb *pcb){
     return pcb->pid;

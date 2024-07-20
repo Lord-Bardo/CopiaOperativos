@@ -33,9 +33,6 @@ void mmu(t_direccion *direcciones, int dl, int tamanio_total){
     while(tamanio_total>0){
 
         bytes = obtener_bytes(offset,tamanio_total);
-        direcciones[i].frame = obtener_frame(pagina);
-        direcciones[i].offset = offset;
-        direcciones[i].bytes = bytes;
 
         offset = 0;
         tamanio_total -= bytes;
