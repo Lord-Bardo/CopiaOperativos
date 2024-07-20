@@ -8,7 +8,7 @@ t_pcb_memoria* inicializar_proceso();
 int agregar_proceso(t_pcb_memoria proceso);
 int eliminar_proceso(int index);
 int encontrar_proceso(int pid);
-int sizeof_proceso(int index);
+int sizeof_proceso(t_pcb_memoria proceso);
 void liberar_proceso(t_pcb_memoria* proceso);
 void asignar_size_proceso(int index, int size);
 void aumentar_proceso(int index, int size);

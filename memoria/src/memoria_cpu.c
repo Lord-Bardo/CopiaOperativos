@@ -159,7 +159,8 @@ void obtener_frame(int pid, int pag, int* frame) //PENDIENTE DE TESTEAR (hacerlo
 	// Obtengo el frame.
 	*frame = procesos[index].tabla_paginas[pag].num_frame;
 
-	// Log obligatorio.
+	// Log mínimo y obligatorio - Acceso a Tabla de Páginas.
+	printf("Log mínimo y obligatorio - Acceso a Tabla de Páginas");
 	log_info(memoria_logger, "PID: %d - Pagina: %d - Marco: %d\n", procesos[index].pid, pag, procesos[index].tabla_paginas[pag].num_frame);
 }
 
@@ -178,16 +179,10 @@ void resize(int pid, int size)
 	
 
 	// Si el proceso tiene menos páginas que el size, aumento su tamaño.
-	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(index) < size)
+	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(procesos[index]) < size)
 	    aumentar_proceso(index, size);
 	
 	// Si el proceso tiene más páginas que el size, disminuyo su tamaño.
-	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(index) > size)
-	    reducir_proceso(index, size);
-
-	// ENGINEER'S NOTE: NO ENTIENDO cómo saber cuáles son los frames libres (para asignar), 
-	//                  incluyendo a los frames que se liberan al reducir el tamaño de un 
-	//                  proceso. Posible solución: usar una estructura a parte del espacio
-	//                  de usuario que contenga a todos los frames y que indiquen si estos 
-	//                  estan disponibles o no (se deberá actualizar con cada resize). 	
+	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(procesos[index]) > size)
+	    reducir_proceso(index, size); 	
 }

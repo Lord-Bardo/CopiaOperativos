@@ -60,9 +60,9 @@ int encontrar_proceso(int pid)
     return i;
 }
 
-int sizeof_proceso(int index){ // El tamaño de un proceso es igual a su cantidad de páginas.
+int sizeof_proceso(t_pcb_memoria proceso){ // El tamaño de un proceso es igual a su cantidad de páginas.
     int size = 0;
-    while(procesos[index].tabla_paginas[size].num_frame != -1)
+    while(proceso.tabla_paginas[size].num_frame != -1)
         size++;
     return size;
 }
@@ -71,20 +71,29 @@ void asignar_size_proceso(int index, int size)
 {
     int i = 0;
     while(i < size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
-        procesos[index].tabla_paginas[i].num_frame = frame_libre();
-        frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
-        procesos[index].tabla_paginas[i].bit_presencia = false;
-        i++;
-    }
-    if(i == size - 1 && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
+            procesos[index].tabla_paginas[i].num_frame = frame_libre();
+            frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
+            procesos[index].tabla_paginas[i].bit_presencia = false;
+            i++;
+        }
+    if(i == size - 1 && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+        // Log mínimo y obligatorio - Creación de Tabla de Páginas
+        printf("Log mínimo y obligatorio - Creación de Tabla de Páginas");
+        log_info(memoria_logger, "PID: %d - Tamaño: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]));
+    
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
+    }
     else
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
 }
 
 void aumentar_proceso(int index, int size)
 {
-    int i = sizeof_proceso(index);
+    //Log mínimo y obligatorio - Ampliación de Proceso
+    printf("Log mínimo y obligatorio - Ampliación de Proceso");
+    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
+
+    int i = sizeof_proceso(procesos[index]);
     while(i < size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
         procesos[index].tabla_paginas[i].num_frame = frame_libre();
         frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
@@ -100,7 +109,11 @@ void aumentar_proceso(int index, int size)
 
 void reducir_proceso(int index, int size)
 {
-    for(int i = sizeof_proceso(index); i >= size; i--){
+    //Log mínimo y obligatorio - Reducción de Proceso
+    printf("Log mínimo y obligatorio - Reducción de Proceso");
+    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
+
+    for(int i = sizeof_proceso(procesos[index]); i >= size; i--){
         frames_libres[procesos[index].tabla_paginas[i].num_frame] = true;
         procesos[index].tabla_paginas[i].num_frame = -1;
     }
@@ -113,7 +126,11 @@ void liberar_proceso(t_pcb_memoria* proceso)
         free(proceso->memoria_de_instrucciones[i]);
         
     free(proceso->memoria_de_instrucciones);
+    int cant_pags = sizeof_proceso(*proceso);
     free(proceso->tabla_paginas);
+    // Log mínimo y obligatorio - Destrucción de Tabla de Páginas
+    printf("Log mínimo y obligatorio - Destrucción de Tabla de Páginas:");
+    log_info(memoria_logger, "PID: %d - Tamaño: %d\n", proceso->pid, cant_pags);
 }
 
 // AUXILIARES.
