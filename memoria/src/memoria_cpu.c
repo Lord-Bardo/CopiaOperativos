@@ -79,6 +79,7 @@ void atender_memoria_cpu(){
 
 				// Cambio el tamaño del proceso.
 				resize(pid_resize, size);
+				
 
 				// Envío confirmación de escritura.
 				enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);

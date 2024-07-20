@@ -40,12 +40,6 @@ typedef struct {
 	uint32_t si;
 }t_registros;
 
-typedef struct{
-	int frame;
-	int offset;
-	int bytes;
-}t_direccion;
-
 typedef struct {
 	int pid;
 	uint32_t pc;
