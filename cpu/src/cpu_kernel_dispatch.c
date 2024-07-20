@@ -26,15 +26,15 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	        t_instruccion* instr = crear_instruccion();
 
             enviar_fetch_memoria(pcb.pid, pcb.pc);
-
+            log_info(cpu_logger,"PID: %d FETCH - Program Counter: %d",pcb.pid,pcb.pc);
             recibir_instruccion(instr);
 
-            log_info(cpu_logger,"PID: %d FETCH - Program Counter: %d",pcb.pid,pcb.pc);
+           
 	        //aca deberiamos mandarle a memoria un pc y pid para que nos devuelva una instruccion.
 
 	        if (instr != NULL) {
                 mostrarInstruccion(*instr);
-                log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> TENGO QUE VER COMO MOSTRARLOS",pcb.pid,instr->instr_code); //PID: <PID> - Ejecutando: <INSTRUCCION> - <PARAMETROS>
+                log_n_parametros(list_size(instr->argumentos),instr); //PID: <PID> - Ejecutando: <INSTRUCCION> - <PARAMETROS>
                 execute(instr);
                 pcb.pc++;
                 mostrarPCB(pcb);

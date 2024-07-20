@@ -7,6 +7,28 @@ typedef struct {
 	t_instr_code instr_code;
 	char* argumentos[5];
 }t_instruccion;*/
+void log_n_parametros(int n, t_instruccion *instr){
+    switch (n)
+    {
+    case 1:
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t%s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0));
+        break;
+    case 2:
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t%s \t%s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1));
+        break;
+    case 3:
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t %s \t%s \t%s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1),list_get(instr->argumentos,2));
+        break;
+    case 4:
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> \t %s \t%s \t%s\t %s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1),list_get(instr->argumentos,2),list_get(instr->argumentos,3));
+        break;
+    case 5:
+        log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS>\t %s \t %s \t%s \t%s\t %s",pcb.pid,instr->instr_code, list_get(instr->argumentos,0),list_get(instr->argumentos,1),list_get(instr->argumentos,2),list_get(instr->argumentos,3),list_get(instr->argumentos,4));
+        break;
+    default:
+        break;
+    }
+}
 
 void buffer_desempaquetar_registros(t_buffer *buffer, t_registros *registros){
     buffer_desempaquetar(buffer, &(registros->ax));

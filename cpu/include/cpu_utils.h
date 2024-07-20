@@ -30,6 +30,6 @@ void quitar_lista_interrupciones(int pid_sacar);
 int buscar_lista_interrupciones(int pid_buscar);
 int obtener_motivo_lista(int pid_buscar);
 void convertir_string_a_instruccion(char* cadena,t_instruccion * instruccion);
-
+void log_n_parametros(int n, t_instruccion *instr);
 void check_interrupt();
 #endif
