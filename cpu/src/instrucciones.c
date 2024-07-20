@@ -125,14 +125,15 @@ void ejecutarSet(char * registro_string, char * valor_string){
 void ejecutarSum(char * registro_destino, char * registro_origen){ //x lo que vi en las pruebas siempre suman mismo tipo registros
 
 	if((strcmp(registro_destino,"AX")==0 )||(strcmp("BX",registro_destino)== 0)||(strcmp("CX",registro_destino)== 0)||(strcmp("DX",registro_destino)== 0)){
-		u_int8_t *registroD = obtener_registro(registro_destino);
-		u_int8_t *registroO = obtener_registro(registro_origen);
-		*registroD += * registroO;
+		// uint8_t *registroD = (uint8_t*) obtener_registro(registro_destino);
+		// uint8_t *registroO = (uint8_t*) obtener_registro(registro_origen);
+		// *registroD = *registroD + *registroO;
+		pcb.registros.bx += pcb.registros.ax; 
 	}
 	else{
-		u_int32_t *registroD = obtener_registro(registro_destino);
-		u_int32_t *registroO = obtener_registro(registro_origen);
-		*registroD += * registroO;
+		uint32_t *registroD = obtener_registro(registro_destino);
+		uint32_t *registroO = obtener_registro(registro_origen);
+		*registroD += *registroO;
 	}
 }
 void ejecutarSub(char * registro_destino, char * registro_origen){ //x lo que vi en las pruebas siempre suman mismo tipo registros

@@ -38,13 +38,13 @@ int main(int argc, char* argv[]) {
 	
 	// TEST - RESIZE
 	resize(123, 5);
-	printf("El tamanio del proceso es: %d\n", sizeof_proceso(0)); // debería ser 5.
+	printf("El tamanio del proceso es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 5.
 	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser 4.
 	resize(123, 10); // agrando el proceso.
-	printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(0)); // debería ser 10
+	printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 10
 	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
 	resize(123, 4); // reduzco el proceso.
-	printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(0)); // debería ser 4
+	printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 4
 	printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1.
 
 
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 	char* instruccion = malloc(sizeof(char));
 	obtener_instruccion(123, 5, instruccion);
 	printf("La instruccion solicitada fue: %s\n", instruccion); 
-	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)"); 
+	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
 
     // Finalizo el proceso
 	finalizar_proceso(123);

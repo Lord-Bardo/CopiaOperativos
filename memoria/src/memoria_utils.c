@@ -76,9 +76,9 @@ void asignar_size_proceso(int index, int size)
             procesos[index].tabla_paginas[i].bit_presencia = false;
             i++;
         }
-    if(i == size - 1 && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+    if(i == size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
         // Log mínimo y obligatorio - Creación de Tabla de Páginas
-        printf("Log mínimo y obligatorio - Creación de Tabla de Páginas");
+        printf("Log mínimo y obligatorio - Creación de Tabla de Páginas \n");
         log_info(memoria_logger, "PID: %d - Tamaño: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]));
     
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
@@ -90,7 +90,7 @@ void asignar_size_proceso(int index, int size)
 void aumentar_proceso(int index, int size)
 {
     //Log mínimo y obligatorio - Ampliación de Proceso
-    printf("Log mínimo y obligatorio - Ampliación de Proceso");
+    printf("Log mínimo y obligatorio - Ampliación de Proceso\n");
     log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
 
     int i = sizeof_proceso(procesos[index]);
@@ -110,7 +110,7 @@ void aumentar_proceso(int index, int size)
 void reducir_proceso(int index, int size)
 {
     //Log mínimo y obligatorio - Reducción de Proceso
-    printf("Log mínimo y obligatorio - Reducción de Proceso");
+    printf("Log mínimo y obligatorio - Reducción de Proceso\n");
     log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
 
     for(int i = sizeof_proceso(procesos[index]); i >= size; i--){
@@ -129,8 +129,8 @@ void liberar_proceso(t_pcb_memoria* proceso)
     int cant_pags = sizeof_proceso(*proceso);
     free(proceso->tabla_paginas);
     // Log mínimo y obligatorio - Destrucción de Tabla de Páginas
-    printf("Log mínimo y obligatorio - Destrucción de Tabla de Páginas:");
-    log_info(memoria_logger, "PID: %d - Tamaño: %d\n", proceso->pid, cant_pags);
+    printf("Log mínimo y obligatorio - Destrucción de Tabla de Páginas:\n");
+    log_info(memoria_logger, "PID: %d - Tamaño: %d", proceso->pid, cant_pags);
 }
 
 // AUXILIARES.
