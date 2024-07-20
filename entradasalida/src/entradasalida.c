@@ -48,19 +48,20 @@ void conectar_a_kernel(char* nombre_interfaz){
 	fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
 	t_paquete* paquete = crear_paquete(HANDSHAKE_ENTRADASALIDA);
 	agregar_string_a_paquete(paquete,nombre_interfaz);
+	agregar_string_a_paquete(paquete,TIPO_INTERFAZ);
 
-	if (strcmp(nombre_interfaz,"generica") == 0){	
-		agregar_a_paquete(paquete,GENERICA,sizeof(t_tipo_interfaz));
-	}
-	else if (strcmp(nombre_interfaz,"stdin") == 0){	
-		agregar_a_paquete(paquete,STDIN,sizeof(t_tipo_interfaz));
-	}
-	else if (strcmp(nombre_interfaz,"stdout") == 0){	
-		agregar_a_paquete(paquete,STDOUT,sizeof(t_tipo_interfaz));
-	}
-	else if (strcmp(nombre_interfaz,"dialfs") == 0){	
-		agregar_a_paquete(paquete,DIALFS,sizeof(t_tipo_interfaz));
-	}
+	// if (strcmp(nombre_interfaz,"generica") == 0){	
+	// 	agregar_a_paquete(paquete,GENERICA,sizeof(t_tipo_interfaz));
+	// }
+	// else if (strcmp(nombre_interfaz,"stdin") == 0){	
+	// 	agregar_a_paquete(paquete,STDIN,sizeof(t_tipo_interfaz));
+	// }
+	// else if (strcmp(nombre_interfaz,"stdout") == 0){	
+	// 	agregar_a_paquete(paquete,STDOUT,sizeof(t_tipo_interfaz));
+	// }
+	// else if (strcmp(nombre_interfaz,"dialfs") == 0){	
+	// 	agregar_a_paquete(paquete,DIALFS,sizeof(t_tipo_interfaz));
+	// }
 
 	enviar_paquete(fd_kernel,paquete);
 	eliminar_paquete(paquete);
