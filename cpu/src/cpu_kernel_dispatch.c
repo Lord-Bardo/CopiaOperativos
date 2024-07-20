@@ -34,7 +34,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 
 	        if (instr != NULL) {
                 mostrarInstruccion(*instr);
-                log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> %s %s %s %s %s",pcb.pid,instr->instr_code,instr->argumentos[0],instr->argumentos[1],instr->argumentos[2],instr->argumentos[3],instr->argumentos[4]); //PID: <PID> - Ejecutando: <INSTRUCCION> - <PARAMETROS>
+                log_info(cpu_logger,"PID: %d - Ejecutando: %d - <PARAMETROS> TENGO QUE VER COMO MOSTRARLOS",pcb.pid,instr->instr_code); //PID: <PID> - Ejecutando: <INSTRUCCION> - <PARAMETROS>
                 execute(instr);
                 pcb.pc++;
                 mostrarPCB(pcb);

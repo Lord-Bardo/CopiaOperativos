@@ -77,29 +77,24 @@ void recibir_instruccion(t_instruccion * instruccion){
 	eliminar_buffer(buffer);
 
 }
-t_instruccion convertir_string_a_instruccion(char* cadena) {
-    t_instruccion instruccion;
+void convertir_string_a_instruccion(char* cadena, t_instruccion * instruccion) {
     char *instr_code = strtok(cadena, " ");
-    instruccion.instr_code =obtener_numero_instruccion(instr_code);
+    instruccion->instr_code =obtener_numero_instruccion(instr_code);
 
-    int i = 0;
+   
     char *token = strtok(NULL, " ");
-    while (token != NULL && i < 5) {
-        instruccion.argumentos[i++] = token;
+    while (token != NULL) {
+        list_add(instruccion->argumentos,token);
         token = strtok(NULL, " ");
     }
-    // Asegurarse de que los argumentos restantes sean NULL
-    while (i < 5) {
-        instruccion.argumentos[i++] = NULL;
-    }
-    return instruccion;
+   
 }
 
 void buffer_desempaquetar_instruccion(t_buffer *buffer, t_instruccion * instruccion){
 	char * instruccion_string =buffer_desempaquetar_string(buffer);
     log_info(cpu_logger,"LA CADENA ENTERA DE LA INSTRUCCION ES: %s",instruccion_string);
    
-    *instruccion = convertir_string_a_instruccion(instruccion_string);
+    convertir_string_a_instruccion(instruccion_string,instruccion);
     mostrarInstruccion(*instruccion);
 }
 

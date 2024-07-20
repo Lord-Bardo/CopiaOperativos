@@ -8,8 +8,8 @@
 
 t_instruccion* fetch(int pid, int pc);
 t_instruccion* pedidoAMemoria(int pid, int pc);
-
-
+void destroy_element(void *data);
+void print_element(void *data);
 void execute(t_instruccion *instruccion);
 void ejecutarSet(char * registro_string, char * valor_string);
 void ejecutarMovIn(char* registro_datos, char* registro_direrccion);

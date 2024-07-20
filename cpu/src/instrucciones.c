@@ -1,89 +1,41 @@
 #include "../include/instrucciones.h"
 
 void inicializarInstruccion(t_instruccion* instr, t_instr_code code, char* args[5]) {
-    if (instr == NULL) {
-        printf("Error: puntero a instrucción es NULL\n");
-        return;
-    }
-
-    // Inicializar op_code
-    instr->instr_code = code;
-    printf("Op Code dentro de inicializar instruccion: %d\n", instr->instr_code);
-    // Asignar memoria y copiar los argumentos
-    for (int i = 0; i < 5; i++) {
-        if (args[i] != NULL) {
-            instr->argumentos[i] = (char*) malloc(strlen(args[i]) + 1);
-            if (instr->argumentos[i] == NULL) {
-                printf("Error al asignar memoria para el argumento %d\n", i);
-                // Liberar memoria previamente asignada antes de retornar
-                for (int j = 0; j < i; j++) {
-                    free(instr->argumentos[j]);
-                }
-                return;
-            }
-            strcpy(instr->argumentos[i], args[i]);
-        } else {
-            instr->argumentos[i] = NULL;
-        }
-    }
+    
 }
-
+void destroy_element(void *data) {
+    free(data);
+}
 void liberar_instruccion(t_instruccion* instruccion) {
-    if (instruccion == NULL) {
-        return; // Si instruccion es NULL, no hay nada que liberar
-    }
-
-    // Liberar la memoria de cada argumento en el arreglo de argumentos
-    for (int i = 0; i < 5; i++) {
-        if ((instruccion->argumentos[i]) != NULL) {
-            free(instruccion->argumentos[i]);
-            instruccion->argumentos[i] = NULL; // Importante: marcar como NULL después de liberar
-        }
-    }
-
-    // Liberar la memoria de la estructura t_instruccion
-    free(instruccion);
+    
+	list_destroy_and_destroy_elements(instruccion->argumentos,destroy_element);
+	free(instruccion);
 }
+
 t_instruccion* crear_instruccion() {
     // Reserva memoria para la estructura t_instruccion
-    t_instruccion* nueva_instruccion = (t_instruccion*)malloc(sizeof(t_instruccion));
+    t_instruccion *nueva_instruccion = malloc(sizeof(t_instruccion));
     if (nueva_instruccion == NULL) {
-        perror("Error al reservar memoria para t_instruccion");
-        exit(EXIT_FAILURE);
+        return NULL; // Manejo de error si no se puede asignar memoria
     }
 
-    // Reserva memoria para cada argumento en el arreglo de argumentos
-    for (int i = 0; i < 5; i++) {
-        nueva_instruccion->argumentos[i] = (char*)malloc(15 * sizeof(char));
-        if (nueva_instruccion->argumentos[i] == NULL) {
-            perror("Error al reservar memoria para un argumento");
-
-            // Libera memoria previamente asignada en caso de error
-            for (int j = 0; j < i; j++) {
-                free(nueva_instruccion->argumentos[j]);
-            }
-            free(nueva_instruccion);
-            exit(EXIT_FAILURE);
-        }
-    }
+    // Inicializa los campos de la estructura
+    nueva_instruccion->instr_code = NOCODE;
+    nueva_instruccion->argumentos = list_create();
 
     return nueva_instruccion;
 }
-
 void mostrarInstruccion(t_instruccion instr) {
     printf("Op Code mostrar INstruccion: %d\n", instr.instr_code);
-    for (int i = 0; i < 5; i++) {
-        if (instr.argumentos[i] != NULL) {
-            printf("Arg %d: %s\n", i, instr.argumentos[i]);
-        }
-    } 
+    list_iterate(instr.argumentos,print_element);
 
 }
-
+void print_element(void *data) {
+    printf("%s\n", (char *)data);
+}
 
 void execute(t_instruccion *instruccion){
-	switch (instruccion->instr_code)
-	{
+	switch (instruccion->instr_code){
 	case EXIT:
 		log_info(cpu_logger,"ENTRE AL EXIT");
 		salir_ciclo_instruccion=1;
@@ -91,54 +43,54 @@ void execute(t_instruccion *instruccion){
 		enviar_pcb_kernel(motivo_desalojo);
 		break;
 	case SET:
-		ejecutarSet(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarSet(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case SUM:
-		ejecutarSum(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarSum(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case SUB:
-		ejecutarSub(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarSub(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case JNZ:
-		ejecutarJnz(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarJnz(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case MOV_IN:
-		ejecutarMovIn(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarMovIn(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case MOV_OUT:
-		ejecutarMovOut(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarMovOut(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case RESIZE:
-		ejecutarResize(instruccion->argumentos[0]);
+		ejecutarResize(list_get(instruccion->argumentos,0));
 		break;
 	case COPY_STRING:
-		ejecutarCopyString(instruccion->argumentos[0]);
+		ejecutarCopyString(list_get(instruccion->argumentos,0));
 		break;
 	case WAIT:
-		ejecutarWait(instruccion->argumentos[0]);
+		ejecutarWait(list_get(instruccion->argumentos,0));
 		break;
 	case SIGNAL:
-		ejecutarSignal(instruccion->argumentos[0]);
+		ejecutarSignal(list_get(instruccion->argumentos,0));
 		break;
 	case IO_GEN_SLEEP:
-		ejecutarIoGenSleep(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarIoGenSleep(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		salir_ciclo_instruccion =1;
 		motivo_desalojo = IO;
 		break;
 	case IO_STDIN_READ:
-		ejecutarStdRead(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
+		ejecutarStdRead(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2));
 		break;
 	case IO_STDOUT_WRITE:
-		ejecutarStdWrite(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
+		ejecutarStdWrite(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2));
 		break;		
 	case IO_FS_CREATE:
-		ejecutarIOFsCreate(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarIOFsCreate(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case IO_FS_DELETE:
-		ejecutarIOFsDelete(instruccion->argumentos[0],instruccion->argumentos[1]);
+		ejecutarIOFsDelete(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
 		break;
 	case IO_FS_TRUNCATE:
-		ejecutarIOFsTruncate(instruccion->argumentos[0],instruccion->argumentos[1],instruccion->argumentos[2]);
+		ejecutarIOFsTruncate(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2));
 		break;
 	case IO_FS_WRITE:
 		break;
@@ -288,18 +240,18 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 	eliminar_paquete(paquete);
 }
 
-t_instruccion* pedidoAMemoria(int pid, int pc) {
-    // Simulación de obtención de instrucción de memoria
-    char* args[5] = {"EDX", "69", NULL, "arg4", "arg5"};
-    t_instruccion* instr = (t_instruccion*) malloc(sizeof(t_instruccion));
-    if (instr == NULL) {
-        printf("Error al asignar memoria para la instrucción\n");
-        return NULL;
-    }
-     printf("Op Code PEDIDOmemoria: %d\n", SET);
-    inicializarInstruccion(instr, EXIT, args);
-    return instr;
-}
+// t_instruccion* pedidoAMemoria(int pid, int pc) {
+//     // Simulación de obtención de instrucción de memoria
+//     char* args[5] = {"EDX", "69", NULL, "arg4", "arg5"};
+//     t_instruccion* instr = (t_instruccion*) malloc(sizeof(t_instruccion));
+//     if (instr == NULL) {
+//         printf("Error al asignar memoria para la instrucción\n");
+//         return NULL;
+//     }
+//      printf("Op Code PEDIDOmemoria: %d\n", SET);
+//     inicializarInstruccion(instr, EXIT, args);
+//     return instr;
+// }
 
 
 

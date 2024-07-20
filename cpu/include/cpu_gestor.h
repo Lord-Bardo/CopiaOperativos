@@ -65,12 +65,13 @@ typedef enum{
 	IO_FS_TRUNCATE,
 	IO_FS_WRITE,
 	IO_FS_READ,
-	EXIT
+	EXIT,
+	NOCODE
 } t_instr_code;
 
 typedef struct {
 	t_instr_code instr_code;
-	char* argumentos[5];
+	t_list *argumentos;
 }t_instruccion;
 
 

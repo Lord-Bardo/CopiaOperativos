@@ -29,7 +29,7 @@ void insertar_ordenado_lista_interrupciones(t_interrupt interrupcion_nueva);
 void quitar_lista_interrupciones(int pid_sacar);
 int buscar_lista_interrupciones(int pid_buscar);
 int obtener_motivo_lista(int pid_buscar);
-
+void convertir_string_a_instruccion(char* cadena,t_instruccion * instruccion);
 
 void check_interrupt();
 #endif
