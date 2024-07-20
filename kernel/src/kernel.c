@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
 
-	//iniciar_consola_interactiva();
+	// iniciar_consola_interactiva();
 
 	// detener_planificacion();
 	// t_pcb *pcb1 = crear_pcb(0, "p");
