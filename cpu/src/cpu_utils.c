@@ -99,15 +99,44 @@ void recibir_instruccion(t_instruccion * instruccion){
 	eliminar_buffer(buffer);
 
 }
-void convertir_string_a_instruccion(char* cadena, t_instruccion * instruccion) {
-    char *instr_code = strtok(cadena, " ");
-    instruccion->instr_code =obtener_numero_instruccion(instr_code);
+void convertir_string_a_instruccion(char* cadena, t_instruccion* instruccion) {
+    int len = strlen(cadena);
+    char* instr_code = (char*)malloc(len + 1);
+    int instr_code_index = 0;
 
-   
-    char *token = strtok(NULL, " ");
-    while (token != NULL) {
-        list_add(instruccion->argumentos,token);
-        token = strtok(NULL, " ");
+    int i = 0;
+    // Parsear el código de la instrucción
+    while (i < len && cadena[i] != ' ') {
+        instr_code[instr_code_index++] = cadena[i++];
+    }
+    instr_code[instr_code_index] = '\0';
+    instruccion->instr_code = obtener_numero_instruccion(instr_code);
+    free(instr_code);  // Libera instr_code después de obtener el número de instrucción
+
+    // Si la lista de argumentos no está inicializada, crearla
+    if (instruccion->argumentos == NULL) {
+        instruccion->argumentos = list_create();
+    }
+
+    while (i < len) {
+        // Saltar espacios en blanco
+        while (i < len && cadena[i] == ' ') {
+            i++;
+        }
+
+        // Encontrar el siguiente argumento
+        if (i < len) {
+            int start = i;
+            while (i < len && cadena[i] != ' ') {
+                i++;
+            }
+            int arg_len = i - start;
+            char* arg = (char*)malloc(arg_len + 1);
+            strncpy(arg, cadena + start, arg_len);
+            arg[arg_len] = '\0';
+
+            list_add(instruccion->argumentos, arg);
+        }
     }
 }
 
