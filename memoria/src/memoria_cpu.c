@@ -136,7 +136,6 @@ void obtener_instruccion(int pid, int pc, char* instruccion)
 	}
 
 	// Obtengo la instrucción.
-	//strcpy(instruccion, procesos[index].memoria_de_instrucciones[pc]);
 	string_append(&instruccion,procesos[index].memoria_de_instrucciones[pc]);
 }
 

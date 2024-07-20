@@ -62,7 +62,7 @@ int encontrar_proceso(int pid)
 
 int sizeof_proceso(t_pcb_memoria proceso){ // El tamaño de un proceso es igual a su cantidad de páginas.
     int size = 0;
-    while(proceso.tabla_paginas[size].num_frame != -1)
+    while(proceso.tabla_paginas[size].num_frame != -1 && size < (TAM_MEMORIA/TAM_PAGINA))
         size++;
     return size;
 }
@@ -160,7 +160,7 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
 int frame_libre()
 {
     int num_frame = 0;
-    while(frames_libres[num_frame] == false && num_frame <= TAM_MEMORIA/TAM_PAGINA)
+    while(frames_libres[num_frame] == false && num_frame < TAM_MEMORIA/TAM_PAGINA)
         num_frame++;
     return num_frame;
 }

@@ -21,9 +21,9 @@ int main(int argc, char *argv[]) {
 //----------------------------------test: envío de paquete a memoria-------------------------------------------------------------------------------------------------
 
 //  ENGINEER'S NOTE: Para efectuar este test deben conectarse los módulos MEMORIA-KERNEL-CPU (en este orden) y crear un proceso por
-//                   consola desde la terminal de KERNEL. Una vez hecho esto, desde la terminal de CPU procedemos a ingresar cualquier
-//                   letra y presionamos la tecla enter para, efectivamente, ejecutar el código que aparece a continuación (código que
-//                   queremos probar y que simula un FETCH):
+//                   consola desde la terminal de KERNEL ingesando "INICIAR_PROCESO /ArchivoPseudocodigo.txt". Una vez hecho esto, 
+//                   desde la terminal de CPU procedemos a ingresar cualquier letra y presionamos la tecla enter para, efectivamente, 
+//                   ejecutar el código que aparece a continuación (código que queremos probar y que simula un FETCH):
 /*
 	readline(">");
 	t_paquete* paquete = crear_paquete(FETCH);
