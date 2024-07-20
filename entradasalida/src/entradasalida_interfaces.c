@@ -49,7 +49,7 @@ void interfaz_stdin(t_list *lista_direcciones){
 
         // Creo el texto a enviar
         char *textoCortado = malloc(bytes_a_enviar + 1);
-        memcpy(textoCortado, texto + bytesLeidos, bytes_a_enviar);
+        memmove(textoCortado, texto + bytesLeidos, bytes_a_enviar);
         textoCortado[bytes_a_enviar] = '\0';
 
         agregar_string_a_paquete(paquete, textoCortado);
@@ -95,6 +95,11 @@ void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones){
         eliminar_paquete(paquete);
 
         /* DEFINIR COMO ME VA A TRAER LOS DATOS QUE LE MANDO ASÍ LOS PUEDO GUARDAR EN EL TEXTO */
+        /* LECTURA_RESPUESTA DEBERIA SER CONFIRMACIÓN_LECTURA */
+        t_buffer *buffer = crear_buffer(); 
+        recibir_paquete(fd_memoria,LECTURA_RESPUESTA, buffer);
+        char* textoTemporal = buffer_desempaquetar_string(buffer);
+        strcat(texto,textoTemporal);
     }
 
 
