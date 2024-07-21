@@ -46,6 +46,7 @@ void atender_entradasalida_kernel(){
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
             case COP_IO_STDOUT_WRITE:
+            {
                 // IO_STDOUT_WRITE Int3 BX EAX
                 int cant_direcciones;
                 buffer_desempaquetar(buffer, &cant_direcciones);
@@ -66,6 +67,7 @@ void atender_entradasalida_kernel(){
 
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
+            }
             case COP_IO_FS_CREATE:
                 // IO_FS_CREATE Int4 notas.txt
                 char* filename = buffer_desempaquetar_string(buffer);

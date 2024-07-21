@@ -69,12 +69,12 @@ void conectar_a_kernel(char* nombre_interfaz){
 	// fd_kernel = crear_conexion(IP_KERNEL, PUERTO_KERNEL);
 	// enviar_handshake(fd_kernel, HANDSHAKE_ENTRADASALIDA);
 
-	// if( recibir_handshake(fd_kernel) == HANDSHAKE_OK ){
-	// 	log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
-	// }
-	// else{
-	// 	log_info(entradasalida_logger, "No se pudo establecer conexion con KERNEL!");
-	// }
+	if( recibir_handshake(fd_kernel) == HANDSHAKE_OK ){
+		log_info(entradasalida_logger, "Conexion con KERNEL establecida!");
+	}
+	else{
+		log_info(entradasalida_logger, "No se pudo establecer conexion con KERNEL!");
+	}
 }
 
 // Recordarle a mati que lo agregue al utils general

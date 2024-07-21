@@ -46,7 +46,7 @@ void execute(t_instruccion *instruccion){
 		log_info(cpu_logger,"ENTRE AL EXIT");
 		salir_ciclo_instruccion=1;
 		motivo_desalojo = SUCCESS;
-		// enviar_pcb_kernel(motivo_desalojo); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		enviar_pcb_kernel(motivo_desalojo); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		break;
 	case SET:
 		ejecutarSet(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
@@ -178,15 +178,16 @@ void ejecutarSignal(char * recurso){
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el tiempo
 	t_codigo_operacion op= COP_IO_GEN_SLEEP;
 	t_paquete *paquete =crear_paquete(IO);
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
 	int tiempo_int = atoi(tiempo_string);
-	agregar_a_paquete(paquete,interfaz,sizeof(interfaz)+1);
+	agregar_string_a_paquete(paquete,interfaz);
 
 	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
 
-	agregar_a_paquete(paquete,&tiempo_int,sizeof(int));
+	agregar_int_a_paquete(paquete,tiempo_int);
 	
 	
-	enviar_paquete(fd_cpu_dispatch,paquete);
+	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 	
 	//armar paquete para kernel

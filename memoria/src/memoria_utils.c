@@ -12,7 +12,7 @@ t_pcb_memoria* inicializar_proceso()
         proceso->tabla_paginas[i].num_frame = -1;
 
     for (int i = 0; i < TAM_MEMORIA; i++) 
-        proceso->memoria_de_instrucciones[i] = malloc(sizeof(char));
+        proceso->memoria_de_instrucciones[i] = string_new();
 
     // Verificar si la asignación de memoria fue exitosa
     if (proceso->tabla_paginas == NULL || proceso->memoria_de_instrucciones == NULL) {

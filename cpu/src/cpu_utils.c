@@ -245,7 +245,7 @@ void check_interrupt(){
         //limpiar
         quitar_lista_interrupciones(pcb.pid);
         log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
-        enviar_pcb_kernel(motivo_desalojo);
+        //enviar_pcb_kernel(motivo_desalojo);
     }
     else{
         if(buscar_lista_interrupciones(pcb.pid)){ //deberia hacer esto si la instruccion quiere continuar ejecutando normalmente verdad?
