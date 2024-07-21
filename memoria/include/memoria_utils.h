@@ -17,6 +17,8 @@ void reducir_proceso(int index, int size);
 // AUXILIARES.
 bool instruccion_valida(char* instruccion);
 int frame_libre();
+void escribir(int direc_fisica, int bytes, void* dato);
+void* leer(int direc_fisica_read, int bytes_read);
 
 // MANEJO DE BUFFERS.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria* proceso);

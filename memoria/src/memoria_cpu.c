@@ -90,17 +90,21 @@ void atender_memoria_cpu(){
                 usleep(RETARDO_REPUESTA);
 				
 				// Creo estructuras necesarias.
-				int frame2, offset, bytes;
+				int pid_write, direc_fisica, bytes;
 				void* dato;
 
 				// Desempaqueto y almaceno información recibida.
-				buffer_desempaquetar(buffer, &frame2);
-				buffer_desempaquetar(buffer, &offset);
-				buffer_desempaquetar(buffer, dato);
+				buffer_desempaquetar(buffer, &pid_write);
+				buffer_desempaquetar(buffer, &direc_fisica);
 				buffer_desempaquetar(buffer, &bytes);
+				buffer_desempaquetar(buffer, dato);
+
+				// Log mínimo y obligatorio - Acceso a espacio de usuario.
+				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
+				log_info("PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid_write, direc_fisica, bytes);
 
 				// Escribo en el espacio de usuario de la memoria.
-				escribir(frame, offset, dato, bytes);
+				escribir(direc_fisica, bytes, dato);
 
 				// Envío confirmación de escritura.
 				enviar_codigo_operacion(fd_cpu, CONFIRMACION_ESCRITURA);
@@ -113,7 +117,32 @@ void atender_memoria_cpu(){
 			case SOLICITUD_LECTURA:
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
-				//TODO
+				
+				// Creo estructuras necesarias.
+				int pid_read, direc_fisica_read, bytes_read;
+				void* dato_read;
+
+				// Desempaqueto y almaceno información recibida.
+				buffer_desempaquetar(buffer, &pid_read);
+				buffer_desempaquetar(buffer, &direc_fisica_read);
+				buffer_desempaquetar(buffer, &bytes_read);
+
+				// Log mínimo y obligatorio - Acceso a espacio de usuario.
+				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
+				log_info("PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid_read, direc_fisica_read, bytes_read);
+
+				// Leo el espacio de usuario de la memoria.
+				dato_read = malloc(bytes_read);
+				leer(direc_fisica_read, bytes_read, dato_read);
+
+				// Envío dato leído.
+				t_paquete paquete_read = crear_paquete(DATO);
+				agregar_a_paquete(paquete_read, dato, bytes_read);
+				enviar_paquete(fd_cpu, paquete_read);
+
+				// Libero memoria.
+				eliminar_buffer(buffer);
+				eliminar_paquete(paquete_read);
 				break;
 
 			default:
@@ -159,10 +188,7 @@ void obtener_frame(int pid, int pag, int* frame)
 	log_info(memoria_logger, "PID: %d - Pagina: %d - Marco: %d\n", procesos[index].pid, pag, procesos[index].tabla_paginas[pag].num_frame);
 }
 
-void escribir(int frame, int offset, void* dato, int bytes)
-{
-	//TODO - hacer en utils porque es compartida con ENTRADA-SALIDA (en realidad todas deberían estar en utils opino).
-}
+
 void resize(int pid, int size)
 {
 	// Obtengo índice del proceso con el pid.

@@ -167,6 +167,31 @@ int frame_libre()
     return num_frame;
 }
 
+int buscar_pid(int direc_fisica)
+{
+    int pid=0;
+    return pid;
+}
+
+void escribir(int direc_fisica, int bytes, void* dato)
+{
+    // Verifico si la riección es válida
+    if(direc_fisica > TAM_MEMORIA - 1){
+        printf("Dirección inválida\n");
+        enviar_codigo_operacion(fd_cpu, ERROR_ESCRITURA);
+    }
+
+    // Escribo en el espacio de usuaro en la posición indicada.
+    pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
+	memmove(espacio_usuario[direc_fisica], dato, bytes);
+    pthread_mutex_unlock(&mutex_espacio_usuario);
+}
+
+void* leer(direc_fisica_read, bytes_read, dato)
+{
+    void* dato = malloc(bytes_read);
+    return dato;
+}
 
 // MANEJO DE BUFFER.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria *proceso)
