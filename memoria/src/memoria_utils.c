@@ -76,11 +76,11 @@ void asignar_size_proceso(int index, int size)
             procesos[index].tabla_paginas[i].bit_presencia = false;
             i++;
         }
+
     if(i == size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
         // Log mínimo y obligatorio - Creación de Tabla de Páginas
         printf("Log mínimo y obligatorio - Creación de Tabla de Páginas \n");
         log_info(memoria_logger, "PID: %d - Tamaño: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]));
-    
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     }
     else
@@ -183,7 +183,7 @@ void escribir(int direc_fisica, int bytes, void* dato)
 
     // Escribo en el espacio de usuaro en la posición indicada.
     pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
-	memmove(espacio_usuario[direc_fisica], dato, bytes);
+	//memmove(espacio_usuario[direc_fisica], dato, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);
 }
 
@@ -196,8 +196,10 @@ void leer(int direc_fisica, int bytes, void* dato)
     }
 
     // Leo el espacio de memoria y almaceno el dato leído.
-    for(int i = 0; i < bytes; i++)
-        dato[i] = espacio_usuario[direc_fisica + i];
+    pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
+    //for(int i = 0; i < bytes; i++)
+        //dato[i] = espacio_usuario[direc_fisica + i];
+    pthread_mutex_unlock(&mutex_espacio_usuario);    
 }
 
 // MANEJO DE BUFFER.

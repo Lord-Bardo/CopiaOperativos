@@ -26,7 +26,9 @@ void atender_memoria_cpu(){
 				
 
 				// Busco y obtengo la instrucción solicitada
+				pthread_mutex_lock(&mutex_procesos); //protejo con semáfotos mutex los procesos.
 				obtener_instruccion(pid_fetch, pc, instruccion);
+				pthread_mutex_unlock(&mutex_procesos); 
 				printf("La instruccion solicitada fue: %s\n", instruccion); // BORRAR una vez finalizado el testeo
 
 				// Empaqueto la instrucción con el opcode correspondiente y lo envío a CPU.
@@ -53,7 +55,9 @@ void atender_memoria_cpu(){
 				buffer_desempaquetar(buffer, &pag);
 
 				// Busco y obtengo el frame.
+				pthread_mutex_lock(&mutex_procesos); //protejo con semáfotos mutex los procesos.
 				obtener_frame(pid_frame, pag, &frame);
+				pthread_mutex_unlock(&mutex_procesos);
 
 				// Empaqueto el frame solicitado.
 				t_paquete* paquete_frame = crear_paquete(FRAME);
@@ -78,7 +82,9 @@ void atender_memoria_cpu(){
 				buffer_desempaquetar(buffer, &size);
 
 				// Cambio el tamaño del proceso.
+				pthread_mutex_lock(&mutex_procesos); //protejo con semáfotos mutex los procesos.
 				resize(pid_resize, size);
+				pthread_mutex_unlock(&mutex_procesos); 
 
 				// Libero memoria.
 				eliminar_buffer(buffer);
@@ -97,15 +103,15 @@ void atender_memoria_cpu(){
 				buffer_desempaquetar(buffer, &pid_write);
 				buffer_desempaquetar(buffer, &direc_fisica_write);
 				buffer_desempaquetar(buffer, &bytes_write);
-				dato = malloc(bytes_write);
+				dato_write = malloc(bytes_write);
 				buffer_desempaquetar(buffer, dato_write);
 
 				// Log mínimo y obligatorio - Acceso a espacio de usuario.
 				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
-				log_info("PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid_write, direc_fisica, bytes);
+				log_info("PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid_write, direc_fisica_write, bytes_write);
 
 				// Escribo en el espacio de usuario de la memoria.
-				escribir(direc_fisica, bytes, dato);
+				escribir(direc_fisica_write, bytes_write, dato_write);
 
 				// Envío confirmación de escritura.
 				enviar_codigo_operacion(fd_cpu, CONFIRMACION_ESCRITURA);
@@ -137,14 +143,14 @@ void atender_memoria_cpu(){
 				leer(direc_fisica_read, bytes_read, dato_read);
 
 				// Envío dato leído.
-				t_paquete paquete_read = crear_paquete(DATO);
-				agregar_a_paquete(paquete_read, dato, bytes_read);
+				t_paquete* paquete_read = crear_paquete(DATO);
+				agregar_a_paquete(paquete_read, dato_read, bytes_read);
 				enviar_paquete(fd_cpu, paquete_read);
 
 				// Libero memoria.
 				eliminar_buffer(buffer);
 				eliminar_paquete(paquete_read);
-				
+
 				break;
 
 			default:
@@ -200,7 +206,6 @@ void resize(int pid, int size)
 	if(procesos[index].tabla_paginas[0].num_frame == -1)
 	    asignar_size_proceso(index, size);
 	
-
 	// Si el proceso tiene menos páginas que el size, aumento su tamaño.
 	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(procesos[index]) < size)
 	    aumentar_proceso(index, size);

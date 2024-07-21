@@ -24,9 +24,9 @@ int main(int argc, char* argv[]) {
 														
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 	
-//  -----------------------------------TEST (SIN ENVÍO Y RECIBO DE PAQUETE)---------------------------------------------------------------------
+//  -----------------------------------TESTS (SIN ENVÍO Y RECIBO DE PAQUETES)---------------------------------------------------------------------
 /*
-	// Creo el proceso
+	// TEST - CREAR PROCESO
 	t_pcb_memoria *proceso_recibido = inicializar_proceso();
 	
 	num_instruccion = 0;
@@ -40,24 +40,28 @@ int main(int argc, char* argv[]) {
 	resize(123, 5);
 	printf("El tamanio del proceso es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 5.
 	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser 4.
-	resize(123, 10); // agrando el proceso.
-	printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 10
-	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
-	resize(123, 4); // reduzco el proceso.
-	printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 4
-	printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1.
+	// resize(123, 10); // agrando el proceso.
+	// printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 10
+	// printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
+	// resize(123, 4); // reduzco el proceso.
+	// printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 4
+	// printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1. 
 
     // TEST OBTENER FRAME - ACCESO A TABLA DE PÁGINAS
-	int frame;
-	obtener_frame(123, 3, frame);
+	// int frame;
+	// obtener_frame(123, 3, frame);
 
 	// TEST - FETCH
-	char* instruccion = malloc(sizeof(char));
-	obtener_instruccion(123, 5, instruccion);
-	printf("La instruccion solicitada fue: %s\n", instruccion); 
-	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
+	// char* instruccion = malloc(sizeof(char));
+	// obtener_instruccion(123, 5, instruccion);
+	// printf("La instruccion solicitada fue: %s\n", instruccion); 
+	// log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
 
-    // Finalizo el proceso
+	// TEST - ESCRIBIR
+
+	// TEST - LEER
+
+    // TEST - FINALIZAR PROCESO
 	finalizar_proceso(123);
 
 	printf("PID del espacio vacío: %d\n", procesos[0].pid);
@@ -129,12 +133,13 @@ void aceptar_conexion_kernel(){
 void aceptar_conexion_cpu(){
 	fd_cpu = esperar_cliente(fd_memoria);
 	if( recibir_handshake(fd_cpu) == HANDSHAKE_CPU){
-		enviar_handshake(fd_cpu, HANDSHAKE_OK);
+		t_paquete* paquete = crear_paquete(HANDSHAKE_OK);
+		agregar_a_paquete(paquete, TAM_PAGINA, sizeof(TAM_PAGINA));
+		enviar_paquete(fd_cpu, paquete);
 		log_info(memoria_logger, "¡Se conectó el cliente CPU al servidor MEMORIA!");
 	}
-	else{
+	else
 		enviar_handshake(fd_cpu, HANDSHAKE_ERROR);
-	}
 }
 
 void aceptar_conexion_entradasalida(){
