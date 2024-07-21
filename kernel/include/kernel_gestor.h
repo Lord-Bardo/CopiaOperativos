@@ -8,6 +8,7 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <commons/log.h>
 #include <commons/string.h>
@@ -92,6 +93,9 @@ typedef struct{
 } t_solicitud_io;
 
 // VARIABLES GLOBALES
+// Variable de finalizacion (Ctrl + c)
+extern volatile sig_atomic_t continuar;
+
 // Loggers y Config
 extern t_log* kernel_logger;
 extern t_log* kernel_logger_min_y_obl;

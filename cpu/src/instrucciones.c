@@ -46,7 +46,7 @@ void execute(t_instruccion *instruccion){
 		log_info(cpu_logger,"ENTRE AL EXIT");
 		salir_ciclo_instruccion=1;
 		motivo_desalojo = SUCCESS;
-		enviar_pcb_kernel(motivo_desalojo);
+		// enviar_pcb_kernel(motivo_desalojo); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		break;
 	case SET:
 		ejecutarSet(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));

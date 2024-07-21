@@ -1,70 +1,15 @@
 #include "../include/kernel.h"
 
+volatile sig_atomic_t continuar = 1;
+
 int main(int argc, char* argv[]) {	
+	// signal(SIGINT, signal_handler);
+	
 	// Inicializar estructuras de KERNEL (loggers y config)
 	inicializar_kernel();
 	
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
-
-	// iniciar_consola_interactiva();
-
-	// detener_planificacion();
-	// t_pcb *pcb1 = crear_pcb(0, "p");
-	// estado_encolar_pcb(estado_new, pcb1);
-	// t_pcb *pcb2 = crear_pcb(1, "p");
-	// estado_encolar_pcb(estado_new, pcb2);
-	// t_pcb *pcb3 = crear_pcb(2, "p");
-	// estado_encolar_pcb(estado_new, pcb3);
-
-	// t_pcb *pcb4 = estado_rastrear_y_desencolar_pcb_por_pid(2);
-	// log_info(kernel_logger, "%d", pcb_get_pid(pcb4));
-
-	
-
-	// HOLA FRAN, SI QUERES CODEAR ALGO HACELO ACA ENTRE CONECTAR_A_MEMORIA E INICIAR_CONSOLA_INTERACTIVA :)
-
-	// HOLA MATI QUERIDO, GRACIAS POR EL ESPACIO Y LA BUENA ONDA, TE LO DEJO COMENTADO PARA NO VOLVERLO A HACER, 
-	// ESPERO NO TE MOLESTE, CUALQUIER COSA CORTÁ Y PEGAMELO EN MEMORIA. TE MANDO UN ABRAZO, CUIDATE <3 
-    
-//----------------------------------test: envío de paquete a memoria--------------------------------------------------------------------------------------------
-	/*
-    conectar_a_memoria();
-
-	t_paquete* paquete_proceso = crear_paquete(SOLICITUD_INICIAR_PROCESO);
-	char* path = "/ArchivoPseudocodigo.txt";
-	int pid = 123;
-	agregar_a_paquete(paquete_proceso, &path, sizeof(char));
-	agregar_a_paquete(paquete_proceso, &pid, sizeof(int));
-	enviar_paquete(fd_memoria, paquete_proceso);
-	eliminar_paquete(paquete_proceso);
-
-	iniciar_consola_interactiva();
-
-	//nota: no se por qué kernel no se conecta a memoria :(
-	*/
-//----------------------------------fin del test, gracias vuelva pronto!!-------------------------------------------------------------------------------------------
-    
-	// fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
-	// log_info(kernel_logger, "Servidor KERNEL iniciado!");
-
-	// int fd_interfaz = esperar_cliente(fd_kernel);
-	// if( recibir_handshake(fd_interfaz) == HANDSHAKE_ENTRADASALIDA ){
-	// 	enviar_handshake(fd_interfaz, HANDSHAKE_OK);
-	// 	t_codigo_operacion codigo_operacion;
-	// 	if( recibir_codigo_operacion(fd_interfaz, &codigo_operacion) <= 0 ){
-	// 		log_info(kernel_logger, "SE DESCONECTOOOOOOOOOOOOOOOOOOO");
-	// 		// Logica de eliminar la interfaz
-	// 	}
-	// }
-
-	// t_pcb *pcb = crear_pcb(0, "p");
-	// ejecutar_instruccion_wait(pcb,"RB");
-	// ejecutar_instruccion_wait(pcb,"RA");
-	// ejecutar_instruccion_wait(pcb,"RA");
-	// ejecutar_instruccion_signal(pcb, "RA");
-
-	
 
 	// Conexion con MEMORIA
 	conectar_a_memoria();
@@ -76,23 +21,27 @@ int main(int argc, char* argv[]) {
 	conectar_a_cpu_interrupt();
  
 	// Iniciar servidor de KERNEL
-	// fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
-	// log_info(kernel_logger, "Servidor KERNEL iniciado!");
+	fd_kernel = iniciar_servidor(PUERTO_ESCUCHA);
+	log_info(kernel_logger, "Servidor KERNEL iniciado!");
 
 	// Esperar conexiones de interfaces ENTRADASALIDA y atender los mensajes de las interfaces ENTRADASALIDA 
-	// pthread_t hilo_entradasalida;
-	// pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
+	pthread_t hilo_entradasalida;
+	pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
 
 	//Iniciar consola interactiva
 	iniciar_consola_interactiva();
 
     // Esperar a que los hilos finalicen su ejecucion
-	// pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
+	pthread_join(hilo_entradasalida, NULL); // en el segundo parametro se guarda el resultado de la funcion q se ejecuto en el hilo, si le pongo NULL basicamente es q no me interesa el resultado, solo me importa esperar a q termine
 
 	// Finalizar KERNEL (liberar memoria usada)
 	terminar_programa();
 
 	return 0; 
+}
+
+void signal_handler(int signum){
+    continuar = 0;
 }
 
 void conectar_a_memoria(){
@@ -185,13 +134,17 @@ void terminar_programa(){
 		log_destroy(kernel_logger);
 	}
 
+	if(kernel_logger_min_y_obl != NULL){
+		log_destroy(kernel_logger_min_y_obl);
+	}
+
 	if(kernel_config != NULL){
 		config_destroy(kernel_config);
 	}
 
+	liberar_conexion(fd_memoria);
 	liberar_conexion(fd_cpu_dispatch);
 	liberar_conexion(fd_cpu_interrupt);
-	liberar_conexion(fd_memoria);
 	liberar_conexion(fd_kernel);
 	// liberar_conexion(fd_entradasalida);
 

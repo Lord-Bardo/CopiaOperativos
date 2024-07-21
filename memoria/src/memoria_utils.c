@@ -102,8 +102,10 @@ void aumentar_proceso(int index, int size)
     }
     if(i == size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
-    else
+    else{
+        log_info(memoria_logger, "Proceso excede el tamanio maximo de la memoria! PID: %d - Tamaño a Ampliar: %d\n", procesos[index].pid, size);
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
+    }
 
 }
 

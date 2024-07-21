@@ -118,7 +118,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     // Borrar una vez terminado el testeo
     printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
     printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
-	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[20]);
+	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[num_instruccion-1]);
 	log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
 }
 
