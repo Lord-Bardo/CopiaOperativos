@@ -212,12 +212,41 @@ void ejecutarResize(char *tamanio){
 }
 
 void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
-	//TODO
+	/*
+	(Registro Datos, Registro Dirección): Lee el valor de memoria correspondiente a la Dirección Lógica que 
+	se encuentra en el Registro Dirección y lo almacena en el Registro Datos.*/
+	
 	printf("ENTRÉ MOV IN");
 }
 void ejecutarMovOut(char* registro_direrccion,char* registro_datos){
-	//TODO
+	/*(Registro Dirección, Registro Datos): Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida
+	 a partir de la Dirección Lógica almacenada en el Registro Dirección.
+	*/
 	printf("ENTRE MOV OUT");
+	if(es_reg_chico(registro_datos)){
+		uint8_t regd = get_reg_chico(registro_datos);
+		if(es_reg_chico(registro_direrccion)){
+			uint8_t dl = get_reg_chico(registro_direrccion);
+			mmu_escribir(dl,1,&regd);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direrccion);
+			mmu_escribir(dl,1,&regd);
+		}
+	}
+	else{
+		uint32_t regd = get_reg_grande(registro_datos);
+		if(es_reg_chico(registro_direrccion)){
+			uint8_t dl = get_reg_chico(registro_direrccion);
+			mmu_escribir(dl,4,&regd);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direrccion);
+			mmu_escribir(dl,4,&regd);
+		}
+		
+	}
+	
 }
 void ejecutarCopyString(char *tamanio){
 	/*Toma del string apuntado por el registro SI y copia la cantidad de bytes
