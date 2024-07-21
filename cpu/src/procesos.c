@@ -3,32 +3,72 @@
 t_pcb pcb;
 
 
-void * obtener_registro(char *registro_string){
-	if(strcmp("AX",registro_string)== 0){
-		return &pcb.registros.ax;
+
+
+uint8_t get_reg_chico(char* registro_string) {
+    if (strcmp("AX", registro_string) == 0) {
+        return get_reg_ax();
+    }
+    if (strcmp("BX", registro_string) == 0) {
+        return get_reg_bx();
+    }
+    if (strcmp("CX", registro_string) == 0) {
+        return get_reg_cx();
+    }
+    if (strcmp("DX", registro_string) == 0) {
+        return get_reg_dx();
+    }
+    return 0;  // Valor de retorno predeterminado en caso de no encontrar el registro
+}
+
+uint32_t get_reg_grande(char* registro_string) {
+    if (strcmp("EAX", registro_string) == 0) {
+        return get_reg_eax();
+    }
+    if (strcmp("EBX", registro_string) == 0) {
+        return get_reg_ebx();
+    }
+    if (strcmp("ECX", registro_string) == 0) {
+        return get_reg_ecx();
+    }
+    if (strcmp("EDX", registro_string) == 0) {
+        return get_reg_edx();
+    }
+    return 0;  // Valor de retorno predeterminado en caso de no encontrar el registro
+}
+
+
+int es_reg_chico(char *registro){
+    return ((strcmp("AX",registro)== 0) || (strcmp("BX",registro)== 0) ||  (strcmp("CX",registro)== 0) || (strcmp("DX",registro)== 0));
+}
+void set_reg_chico(char * registro_string, uint8_t valor){
+    if(strcmp("AX",registro_string)== 0){
+		set_reg_ax(valor);
 	}
 	if(strcmp("BX",registro_string)== 0){
-		return &pcb.registros.bx;
+		set_reg_bx(valor);
 	}
 	if(strcmp("CX",registro_string)== 0){
-		return &pcb.registros.cx;
+		set_reg_cx(valor);
 	}
 	if(strcmp("DX",registro_string)== 0){
-		return &pcb.registros.dx;
+		set_reg_dx(valor);
 	}
-	if(strcmp("EAX",registro_string)== 0){
-		return &pcb.registros.eax;
+
+}
+void set_reg_grande(char * registro_string, uint32_t valor){
+    if(strcmp("EAX",registro_string)== 0){
+		set_reg_eax(valor);
 	}
 	if(strcmp("EBX",registro_string)== 0){
-		return &pcb.registros.ebx;
+		set_reg_ebx(valor);
 	}
 	if(strcmp("ECX",registro_string)== 0){
-		return &pcb.registros.ecx;
+		set_reg_ecx(valor);
 	}
 	if(strcmp("EDX",registro_string)== 0){
-		return &pcb.registros.edx;
+		set_reg_edx(valor);
 	}
-	return NULL;
 }
 
 //esto va en otor lado creo
@@ -91,3 +131,109 @@ void inicializarPCBAleatorio(t_pcb *pcb) {
     pcb->registros.di = rand();
     pcb->registros.si = rand();
 }
+
+// Funciones para setear registros en t_registros
+void set_reg_ax(uint8_t valor) {
+    pcb.registros.ax = valor;
+}
+
+void set_reg_bx(uint8_t valor) {
+    pcb.registros.bx = valor;
+}
+
+void set_reg_cx(uint8_t valor) {
+    pcb.registros.cx = valor;
+}
+
+void set_reg_dx(uint8_t valor) {
+    pcb.registros.dx = valor;
+}
+
+void set_reg_eax(uint32_t valor) {
+    pcb.registros.eax = valor;
+}
+
+void set_reg_ebx(uint32_t valor) {
+    pcb.registros.ebx = valor;
+}
+
+void set_reg_ecx(uint32_t valor) {
+    pcb.registros.ecx = valor;
+}
+
+void set_reg_edx(uint32_t valor) {
+    pcb.registros.edx = valor;
+}
+
+void set_reg_di(uint32_t valor) {
+    pcb.registros.di = valor;
+}
+
+void set_reg_si(uint32_t valor) {
+    pcb.registros.si = valor;
+}
+
+// Funciones para obtener registros en t_registros
+uint8_t get_reg_ax(void) {
+    return pcb.registros.ax;
+}
+
+uint8_t get_reg_bx(void) {
+    return pcb.registros.bx;
+}
+
+uint8_t get_reg_cx(void) {
+    return pcb.registros.cx;
+}
+
+uint8_t get_reg_dx(void) {
+    return pcb.registros.dx;
+}
+
+uint32_t get_reg_eax(void) {
+    return pcb.registros.eax;
+}
+
+uint32_t get_reg_ebx(void) {
+    return pcb.registros.ebx;
+}
+
+uint32_t get_reg_ecx(void) {
+    return pcb.registros.ecx;
+}
+
+uint32_t get_reg_edx(void) {
+    return pcb.registros.edx;
+}
+
+uint32_t get_reg_di(void) {
+    return pcb.registros.di;
+}
+
+uint32_t get_reg_si(void) {
+    return pcb.registros.si;
+}
+
+// Funciones para setear pid y pc en t_pcb
+void set_pid(int valor) {
+    pcb.pid = valor;
+}
+
+void set_pc(uint32_t valor) {
+    pcb.pc = valor;
+}
+
+// Funciones para obtener pid y pc en t_pcb
+int get_pid(void) {
+    return pcb.pid;
+}
+
+uint32_t get_pc(void) {
+    return pcb.pc;
+}
+
+
+
+
+
+

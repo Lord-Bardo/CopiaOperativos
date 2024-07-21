@@ -79,10 +79,6 @@ void atender_memoria_cpu(){
 
 				// Cambio el tamaño del proceso.
 				resize(pid_resize, size);
-				
-
-				// Envío confirmación de escritura.
-				enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
 
 				// Libero memoria.
 				eliminar_buffer(buffer);
@@ -140,7 +136,6 @@ void obtener_instruccion(int pid, int pc, char* instruccion)
 	}
 
 	// Obtengo la instrucción.
-	//strcpy(instruccion, procesos[index].memoria_de_instrucciones[pc]);
 	string_append(&instruccion,procesos[index].memoria_de_instrucciones[pc]);
 }
 
@@ -160,7 +155,7 @@ void obtener_frame(int pid, int pag, int* frame) //PENDIENTE DE TESTEAR (hacerlo
 	*frame = procesos[index].tabla_paginas[pag].num_frame;
 
 	// Log mínimo y obligatorio - Acceso a Tabla de Páginas.
-	printf("Log mínimo y obligatorio - Acceso a Tabla de Páginas");
+	printf("Log mínimo y obligatorio - Acceso a Tabla de Páginas \n");
 	log_info(memoria_logger, "PID: %d - Pagina: %d - Marco: %d\n", procesos[index].pid, pag, procesos[index].tabla_paginas[pag].num_frame);
 }
 
