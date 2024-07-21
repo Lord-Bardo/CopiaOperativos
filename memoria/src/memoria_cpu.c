@@ -41,7 +41,7 @@ void atender_memoria_cpu(){
 
 				break;
 
-            case FRAME: //PENDIENTE DE TESTEAR (hacerlo luego de testear escribir)
+            case FRAME: 
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
 
@@ -139,7 +139,7 @@ void obtener_instruccion(int pid, int pc, char* instruccion)
 	string_append(&instruccion,procesos[index].memoria_de_instrucciones[pc]);
 }
 
-void obtener_frame(int pid, int pag, int* frame) //PENDIENTE DE TESTEAR (hacerlo luego de testear escribir)
+void obtener_frame(int pid, int pag, int* frame) 
 {
 	// Obtengo índice del proceso con el pid.
 	int index = encontrar_proceso(pid);
@@ -183,7 +183,7 @@ void resize(int pid, int size)
 
 	// Si el proceso tiene las páginas del size, no hago nada.
 	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(procesos[index]) == size){
-		printf("Log - Proceso no requiere de modificacion de tamanio");
+		printf("Log - Proceso no requiere de modificacion de tamanio\n");
 		log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Modificar: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
 	}	
 }
