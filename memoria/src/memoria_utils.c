@@ -175,7 +175,7 @@ int buscar_pid(int direc_fisica)
 
 void escribir(int direc_fisica, int bytes, void* dato)
 {
-    // Verifico si la riección es válida
+    // Verifico si la riección es válida.
     if(direc_fisica > TAM_MEMORIA - 1){
         printf("Dirección inválida\n");
         enviar_codigo_operacion(fd_cpu, ERROR_ESCRITURA);
@@ -187,10 +187,17 @@ void escribir(int direc_fisica, int bytes, void* dato)
     pthread_mutex_unlock(&mutex_espacio_usuario);
 }
 
-void* leer(direc_fisica_read, bytes_read, dato)
+void leer(int direc_fisica, int bytes, void* dato)
 {
-    void* dato = malloc(bytes_read);
-    return dato;
+    // Verifico si la riección es válida
+    if(direc_fisica > TAM_MEMORIA - 1){
+        printf("Dirección inválida\n");
+        enviar_codigo_operacion(fd_cpu, ERROR_LECTURA);
+    }
+
+    // Leo el espacio de memoria y almaceno el dato leído.
+    for(int i = 0; i < bytes; i++)
+        dato[i] = espacio_usuario[direc_fisica + i];
 }
 
 // MANEJO DE BUFFER.

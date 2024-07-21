@@ -90,14 +90,15 @@ void atender_memoria_cpu(){
                 usleep(RETARDO_REPUESTA);
 				
 				// Creo estructuras necesarias.
-				int pid_write, direc_fisica, bytes;
-				void* dato;
+				int pid_write, direc_fisica_write, bytes_write;
+				void* dato_write;
 
 				// Desempaqueto y almaceno información recibida.
 				buffer_desempaquetar(buffer, &pid_write);
-				buffer_desempaquetar(buffer, &direc_fisica);
-				buffer_desempaquetar(buffer, &bytes);
-				buffer_desempaquetar(buffer, dato);
+				buffer_desempaquetar(buffer, &direc_fisica_write);
+				buffer_desempaquetar(buffer, &bytes_write);
+				dato = malloc(bytes_write);
+				buffer_desempaquetar(buffer, dato_write);
 
 				// Log mínimo y obligatorio - Acceso a espacio de usuario.
 				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
@@ -126,13 +127,13 @@ void atender_memoria_cpu(){
 				buffer_desempaquetar(buffer, &pid_read);
 				buffer_desempaquetar(buffer, &direc_fisica_read);
 				buffer_desempaquetar(buffer, &bytes_read);
+				dato_read = malloc(bytes_read);
 
 				// Log mínimo y obligatorio - Acceso a espacio de usuario.
 				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
 				log_info("PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid_read, direc_fisica_read, bytes_read);
 
 				// Leo el espacio de usuario de la memoria.
-				dato_read = malloc(bytes_read);
 				leer(direc_fisica_read, bytes_read, dato_read);
 
 				// Envío dato leído.
@@ -143,6 +144,7 @@ void atender_memoria_cpu(){
 				// Libero memoria.
 				eliminar_buffer(buffer);
 				eliminar_paquete(paquete_read);
+				
 				break;
 
 			default:
