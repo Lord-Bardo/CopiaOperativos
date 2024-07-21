@@ -19,6 +19,7 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                             sem_wait(&sem_estado_planificacion_blocked_to_ready_interfaz);
                             if( pcb != NULL && !diccionario_procesos_a_finalizar_proceso_esta_pendiente_de_finalizar(diccionario_procesos_a_finalizar, pcb) ){ // Si pcb == NULL => significa que el proceso fue finalizado mientras esperaba a que se ejecute su solicitud de io, por lo que descarto la solicitud. Si esta pendiente de finalizar significa que fue trasladado a exit, pero aun no se liberaron todos sus recursos ni se elimino el pcb. Necesito q en cualquiera de los casos, no ejecute la solicitud.
                                 // Desbloquear proceso
+                                sem_wait(estado_get_sem(estado_blocked)); // debe haber elementos en la lista para poder desencolar (deberia estar si o si en la lista, pues aun esta bloqueado. Y si no esta es porq fue finalizado y no deberia haber ingresado en esta seccion)
                                 estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb));
                                 // ACA PODRIA HACER UN IF(ESTA_EN_LA_BLACK_LIST(PCB)){LO MATO}ELSE{ PROCESO_A_READY(PCB)}
                                 if( pcb_get_quantum_restante(pcb) == QUANTUM ){ // es FIFO o RR

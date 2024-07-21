@@ -73,11 +73,9 @@ void estado_encolar_pcb(t_estado *estado, t_pcb *pcb){
     pthread_mutex_lock(estado_get_mutex(estado));
     list_add(estado_get_lista_procesos(estado), pcb);
     pthread_mutex_unlock(estado_get_mutex(estado));
-    sem_post(estado_get_sem(estado));
 }
 
 t_pcb *estado_desencolar_primer_pcb(t_estado *estado){
-    sem_wait(estado_get_sem(estado)); // debe haber elementos en la lista para poder desencolar
     pthread_mutex_lock(estado_get_mutex(estado));
     t_pcb * pcb = list_remove(estado_get_lista_procesos(estado), 0);
     pthread_mutex_unlock(estado_get_mutex(estado));
@@ -86,7 +84,6 @@ t_pcb *estado_desencolar_primer_pcb(t_estado *estado){
 }
 
 t_pcb *estado_desencolar_pcb_por_pid(t_estado *estado, int pid){
-    sem_wait(estado_get_sem(estado)); // debe haber elementos en la lista para poder desencolar
     pthread_mutex_lock(estado_get_mutex(estado));
     // int index = list_get_index(estado_get_lista_procesos(estado), pcb_comparar_pid, pid);
     // t_pcb * pcb = NULL;
@@ -108,30 +105,35 @@ t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
     t_pcb* pcb = NULL;
     
     if( estado_contiene_pcbs(estado_new) ){
+        sem_wait(estado_get_sem(estado_new)); // debe haber elementos en la lista para poder desencolar
         pcb = estado_desencolar_pcb_por_pid(estado_new, pid);
         if( pcb != NULL ){
             return pcb;
         }
     }
     if( estado_contiene_pcbs(estado_ready) ){
+        sem_wait(estado_get_sem(estado_ready)); // debe haber elementos en la lista para poder desencolar
         pcb = estado_desencolar_pcb_por_pid(estado_ready, pid);
         if( pcb != NULL ){
             return pcb;
         }
     }
     if( estado_contiene_pcbs(estado_ready_plus) ){
+        sem_wait(estado_get_sem(estado_ready_plus)); // debe haber elementos en la lista para poder desencolar
         pcb = estado_desencolar_pcb_por_pid(estado_ready_plus, pid);
         if( pcb != NULL ){
             return pcb;
         }
     }
     if( estado_contiene_pcbs(estado_blocked) ){
+        sem_wait(estado_get_sem(estado_blocked)); // debe haber elementos en la lista para poder desencolar
         pcb = estado_desencolar_pcb_por_pid(estado_blocked, pid);
         if( pcb != NULL ){
             return pcb;
         }
     }
     if( estado_contiene_pcbs(estado_exec) ){
+        sem_wait(estado_get_sem(estado_exec)); // debe haber elementos en la lista para poder desencolar
         pcb = estado_desencolar_pcb_por_pid(estado_exec, pid);
         if( pcb != NULL ){
             return pcb;

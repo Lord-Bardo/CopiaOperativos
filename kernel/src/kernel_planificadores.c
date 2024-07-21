@@ -144,7 +144,6 @@ void detener_planificacion(){
         pthread_join(hilo_detener_planificacion_blocked_to_ready_recurso, NULL);
         pthread_join(hilo_detener_planificacion_blocked_to_ready_interfaz, NULL);
         pthread_join(hilo_detener_planificacion_exec_to_exec_or_ready_or_blocked, NULL);
-        // si los hago join, la funcion detener_plani no termina hasta q realmente la plani se detuvo => me aseguro que cuando salga de aca no va a haber mas transiciones (durante el proceso de detencion si puede haber transiciones)
     }
 }
 
@@ -208,8 +207,9 @@ void planificador_corto_plazo(){
 // FIFO
 void planificador_corto_plazo_fifo(){
     while(1){
+        sem_wait(estado_get_sem(estado_ready)); // debe haber elementos en la lista para poder desencolar - Pongo el wait del estado antes que el wait de la plani xq si lo hago al reves y no hay elementos en la cola, el hilo se va a bloquear con el wait de la plani tomado y nunca se va a detener la planificacion
         sem_wait(&sem_estado_planificacion_ready_to_exec);
-        t_pcb *pcb = elegir_proceso_segun_fifo();
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_ready);
         proceso_a_exec(pcb);
         sem_post(&sem_estado_planificacion_ready_to_exec);
 
@@ -226,15 +226,16 @@ void planificador_corto_plazo_fifo(){
     }
 }
 
-t_pcb *elegir_proceso_segun_fifo(){
-    return estado_desencolar_primer_pcb(estado_ready);
-}
+// t_pcb *elegir_proceso_segun_fifo(){
+//     return estado_desencolar_primer_pcb(estado_ready);
+// }
 
 // RR
 void planificador_corto_plazo_rr(){
     while(1){
+        sem_wait(estado_get_sem(estado_ready)); // debe haber elementos en la lista para poder desencolar
         sem_wait(&sem_estado_planificacion_ready_to_exec);
-        t_pcb *pcb = elegir_proceso_segun_rr();
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_ready);
         proceso_a_exec(pcb);
         sem_post(&sem_estado_planificacion_ready_to_exec);
 
@@ -261,9 +262,9 @@ void planificador_corto_plazo_rr(){
     }
 }
 
-t_pcb *elegir_proceso_segun_rr(){
-    return estado_desencolar_primer_pcb(estado_ready); 
-}
+// t_pcb *elegir_proceso_segun_rr(){
+//     return estado_desencolar_primer_pcb(estado_ready); 
+// }
 
 void contar_quantum(void *quantum_void){
     int quantum = *(int *)quantum_void;
@@ -279,8 +280,17 @@ void contar_quantum(void *quantum_void){
 // VRR
 void planificador_corto_plazo_vrr(){
     while(1){
+        t_estado *estado_proceso_a_desencolar;
+        if( estado_contiene_pcbs(estado_ready_plus) ){
+            estado_proceso_a_desencolar = estado_ready_plus;
+            sem_wait(estado_get_sem(estado_ready_plus)); // debe haber elementos en la lista para poder desencolar
+        }
+        else{
+            estado_proceso_a_desencolar = estado_ready;
+            sem_wait(estado_get_sem(estado_ready)); // debe haber elementos en la lista para poder desencolar
+        }
         sem_wait(&sem_estado_planificacion_ready_to_exec);
-        t_pcb *pcb = elegir_proceso_segun_vrr();
+        t_pcb *pcb = estado_desencolar_primer_pcb(estado_proceso_a_desencolar);
         proceso_a_exec(pcb);
         sem_post(&sem_estado_planificacion_ready_to_exec);
 
@@ -311,14 +321,16 @@ void planificador_corto_plazo_vrr(){
     }
 }
 
-t_pcb *elegir_proceso_segun_vrr(){
-    if( estado_contiene_pcbs(estado_ready_plus) ){
-        return estado_desencolar_primer_pcb(estado_ready_plus);
-    }
-    else{
-        return estado_desencolar_primer_pcb(estado_ready);
-    }
-}
+// t_pcb *elegir_proceso_segun_vrr(){
+//     if( estado_contiene_pcbs(estado_ready_plus) ){
+//         sem_wait(estado_get_sem(estado_ready_plus)); // debe haber elementos en la lista para poder desencolar
+//         return estado_desencolar_primer_pcb(estado_ready_plus);
+//     }
+//     else{
+//         sem_wait(estado_get_sem(estado_ready)); // debe haber elementos en la lista para poder desencolar
+//         return estado_desencolar_primer_pcb(estado_ready);
+//     }
+// }
 
 // Manda a CPU el contexto de la ejecucion (pid y registros) por el Dispatch
 void enviar_contexto_de_ejecucion(t_pcb *pcb){
@@ -336,6 +348,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
         motivo_desalojo = INTERRUPT_USER; // si esta pendiente de finalizar no necesito desencolarlo porq la funcion finalizar_proceso ya lo desencolo, solo me restaria mandarlo a exit, por ello hago que el motivo de desalojo sea INTERRUPT_USER
     }
     else{
+        sem_wait(estado_get_sem(estado_exec)); // debe haber elementos en la lista para poder desencolar (aunque deberia haber siempre uno solo en este caso)
         pcb = estado_desencolar_primer_pcb(estado_exec); // desencolo aca y no en el planificador porq sino hay problemas para finalizar un proceso. Si el proceso es finalizado justo dsp de ser desalojado por cpu, pero antes de comenzar a manejar el motivo de desalojo => si desencolo el pcb, no va a quedar en ninguna cola y no lo voy a poder encontrar
         // puedo desencolar xq la plani se detiene una vez q termina el motivo de desalojo (si es q se detuvo mientras ya se estaba manejando). Por lo q se termina de manejar el motivo y el cambio de estado, y recien ahi se detiene la plani
     }
@@ -728,6 +741,7 @@ void iniciar_proceso(char *path){
     int pid = generar_pid();
     t_pcb *pcb = crear_pcb(pid, path);
     estado_encolar_pcb(estado_new, pcb);
+    sem_post(estado_get_sem(estado_new));
     log_creacion_proceso(pcb);
 }
 
@@ -822,6 +836,7 @@ void planificador_largo_plazo(){
         sem_wait(&sem_control_cambio_grado_multiprogramacion); // Este semaforo es para garantizar que la modificacion (reduccion enrealidad es lo que genera complicaciones) se haga por completo y no se sigan mandando procesos a ready -> si reduzco el grado tengo que hacer waits, pero si ya estaba en 0 el hilo q reduce se va a bloquear al igual que este hilo al intentar mandar un proceso a ready y el signal tras finalizar un proceso podria activar cualquiera de los dos hilos y, en lugar de reducir el grado seguiria mandando procesos -> con este sem me aseguro q eso no pasa 
         sem_wait(&sem_grado_multiprogramacion);
         sem_post(&sem_control_cambio_grado_multiprogramacion);
+        sem_wait(estado_get_sem(estado_new)); // debe haber elementos en la lista para poder desencolar - Pongo el wait del estado antes que el wait de la plani xq si lo hago al reves y no hay elementos en la cola, el hilo se va a bloquear con el wait de la plani tomado y nunca se va a detener la planificacion
         sem_wait(&sem_estado_planificacion_new_to_ready);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);
         t_codigo_operacion respuesta_memoria = pedir_a_memoria_iniciar_proceso(pcb_get_pid(pcb), pcb_get_path(pcb));
@@ -856,6 +871,7 @@ t_codigo_operacion pedir_a_memoria_iniciar_proceso(int pid, char *path){
 
 void liberar_procesos_exit(){
     while(1){
+        sem_wait(estado_get_sem(estado_exit)); // debe haber elementos en la lista para poder desencolar
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_exit);
         t_codigo_operacion respuesta_memoria = pedir_a_memoria_finalizar_proceso(pcb_get_pid(pcb));
         if( respuesta_memoria == CONFIRMACION_PROCESO_FINALIZADO ){
@@ -946,6 +962,7 @@ void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
     if( recurso_debe_desbloquear_proceso(recurso) ){
         // Desbloqueo al primero proceso
         t_pcb *pcb_bloqueado = recurso_desencolar_primer_proceso(recurso);
+        sem_wait(estado_get_sem(estado_blocked)); // debe haber elementos en la lista para poder desencolar
         estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb_bloqueado)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
         pcb_set_nombre_recurso_causa_bloqueo(pcb_bloqueado, ""); // Para poder determinar que el proceso ya no esta bloqueado por ningun recurso
         // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY } -> NO! Por lo de abajo
@@ -998,28 +1015,33 @@ void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso){
 void proceso_a_ready(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
+    sem_post(estado_get_sem(estado_ready));
     log_ingreso_ready(estado_ready);
 }
 
 void proceso_a_ready_plus(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY_PLUS);
 	estado_encolar_pcb(estado_ready_plus, pcb);
+    sem_post(estado_get_sem(estado_ready_plus));
     log_ingreso_ready(estado_ready_plus);
 }
 
 void proceso_a_exec(t_pcb *pcb){
     pcb_cambiar_estado_a(pcb, EXEC);
     estado_encolar_pcb(estado_exec, pcb);
+    sem_post(estado_get_sem(estado_exec));
 }
 
 void proceso_a_blocked(t_pcb *pcb, char *motivo_bloqueo){
     pcb_cambiar_estado_a(pcb, BLOCKED);
     estado_encolar_pcb(estado_blocked, pcb);
+    sem_post(estado_get_sem(estado_blocked));
     log_motivo_bloqueo(pcb, motivo_bloqueo);
 }
 
 void proceso_a_exit(t_pcb *pcb, char *motivo_finalizacion){
     pcb_cambiar_estado_a(pcb, EXIT);
     estado_encolar_pcb(estado_exit, pcb);
+    sem_post(estado_get_sem(estado_exit));
     log_fin_proceso(pcb, motivo_finalizacion);
 }
