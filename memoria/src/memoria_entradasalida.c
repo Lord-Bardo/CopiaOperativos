@@ -90,7 +90,10 @@ int escribir_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
     }
 
     // Realizar la escritura en la memoria
+    pthread_mutex_lock(&mutex_espacio_usuario);
     memcpy(espacio_usuario + direccion_fisica, buffer, tamanio);
+    pthread_mutex_unlock(&mutex_espacio_usuario);
+    
     return 0;
 }
 
@@ -102,6 +105,9 @@ int leer_memoria(uint32_t direccion_fisica, void* buffer, int tamanio) {
     }
 
     // Realizar la lectura desde la memoria
+    pthread_mutex_lock(&mutex_espacio_usuario);
     memcpy(buffer, espacio_usuario + direccion_fisica, tamanio);
+    pthread_mutex_unlock(&mutex_espacio_usuario);
+
     return 0;
 } 

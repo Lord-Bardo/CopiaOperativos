@@ -52,4 +52,7 @@ extern bool* frames_libres;
 extern t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
 extern size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
 
+extern pthread_mutex_t mutex_espacio_usuario;
+extern pthread_mutex_t mutex_procesos;
+
 #endif

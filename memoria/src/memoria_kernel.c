@@ -5,6 +5,10 @@ bool* frames_libres; // indicará cuáles frames están libres y cuáles están 
 t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
 size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
 
+// Mutex
+pthread_mutex_t mutex_espacio_usuario; // USAR EN LEER Y ESCRIBIR
+pthread_mutex_t mutex_procesos; // USAR EN LEER Y ESCRIBIR
+
 void atender_memoria_kernel(){
     int continuar = 1;
 	while( continuar ){
