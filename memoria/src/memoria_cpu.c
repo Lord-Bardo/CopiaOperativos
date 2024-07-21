@@ -6,6 +6,7 @@ void atender_memoria_cpu(){
 		t_codigo_operacion cod_op;
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_cpu, &cod_op, buffer);
+		
 		switch(cod_op){
 			case FETCH:
 			    // TIEMPO DE RETARDO
@@ -91,7 +92,7 @@ void atender_memoria_cpu(){
 
 				break;
 
-			case SOLICITUD_ESCRITURA: // me va a llegar una direc. física que representa la cantidad de bytes que debo desplazarme desde le inicio del espacio de usuario y el dato a escribir.
+			case SOLICITUD_ESCRITURA:
 			    // TIEMPO DE RETARDO
                 usleep(RETARDO_REPUESTA);
 				
