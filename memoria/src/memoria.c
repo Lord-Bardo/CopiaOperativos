@@ -48,7 +48,8 @@ int main(int argc, char* argv[]) {
 	printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1.
 
     // TEST OBTENER FRAME - ACCESO A TABLA DE PÁGINAS
-	//TODO
+	int frame;
+	obtener_frame(123, 3, frame);
 
 	// TEST - FETCH
 	char* instruccion = malloc(sizeof(char));

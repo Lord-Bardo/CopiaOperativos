@@ -152,7 +152,7 @@ void obtener_frame(int pid, int pag, int* frame)
 	}
 
 	// Obtengo el frame.
-	*frame = procesos[index].tabla_paginas[pag].num_frame;
+	frame = &(procesos[index].tabla_paginas[pag].num_frame);
 
 	// Log mínimo y obligatorio - Acceso a Tabla de Páginas.
 	printf("Log mínimo y obligatorio - Acceso a Tabla de Páginas \n");
@@ -183,7 +183,7 @@ void resize(int pid, int size)
 
 	// Si el proceso tiene las páginas del size, no hago nada.
 	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(procesos[index]) == size){
-		printf("Log - Proceso no requiere de modificacion de tamanio\n");
+		printf("Log - Proceso no requiere de modificacion de tamaño\n");
 		log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Modificar: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
 	}	
 }
