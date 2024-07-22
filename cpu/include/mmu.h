@@ -20,4 +20,7 @@ void escribir_un_byte(int df,void *regd);
 void escribir_un_frame(int df, int bytes, void *valor);
 void mmu_escribir(int dl,int bytes, void *valor);
 
+void mmu_leer(int dl, int bytes, void * valor);
+void leer_un_frame(int df, int bytes, void * dato);
+void leer_un_byte(int df,void *valor);
 #endif

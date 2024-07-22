@@ -80,8 +80,6 @@ void execute(t_instruccion *instruccion){
 		break;
 	case IO_GEN_SLEEP:
 		ejecutarIoGenSleep(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
-		salir_ciclo_instruccion =1;
-		motivo_desalojo = IO;
 		break;
 	case IO_STDIN_READ:
 		ejecutarStdRead(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2));
@@ -163,16 +161,24 @@ void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 
 void ejecutarWait(char * recurso){
 	t_paquete * paquete = crear_paquete(COP_WAIT);
-	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete, recurso);
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
+	
+	salir_ciclo_instruccion = 1;
+	motivo_desalojo = COP_WAIT;
 }
 
 void ejecutarSignal(char * recurso){
 	t_paquete * paquete = crear_paquete(COP_SIGNAL);
-	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete, recurso);
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
+
+	salir_ciclo_instruccion = 1;
+	motivo_desalojo = COP_SIGNAL;
 }
 
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el tiempo
@@ -190,7 +196,8 @@ void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 	
-	//armar paquete para kernel
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 
 void ejecutarResize(char *tamanio){
@@ -216,8 +223,34 @@ void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
 	/*
 	(Registro Datos, Registro Dirección): Lee el valor de memoria correspondiente a la Dirección Lógica que 
 	se encuentra en el Registro Dirección y lo almacena en el Registro Datos.*/
-	
 	printf("ENTRÉ MOV IN");
+	if(es_reg_chico(registro_direrccion)){
+		uint8_t dl = get_reg_chico(registro_direrccion);
+		if(es_reg_chico(registro_datos)){
+			uint8_t valor;
+			mmu_leer(dl,1,&valor);
+			set_reg_chico(registro_datos,valor);
+		}
+		else{
+			uint32_t valor;
+			mmu_leer(dl,4,&valor);
+			set_reg_chico(registro_datos,valor);
+		}
+	}
+	else{
+		uint32_t dl = get_reg_grande(registro_direrccion);
+		if(es_reg_chico(registro_datos)){
+			uint8_t valor;
+			mmu_leer(dl,1,&valor);
+			set_reg_grande(registro_datos,valor);
+		}
+		else{
+			uint32_t valor;
+			mmu_leer(dl,4,&valor);
+			set_reg_grande(registro_datos,valor);
+		}
+	}
+	
 }
 void ejecutarMovOut(char* registro_direrccion,char* registro_datos){
 	/*(Registro Dirección, Registro Datos): Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida

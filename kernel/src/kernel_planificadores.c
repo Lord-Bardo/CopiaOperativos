@@ -770,11 +770,6 @@ void finalizar_proceso(int pid){
     
     // Busco al proceso entre las colas de los estados y lo desencolo cuando lo encuentro
     t_pcb *pcb = estado_rastrear_y_desencolar_pcb_por_pid(pid); // no esta mal porq lo encuentro y lo saco. Si llego no freno la plani, encontrar el estado y dsp aparte desencolarlo es al pedo porq pudo cambiar de estado
-    
-    // Agrego al proceso al diccionario de procesos a finalizar (util para estado exec y blocked)
-    pthread_mutex_lock(&mutex_diccionario_procesos_a_finalizar); //nose si es necesario (el mutex), porq total la consulta en motivo_desalojo no se hace hasta q no se reanude la plani, es decir hasta q finalizar_proceso no termine -> SI ES NECESARIO PORQ LO MODIFICA EL HILO DE LIBERAR_PROCESOS_EXIT CUANDO TERMINA DE LIBERAR UN PROCESO
-    diccionario_procesos_a_finalizar_agregar_proceso(diccionario_procesos_a_finalizar, pcb);
-    pthread_mutex_unlock(&mutex_diccionario_procesos_a_finalizar);
     // t_nombre_estado nombre_estado = estado_get_nombre_estado(pcb_get_estado(pcb));
     // FORMA 2
     // t_estado *estado = estado_rastrear_pcb_por_pid(pid);
@@ -784,6 +779,10 @@ void finalizar_proceso(int pid){
     
     // Primero corroboro que el proceso buscado exista. En caso de existir actuo dependiendo el estado en el q se encuentre
     if( pcb != NULL ){
+        // Agrego al proceso al diccionario de procesos a finalizar (util para estado exec y blocked)
+        pthread_mutex_lock(&mutex_diccionario_procesos_a_finalizar); //nose si es necesario (el mutex), porq total la consulta en motivo_desalojo no se hace hasta q no se reanude la plani, es decir hasta q finalizar_proceso no termine -> SI ES NECESARIO PORQ LO MODIFICA EL HILO DE LIBERAR_PROCESOS_EXIT CUANDO TERMINA DE LIBERAR UN PROCESO
+        diccionario_procesos_a_finalizar_agregar_proceso(diccionario_procesos_a_finalizar, pcb);
+        pthread_mutex_unlock(&mutex_diccionario_procesos_a_finalizar);
         switch( pcb_get_estado(pcb) ){
             case NEW: // OK
                 proceso_a_exit(pcb, FINALIZACION_INTERRUPTED_BY_USER);

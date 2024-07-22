@@ -64,6 +64,61 @@ void mmu(t_direccion *direcciones, int dl, int tamanio_total){
 
 }
 
+void leer_un_frame(int df, int bytes, void * dato){
+    t_paquete *paquete = crear_paquete(SOLICITUD_LECTURA);
+    agregar_a_paquete(paquete,&(pcb.pid),sizeof(int));
+    agregar_a_paquete(paquete,&df,sizeof(int));
+    agregar_a_paquete(paquete,&bytes, sizeof(int));
+    enviar_paquete(fd_memoria,paquete);
+    eliminar_paquete(paquete);
+
+    t_codigo_operacion cop;
+    recibir_codigo_operacion(fd_memoria,&cop);
+
+    if(cop!= DATO){
+        log_info(cpu_logger,"ERROR NO SE PUDO LEER EN MEMORIA, me llego un op_code distinto de DATO");
+    }
+    else{
+        t_buffer * buffer = crear_buffer();
+        buffer_desempaquetar(buffer,dato);
+        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb.pid,df,(uint32_t)dato);
+        eliminar_buffer(buffer);
+    }
+}
+
+
+void mmu_leer(int dl, int bytes, void * valor){
+    int pagina = obtener_pagina(dl);
+    int offset = obtener_offset(dl,pagina);
+    int df = obtener_df(dl);
+    log_info(cpu_logger,"PID: %d - Acción: LEER -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,valor);    
+    if(bytes==1){
+        leer_un_byte(df,valor);
+    }
+    else{
+        if(offset==0){
+            //puede que tengamos que leer dos pags y juntarlo
+            int bytes_leer = min(tamanio_pagina -offset,bytes);
+            bytes -= bytes_leer;
+            void * dato_parte_1 = malloc(bytes_leer);
+            leer_un_frame(df,bytes_leer,dato_parte_1);
+            memcpy(valor, dato_parte_1 , bytes_leer);
+            if(bytes>0){
+                df = obtener_df(dl + bytes_leer);
+                void * dato_parte_2 = malloc(bytes);
+                leer_un_frame(df,bytes,dato_parte_2);
+                memcpy(valor+bytes_leer, dato_parte_2,bytes);
+                free(dato_parte_2);
+            }
+            free(dato_parte_1);
+        }
+        else{
+            leer_un_frame(df,bytes,valor);
+        }
+    }
+}
+
+
 void mmu_escribir(int dl,int bytes, void *valor){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
@@ -119,7 +174,9 @@ void escribir_un_frame(int df, int bytes, void *valor){
 void escribir_un_byte(int df,void *regd){
     escribir_un_frame(df,1,regd);
 }
-
+void leer_un_byte(int df,void *valor){
+    leer_un_frame(df,1,valor);
+}
 
 
 
