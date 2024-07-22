@@ -150,9 +150,11 @@ void aceptar_conexion_kernel(){
 void aceptar_conexion_cpu(){
 	fd_cpu = esperar_cliente(fd_memoria);
 	if( recibir_handshake(fd_cpu) == HANDSHAKE_CPU){
-		t_paquete* paquete = crear_paquete(HANDSHAKE_OK);
-		agregar_a_paquete(paquete, TAM_PAGINA, sizeof(TAM_PAGINA));
-		enviar_paquete(fd_cpu, paquete);
+		// t_paquete* paquete = crear_paquete(HANDSHAKE_OK);
+		// agregar_a_paquete(paquete, TAM_PAGINA, sizeof(TAM_PAGINA));
+		// enviar_paquete(fd_cpu, paquete);
+		// eliminar_paquete(paquete);
+		enviar_handshake(fd_cpu, HANDSHAKE_OK);
 		log_info(memoria_logger, "¡Se conectó el cliente CPU al servidor MEMORIA!");
 	}
 	else

@@ -272,6 +272,7 @@ void contar_quantum(void *quantum_void){
     if( pthread_mutex_trylock(&mutex_interrupcion_quantum) == 0 ){
         pthread_mutex_lock(&mutex_socket_cpu_interrupt);
         enviar_codigo_operacion(fd_cpu_interrupt, INTERRUPT_QUANTUM);
+        log_info(kernel_logger, "Interrupcion por quantum enviada!");
         pthread_mutex_unlock(&mutex_socket_cpu_interrupt);
         pthread_mutex_unlock(&mutex_interrupcion_quantum);
     }
