@@ -75,7 +75,7 @@ void agregar_registros_a_paquete(t_paquete *paquete, t_registros registros){
     agregar_uint32_a_paquete(paquete, registros.di);
 }
 void agregar_pid_a_paquete(t_paquete *paquete, int pid){
-    agregar_a_paquete(paquete, &pid, sizeof(pid));
+    agregar_int_a_paquete(paquete, pid);
 }
 
 int pcb_get_pid(t_pcb *pcb){

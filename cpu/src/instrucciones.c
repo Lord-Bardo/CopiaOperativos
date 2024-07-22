@@ -80,8 +80,6 @@ void execute(t_instruccion *instruccion){
 		break;
 	case IO_GEN_SLEEP:
 		ejecutarIoGenSleep(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
-		salir_ciclo_instruccion =1;
-		motivo_desalojo = IO;
 		break;
 	case IO_STDIN_READ:
 		ejecutarStdRead(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2));
@@ -163,16 +161,24 @@ void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 
 void ejecutarWait(char * recurso){
 	t_paquete * paquete = crear_paquete(COP_WAIT);
-	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete, recurso);
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
+	
+	salir_ciclo_instruccion = 1;
+	motivo_desalojo = COP_WAIT;
 }
 
 void ejecutarSignal(char * recurso){
 	t_paquete * paquete = crear_paquete(COP_SIGNAL);
-	agregar_a_paquete(paquete, recurso, sizeof(recurso)+1);
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete, recurso);
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
+
+	salir_ciclo_instruccion = 1;
+	motivo_desalojo = COP_SIGNAL;
 }
 
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el tiempo
@@ -190,7 +196,8 @@ void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 	
-	//armar paquete para kernel
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 
 void ejecutarResize(char *tamanio){

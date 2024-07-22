@@ -75,7 +75,9 @@ void atender_comando(char *leido){
 
 // EJECUTAR SCRIPT
 void ejecutar_script(char *path){
-    FILE *archivo = fopen(path, "r");
+    char *path_base = string_duplicate("/home/utnso/scripts-pruebas");
+	string_append(&path_base, path);
+	FILE *archivo = fopen(path_base, "r");
     if (archivo == NULL) {
         log_error(kernel_logger, "Error al abrir el archivo de script");
         return;
@@ -103,7 +105,8 @@ void ejecutar_script(char *path){
     }
 
     // Liberar la memoria y cerrar el archivo
-    free(linea);
+    free(path_base);
+	free(linea);
     fclose(archivo);
 }
 
