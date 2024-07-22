@@ -28,7 +28,7 @@ void iniciar_config(void)
 	TAM_MEMORIA = config_get_int_value(memoria_config, "TAM_MEMORIA");
 	TAM_PAGINA = config_get_int_value(memoria_config, "TAM_PAGINA");
     PATH_INSTRUCCIONES = config_get_string_value(memoria_config, "PATH_INSTRUCCIONES");
-    RETARDO_REPUESTA =config_get_int_value(memoria_config, "RETARDO_RESPUESTA");
+    RETARDO_RESPUESTA =config_get_int_value(memoria_config, "RETARDO_RESPUESTA");
 }
 
 void iniciar_variables(void)
@@ -36,11 +36,7 @@ void iniciar_variables(void)
 	espacio_usuario = malloc(TAM_MEMORIA);
     memset(espacio_usuario, 0, TAM_MEMORIA);
 	pthread_mutex_init(&mutex_espacio_usuario, NULL);
-    frames_libres = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(bool));
-	for(int i=0; i<(TAM_MEMORIA/TAM_PAGINA); i++)
-        frames_libres[i] = true;
-	procesos = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pcb_memoria)); //array es dinámico porque la info viene en el momento
-    for(int i=0; i<(TAM_MEMORIA/TAM_PAGINA); i++)
-        procesos[i].pid = -1; // Inicializo mi array de procesos con procesos con PID = -1 para indicar que las celdas del array están vacías.
+    frames_libres = bitarray_create_with_mode(espacio_usuario, (TAM_MEMORIA/TAM_PAGINA), MSB_FIRST);
+	procesos = list_create(); //array es dinámico porque la info viene en el momento
 	pthread_mutex_init(&mutex_procesos, NULL);
 }

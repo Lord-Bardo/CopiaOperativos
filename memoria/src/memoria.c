@@ -7,7 +7,7 @@ char *PUERTO_ESCUCHA;
 int TAM_MEMORIA;
 int TAM_PAGINA;
 char *PATH_INSTRUCCIONES;
-int RETARDO_REPUESTA;
+int RETARDO_RESPUESTA;
 
 int fd_cpu;
 int fd_kernel;
@@ -128,6 +128,11 @@ void terminar_programa(){
 	// Destruyo los semáforos
 	pthread_mutex_destroy(&mutex_espacio_usuario);
 	pthread_mutex_destroy(&mutex_procesos);
+
+	// Destruyo mis procesos, el espacio de usuario y los frames libres.
+	list_destroy_and_destroy_elements(procesos, free);
+	free(espacio_usuario);
+	bitarray_destroy(frames_libres); 
 
     // liberar_conexion(conexion);
 	liberar_conexion(fd_cpu);

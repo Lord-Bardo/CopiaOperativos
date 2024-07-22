@@ -10,6 +10,7 @@
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
+#include <commons/bitarray.h>
 
 #include <utils/conexion.h>
 #include <utils/planificadores.h>
@@ -20,14 +21,12 @@
 // ESTRUCTURAS
 typedef struct {
     int num_frame;
-    bool bit_presencia;
 } t_pagina; 
 typedef struct {
     int pid;
     char* path;
-    t_pagina* tabla_paginas; 
-    char** memoria_de_instrucciones; 
-    //void* offset; //desplazamiento
+    t_list* tabla_paginas; 
+    t_list* memoria_de_instrucciones; 
 } t_pcb_memoria;
 
 //pregunta: que onda con el buffer del proceso? La struct del buffer está en conexion.h pero como los conecto?
@@ -40,7 +39,7 @@ extern char *PUERTO_ESCUCHA;
 extern int TAM_MEMORIA;
 extern int TAM_PAGINA;
 extern char *PATH_INSTRUCCIONES;
-extern int RETARDO_REPUESTA;
+extern int RETARDO_RESPUESTA;
 
 extern int fd_cpu;
 extern int fd_kernel;
@@ -48,9 +47,12 @@ extern int fd_entradasalida;
 extern int fd_memoria;
 
 extern void* espacio_usuario; 
-extern bool* frames_libres;
-extern t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
+extern t_bitarray* frames_libres;
+extern t_list* procesos; // En esta lista voy a ir colocando todos mis procesos.
 extern size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
+extern int pid_es; 
+extern int pid_kernel;
+extern int pid_cpu;  
 
 extern pthread_mutex_t mutex_espacio_usuario;
 extern pthread_mutex_t mutex_procesos;

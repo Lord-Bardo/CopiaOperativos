@@ -14,7 +14,7 @@ extern char *PUERTO_ESCUCHA;
 extern int TAM_MEMORIA;
 extern int TAM_PAGINA;
 extern char *PATH_INSTRUCCIONES;
-extern int RETARDO_REPUESTA;
+extern int RETARDO_RESPUESTA;
 
 extern int fd_cpu;
 extern int fd_kernel;

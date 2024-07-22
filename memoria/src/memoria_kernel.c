@@ -1,9 +1,10 @@
 #include "../include/memoria_kernel.h"
 
 void* espacio_usuario; 
-bool* frames_libres; // indicará cuáles frames están libres y cuáles están ocupados.
-t_pcb_memoria* procesos; // En esta lista voy a ir colocando todos mis procesos.
+t_bitarray* frames_libres; // indicará cuáles frames están libres y cuáles están ocupados.
+t_list* procesos; // En esta lista voy a ir colocando todos mis procesos.
 size_t num_instruccion; // Número de instrucciones leídas de un archivo de pseudocodigo.
+int pid_kernel;
 
 // Mutex
 pthread_mutex_t mutex_espacio_usuario; // USAR EN LEER Y ESCRIBIR
@@ -18,7 +19,7 @@ void atender_memoria_kernel(){
 		switch(cod_op){
 			case SOLICITUD_INICIAR_PROCESO:
                 // TIEMPO DE RETARDO
-                usleep(RETARDO_REPUESTA);
+                usleep(RETARDO_RESPUESTA*1000);
 
                 // Creo e inicializo estructuras necesarias.
 			    t_pcb_memoria *proceso_recibido = inicializar_proceso();
@@ -37,14 +38,16 @@ void atender_memoria_kernel(){
 
 			case SOLICITUD_FINALIZAR_PROCESO:
                 // TIEMPO DE RETARDO
-                usleep(RETARDO_REPUESTA);
+                usleep(RETARDO_RESPUESTA*1000);
 
                 // Declaro estructura necesaria y desempaqueto lo recibido.
-                int pid_recibido;
-                buffer_desempaquetar(buffer, &pid_recibido);
+                buffer_desempaquetar(buffer, &pid_kernel);
 
                 // Finalizo el proceso.
-                finalizar_proceso(pid_recibido);
+                list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
+
+                //Avisar a KERNEL 
+                enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_FINALIZADO);
 
                 // Libero memoria.
                 eliminar_buffer(buffer);
@@ -78,66 +81,68 @@ void crear_proceso(t_pcb_memoria *proceso)
         perror("Error al abrir el archivo");
         fclose(archivo);
         free(ruta_completa);
-        liberar_proceso(proceso);
+        list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     }
 
 	// Leer el archivo instruccion por instruccion.
-    char instruccion[256];
-    while (fgets(instruccion, sizeof(instruccion), archivo) != NULL) 
+    while (1) 
     {
-        // Eliminar el salto de línea al final de cada instruccion
-        instruccion[strcspn(instruccion, "\n")] = '\0';
+        // Definir un búfer de tamaño adecuado
+        char buffer[256];
 
-        // Valido si lo leido es una instrucción válida.
-        if (!instruccion_valida(instruccion)) {
+        // Leer una línea del archivo
+        if (fgets(buffer, sizeof(buffer), archivo) == NULL) {
+            // Si se alcanza el final del archivo o hay un error, salir del bucle
+            break;
+        }
+
+        // Eliminar el salto de línea al final de cada instrucción
+        buffer[strcspn(buffer, "\n")] = '\0';
+
+        // Validar si lo leído es una instrucción válida
+        if (!instruccion_valida(buffer)) {
             perror("Instrucción inválida en el archivo");
             fclose(archivo);
             free(ruta_completa);
-            liberar_proceso(proceso);
+            list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
 
-        // Almacenar la instruccion en memoria_de_instrucciones
-        proceso->memoria_de_instrucciones[num_instruccion] = strdup(instruccion);
-        if (proceso->memoria_de_instrucciones[num_instruccion] == NULL) {
-            perror("Error al duplicar la cadena");
+        // Duplicar la instrucción para almacenarla en la lista
+        char *instruccion = string_duplicate(buffer);
+        if (instruccion == NULL) {
+            perror("Error al duplicar la instrucción");
             fclose(archivo);
             free(ruta_completa);
-            liberar_proceso(proceso);
+            list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
+
+        // Almacenar la instrucción en memoria_de_instrucciones
+        list_add(proceso->memoria_de_instrucciones, instruccion);
+        
         num_instruccion++;
     }
-    agregar_proceso(*proceso); // Agreso el proceso a lista de procesos.
+
+    list_add(procesos, proceso); // Agreso el proceso a lista de procesos.
     enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); 
 
     // Cerrar el archivo
     fclose(archivo);
     free(ruta_completa);
-
+    
     // Borrar una vez terminado el testeo
-    printf("Imprimo primer y ultima instruccion del proceso: %d\n", procesos[0].pid);
-    printf("Primera instruccion: %s\n", procesos[0].memoria_de_instrucciones[0]);
-	printf("Ultima instruccion: %s\n", procesos[0].memoria_de_instrucciones[num_instruccion-1]);
-	log_info(memoria_logger, "Entré a crear proceso y cree proceso existosamente :)");
+    t_pcb_memoria* proceso_print = list_get(procesos, 0);
+    char* primer_instruc = list_get(proceso_print->memoria_de_instrucciones, 0);
+    char* ult_instruc = list_get(proceso_print->memoria_de_instrucciones, num_instruccion - 1);
+    printf("Imprimo primer y ultima instruccion del proceso: %d\n", proceso_print->pid);
+    printf("Primera instruccion: %s\n", primer_instruc);
+	printf("Ultima instruccion: %s\n", ult_instruc);
+	log_info(memoria_logger, "Entré a crear proceso y cree proceso %d existosamente", proceso_print->pid);
 }
 
-void finalizar_proceso(int pid_recibido)
-{
-    //Encuentro índice del proceso en cuestión.
-    int i = encontrar_proceso(pid_recibido);
-    t_pcb_memoria* proceso = &procesos[i];
 
-    //Libero memoria del proceso 
-    liberar_proceso(proceso); // Supongo que con el free de tabla de paginas, los frames pasan a estar disponibles (no se debe borrar la info del frame a pesar de finalizar proceso).
-
-    //Elimino proceso de lista de procesos
-    eliminar_proceso(i);
-
-    //Avisar a KERNEL (creo)
-    enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_FINALIZADO);
-}

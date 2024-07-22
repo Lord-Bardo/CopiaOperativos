@@ -4,135 +4,104 @@
 t_pcb_memoria* inicializar_proceso()
 {
     t_pcb_memoria *proceso = malloc(sizeof(t_pcb_memoria));
-    proceso->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
+    proceso->tabla_paginas = list_create();
     proceso->path = NULL;
-    proceso->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char) * 40);
-
-    for (int i = 0; i < (TAM_MEMORIA / TAM_PAGINA); i++) 
-        proceso->tabla_paginas[i].num_frame = -1;
-
-    for (int i = 0; i < TAM_MEMORIA; i++) 
-        proceso->memoria_de_instrucciones[i] = malloc(sizeof(char) * 40);
-
-    // Verificar si la asignación de memoria fue exitosa
-    if (proceso->tabla_paginas == NULL || proceso->memoria_de_instrucciones == NULL) {
-        // Manejar el error de asignación de memoria
-        fprintf(stderr, "Error al asignar memoria\n");
-        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO);
-        exit(EXIT_FAILURE);
-    }    
+    proceso->memoria_de_instrucciones = list_create();
 
     return proceso;
 }
 
-int agregar_proceso(t_pcb_memoria proceso) // Podría poner esto en un utils, no śe...
+void destruir_proceso(void* proceso_void)
 {
-    for (int i = 0; i < (TAM_MEMORIA/TAM_PAGINA); i++) {
-        if (procesos[i].pid == -1) { // Celda vacía encontrada
-            procesos[i] = proceso;
-            return 1; // Éxito
-        }
-    }
-    return 0; // Error, no hay celdas vacías (supongo que la máxima cant. de procesos que puede haber será TAM_MEMORIA/TAM_PAGINA, es decir procesos de una sola pág.)
-}
-
-int eliminar_proceso(int index)
-{
-//  Si no encuentra el proceso, salgo de la función.
-    if(procesos[index].pid == -1)
-        return 0; // 0 Si no se encontró el proceso
-
-//  Desplazar los elementos del array para llenar el hueco dejado por el proceso eliminado.
-    for (int j = index; j < (TAM_MEMORIA/TAM_PAGINA) - 1; j++) {
-        procesos[j] = procesos[j + 1];
+    t_pcb_memoria* proceso = (t_pcb_memoria*) proceso_void;
+    if(proceso != NULL){
+        if(proceso->tabla_paginas != NULL)
+            list_destroy_and_destroy_elements(proceso->tabla_paginas, free);
+        if(proceso->path != NULL)
+            free(proceso->path);
+        if(proceso->memoria_de_instrucciones != NULL)
+            list_destroy_and_destroy_elements(proceso->memoria_de_instrucciones, free);
+        free(proceso);    
     }
 
-    return 1; // Éxito, 1 si se encontró el proceso y se eliminó.  
 }
 
-int encontrar_proceso(int pid)
+void asignar_size_proceso(t_pcb_memoria* proceso, int size)
 {
-    int i = 0;
-    while(procesos[i].pid != -1){
-        if(procesos[i].pid == pid)
-            return i;
+    int i = 0, frame = 0;
+    t_pagina* pagina = malloc(sizeof(t_pagina));
+    
+    while(i < size && frame <= TAM_MEMORIA/TAM_PAGINA){
+        pagina->num_frame = frame_libre();
+        list_add(proceso->tabla_paginas, pagina);
+        obtener_frame(i, &frame);
+        bitarray_set_bit(frames_libres, frame);
+        i++;
     }
-    return i;
-}
 
-int sizeof_proceso(t_pcb_memoria proceso){ // El tamaño de un proceso es igual a su cantidad de páginas.
-    int size = 0;
-    while(proceso.tabla_paginas[size].num_frame != -1 && size < (TAM_MEMORIA/TAM_PAGINA))
-        size++;
-    return size;
-}
-
-void asignar_size_proceso(int index, int size)
-{
-    int i = 0;
-    while(i < size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
-            procesos[index].tabla_paginas[i].num_frame = frame_libre();
-            frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
-            procesos[index].tabla_paginas[i].bit_presencia = false;
-            i++;
-        }
-
-    if(i == size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
+    if(i == size && frame <= TAM_MEMORIA/TAM_PAGINA){
         // Log mínimo y obligatorio - Creación de Tabla de Páginas
         printf("Log mínimo y obligatorio - Creación de Tabla de Páginas \n");
-        log_info(memoria_logger, "PID: %d - Tamaño: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]));
+        log_info(memoria_logger, "PID: %d - Tamaño: %d\n", proceso->pid, list_size(proceso->tabla_paginas));
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     }
     else
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
 }
 
-void aumentar_proceso(int index, int size)
+void aumentar_proceso(t_pcb_memoria* proceso, int size)
 {
     //Log mínimo y obligatorio - Ampliación de Proceso
     printf("Log mínimo y obligatorio - Ampliación de Proceso\n");
-    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
+    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", proceso->pid, list_size(proceso->tabla_paginas), size);
 
-    int i = sizeof_proceso(procesos[index]);
-    while(i < size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA){
-        procesos[index].tabla_paginas[i].num_frame = frame_libre();
-        frames_libres[procesos[index].tabla_paginas[i].num_frame] = false;
-        procesos[index].tabla_paginas[i].bit_presencia = false;
+    int i = list_size(proceso->tabla_paginas), frame = 0;
+    t_pagina* pagina = malloc(sizeof(t_pagina));
+    
+    while(i < size && frame <= TAM_MEMORIA/TAM_PAGINA){
+        pagina->num_frame = frame_libre();
+        list_add(proceso->tabla_paginas, pagina);
+        obtener_frame(i, &frame);
+        bitarray_set_bit(frames_libres, frame);;
         i++;
     }
-    if(i == size && procesos[index].tabla_paginas[i].num_frame <= TAM_MEMORIA/TAM_PAGINA)
+    if(i == size && frame <= TAM_MEMORIA/TAM_PAGINA)
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     else{
-        log_info(memoria_logger, "Proceso excede el tamanio maximo de la memoria! PID: %d - Tamaño a Ampliar: %d\n", procesos[index].pid, size);
+        log_info(memoria_logger, "Proceso excede el tamanio maximo de la memoria! PID: %d - Tamaño a Ampliar: %d - Tamaño Máximo: %d\n", proceso->pid, size, TAM_MEMORIA/TAM_PAGINA);
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
     }
 
 }
 
-void reducir_proceso(int index, int size)
+void reducir_proceso(t_pcb_memoria* proceso, int size)
 {
     //Log mínimo y obligatorio - Reducción de Proceso
     printf("Log mínimo y obligatorio - Reducción de Proceso\n");
-    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
+    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", proceso->pid, list_size(proceso->tabla_paginas), size);
 
-    for(int i = sizeof_proceso(procesos[index]); i >= size; i--){
-        frames_libres[procesos[index].tabla_paginas[i].num_frame] = true;
-        procesos[index].tabla_paginas[i].num_frame = -1;
+    int frame;
+    
+    for(int i = list_size(proceso->tabla_paginas); i >= size; i--){
+        obtener_frame(i, &frame);
+        bitarray_clean_bit(frames_libres, frame);
+        list_remove_and_destroy_element(proceso->tabla_paginas, i, free);
     }
     enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
 }
 
-void liberar_proceso(t_pcb_memoria* proceso)
+void obtener_frame(int pag, int* frame) 
 {
-    for (int i = 0; i < TAM_MEMORIA; i++) 
-        free(proceso->memoria_de_instrucciones[i]);
-        
-    free(proceso->memoria_de_instrucciones);
-    int cant_pags = sizeof_proceso(*proceso);
-    free(proceso->tabla_paginas);
-    // Log mínimo y obligatorio - Destrucción de Tabla de Páginas
-    printf("Log mínimo y obligatorio - Destrucción de Tabla de Páginas:\n");
-    log_info(memoria_logger, "PID: %d - Tamaño: %d", proceso->pid, cant_pags);
+	// Obtengo el proceso con el pid.
+	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu);
+
+	// Obtengo el frame.
+	t_pagina* pagina_recibida = list_get(proceso->tabla_paginas, pag);
+	*frame = pagina_recibida->num_frame;
+
+	// Log mínimo y obligatorio - Acceso a Tabla de Páginas.
+	printf("Log mínimo y obligatorio - Acceso a Tabla de Páginas \n");
+	log_info(memoria_logger, "PID: %d - Pagina: %d - Marco: %d\n", proceso->pid, pag, *frame);
 }
 
 // AUXILIARES.
@@ -162,7 +131,7 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
 int frame_libre()
 {
     int num_frame = 0;
-    while(frames_libres[num_frame] == false && num_frame < TAM_MEMORIA/TAM_PAGINA)
+    while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
         num_frame++;
     return num_frame;
 }
@@ -202,6 +171,10 @@ void leer(int direc_fisica, int bytes, void* dato)
     memmove(dato, (char*)espacio_usuario + direc_fisica, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);    
 }
+
+bool comparar_pid_kernel(void *pid){return pid_kernel == *(int*) pid;}
+bool comparar_pid_cpu(void *pid){return pid_cpu == *(int*) pid;}
+bool comparar_pid_es(void *pid){return pid_es == *(int*) pid;}
 
 // MANEJO DE BUFFER.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria *proceso)

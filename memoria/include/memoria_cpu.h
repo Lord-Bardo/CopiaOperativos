@@ -4,7 +4,6 @@
 #include "memoria_utils.h"
 
 void atender_memoria_cpu(void);
-void obtener_instruccion(int pid, int pc, char* instruccion);
-void obtener_frame(int pid, int pag, int* frame);
-void resize(int pid, int size);
+void obtener_instruccion(int pc, char* instruccion);
+void resize(int size);
 #endif
