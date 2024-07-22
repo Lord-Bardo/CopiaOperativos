@@ -6,7 +6,7 @@ void atender_memoria_cpu(){
 		t_codigo_operacion cod_op;
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_cpu, &cod_op, buffer);
-		
+
 		switch(cod_op){
 			case FETCH:
 			    // TIEMPO DE RETARDO
@@ -214,10 +214,4 @@ void resize(int pid, int size)
 	// Si el proceso tiene más páginas que el size, disminuyo su tamaño.
 	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(procesos[index]) > size)
 	    reducir_proceso(index, size); 	
-
-	// Si el proceso tiene las páginas del size, no hago nada.
-	if(procesos[index].tabla_paginas[0].num_frame != -1 && sizeof_proceso(procesos[index]) == size){
-		printf("Log - Proceso no requiere de modificacion de tamaño\n");
-		log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Modificar: %d\n", procesos[index].pid, sizeof_proceso(procesos[index]), size);
-	}	
 }

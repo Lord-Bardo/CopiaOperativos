@@ -176,29 +176,30 @@ int buscar_pid(int direc_fisica)
 void escribir(int direc_fisica, int bytes, void* dato)
 {
     // Verifico si la riección es válida.
-    if(direc_fisica > TAM_MEMORIA - 1){
+   if(direc_fisica < 0 || direc_fisica + bytes > TAM_MEMORIA){
         printf("Dirección inválida\n");
         enviar_codigo_operacion(fd_cpu, ERROR_ESCRITURA);
+        exit(EXIT_FAILURE);
     }
 
     // Escribo en el espacio de usuaro en la posición indicada.
     pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
-	//memmove(espacio_usuario[direc_fisica], dato, bytes);
+	memmove((char*)espacio_usuario + direc_fisica, dato, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);
 }
 
 void leer(int direc_fisica, int bytes, void* dato)
 {
     // Verifico si la riección es válida
-    if(direc_fisica > TAM_MEMORIA - 1){
+    if(direc_fisica < 0 || direc_fisica + bytes > TAM_MEMORIA){
         printf("Dirección inválida\n");
-        enviar_codigo_operacion(fd_cpu, ERROR_LECTURA);
+        enviar_codigo_operacion(fd_cpu, ERROR_ESCRITURA);
+        exit(EXIT_FAILURE);
     }
 
     // Leo el espacio de memoria y almaceno el dato leído.
     pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
-    //for(int i = 0; i < bytes; i++)
-        //dato[i] = espacio_usuario[direc_fisica + i];
+    memmove(dato, (char*)espacio_usuario + direc_fisica, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);    
 }
 

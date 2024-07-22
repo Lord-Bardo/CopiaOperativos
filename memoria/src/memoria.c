@@ -40,26 +40,39 @@ int main(int argc, char* argv[]) {
 	resize(123, 5);
 	printf("El tamanio del proceso es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 5.
 	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser 4.
-	// resize(123, 10); // agrando el proceso.
-	// printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 10
-	// printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
-	// resize(123, 4); // reduzco el proceso.
-	// printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 4
-	// printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1. 
+	resize(123, 10); // agrando el proceso.
+	printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 10
+	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
+	resize(123, 4); // reduzco el proceso.
+	printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 4
+	printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1. 
 
     // TEST OBTENER FRAME - ACCESO A TABLA DE PÁGINAS
-	// int frame;
-	// obtener_frame(123, 3, frame);
+	int frame;
+	obtener_frame(123, 3, frame);
 
 	// TEST - FETCH
-	// char* instruccion = malloc(sizeof(char));
-	// obtener_instruccion(123, 5, instruccion);
-	// printf("La instruccion solicitada fue: %s\n", instruccion); 
-	// log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
+	char* instruccion = malloc(sizeof(char));
+	obtener_instruccion(123, 5, instruccion);
+	printf("La instruccion solicitada fue: %s\n", instruccion); 
+	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
 
-	// TEST - ESCRIBIR
+	// TEST - ESCRIBIR/LEER
+	int dato_a_escribir = 12345;
+    int direc_fisica = 100;
 
-	// TEST - LEER
+	escribir(direc_fisica, sizeof(int), &dato_a_escribir);
+
+	int dato_escrito;
+    memcpy(&dato_escrito, (char*)espacio_usuario + direc_fisica, sizeof(int));
+    printf("Valor escrito en el espacio de usuario: %d\n", dato_escrito);
+
+	int dato_leido = 0;
+
+    leer(direc_fisica, sizeof(int), &dato_leido);
+
+    
+    printf("Valor leído del espacio de usuario: %d\n", dato_leido);
 
     // TEST - FINALIZAR PROCESO
 	finalizar_proceso(123);
@@ -111,6 +124,10 @@ void terminar_programa(){
     if(memoria_config != NULL){
 		config_destroy(memoria_config);
 	}
+
+	// Destruyo los semáforos
+	pthread_mutex_destroy(&mutex_espacio_usuario);
+	pthread_mutex_destroy(&mutex_procesos);
 
     // liberar_conexion(conexion);
 	liberar_conexion(fd_cpu);
