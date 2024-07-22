@@ -45,7 +45,7 @@ void contar_quantum(void *quantum_void);
 void planificador_corto_plazo_vrr(void);
 t_pcb *elegir_proceso_segun_vrr(void);
 void enviar_contexto_de_ejecucion(t_pcb *pcb);
-void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_buffer *buffer, t_temporal *clock_exec);
+void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_buffer *buffer, t_temporal *clock_exec, t_contar_quantum_parametros *contar_quantum_parametros);
 
 // PLANIFICADOR LARGO PLAZO
 void iniciar_proceso(char *path);

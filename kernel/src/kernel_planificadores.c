@@ -217,10 +217,10 @@ void planificador_corto_plazo_fifo(){
         
         t_codigo_operacion motivo_desalojo;
         t_buffer *buffer = crear_buffer();
-        recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
+        recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer); // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros). Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
         
-        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
+        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL, NULL);
         
         eliminar_buffer(buffer);        
     }
@@ -239,26 +239,28 @@ void planificador_corto_plazo_rr(){
         proceso_a_exec(pcb);
         sem_post(&sem_estado_planificacion_ready_to_exec);
 
+        t_contar_quantum_parametros *contar_quantum_parametros = crear_contar_quantum_parametros(QUANTUM, pcb_get_pid(pcb));
         enviar_contexto_de_ejecucion(pcb);
         t_temporal *clock_exec = temporal_create();
         
         pthread_t hilo_quantum;
-	    pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)&QUANTUM);
+	    pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)contar_quantum_parametros);
         pthread_detach(hilo_quantum);
 
         t_codigo_operacion motivo_desalojo;
         t_buffer *buffer = crear_buffer();
-        recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer); // tengo duda de si esto puede demorarse mucho tiempo -> si el buffer es grande probablemente tarde en desempaquetarse y, en consecuencia, tarde en frenar el temporal
+        recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
         temporal_stop(clock_exec);
         pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
         pthread_cancel(hilo_quantum);
         pthread_mutex_unlock(&mutex_interrupcion_quantum);
         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
         
-        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec);
+        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec, contar_quantum_parametros);
         
-        eliminar_buffer(buffer);
+        eliminar_contar_quantum_parametros(contar_quantum_parametros);
         temporal_destroy(clock_exec);
+        eliminar_buffer(buffer);
     }
 }
 
@@ -266,14 +268,17 @@ void planificador_corto_plazo_rr(){
 //     return estado_desencolar_primer_pcb(estado_ready); 
 // }
 
-void contar_quantum(void *quantum_void){
-    int quantum = *(int *)quantum_void;
-    usleep(quantum * 1000); // usleep para poder trabajar con microsegundos
+void contar_quantum(void *contar_quantum_parametros_void){
+    t_contar_quantum_parametros *contar_quantum_parametros = (t_contar_quantum_parametros *)contar_quantum_parametros_void;
+    usleep( contar_quantum_parametros_get_quantum(contar_quantum_parametros) * 1000 ); // usleep para poder trabajar con microsegundos
     if( pthread_mutex_trylock(&mutex_interrupcion_quantum) == 0 ){
+        t_paquete *paquete_interrupt_user = crear_paquete(INTERRUPT_QUANTUM);
+        agregar_pid_a_paquete(paquete_interrupt_user, contar_quantum_parametros_get_pid(contar_quantum_parametros));
         pthread_mutex_lock(&mutex_socket_cpu_interrupt);
-        enviar_codigo_operacion(fd_cpu_interrupt, INTERRUPT_QUANTUM);
-        log_info(kernel_logger, "Interrupcion por quantum enviada!");
+        enviar_paquete(fd_cpu_interrupt, paquete_interrupt_user);
         pthread_mutex_unlock(&mutex_socket_cpu_interrupt);
+        log_info(kernel_logger, "Interrupcion por quantum enviada!");
+        eliminar_paquete(paquete_interrupt_user);
         pthread_mutex_unlock(&mutex_interrupcion_quantum);
     }
 }
@@ -295,30 +300,31 @@ void planificador_corto_plazo_vrr(){
         proceso_a_exec(pcb);
         sem_post(&sem_estado_planificacion_ready_to_exec);
 
-        int quantum_restante = pcb_get_quantum_restante(pcb);
+        int quantum_inicial = pcb_get_quantum_inicial(pcb); // en este momento quantum_inicial = quantum_restante
+        t_contar_quantum_parametros *contar_quantum_parametros = crear_contar_quantum_parametros(quantum_inicial, pcb_get_pid(pcb));
         enviar_contexto_de_ejecucion(pcb);
         t_temporal *clock_exec = temporal_create();
         
         pthread_t hilo_quantum;
-	    pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)&quantum_restante);
+	    pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)contar_quantum_parametros);
         pthread_detach(hilo_quantum);
 
         t_codigo_operacion motivo_desalojo;
         t_buffer *buffer = crear_buffer();
-        // Espera por el Dispatch la llegada del contexto actualizado tras la ejecucion del proceso (pid y registros). Junto con el contexto debe llegar el motivo por el cual finalizo la ejecucion (motivo de desalojo)
-        recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer); // tengo duda de si esto puede demorarse mucho tiempo -> si el buffer es grande probablemente tarde en desempaquetarse y, en consecuencia, tarde en frenar el temporal
+        recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
         temporal_stop(clock_exec);
         pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
         pthread_cancel(hilo_quantum);
         pthread_mutex_unlock(&mutex_interrupcion_quantum);
-        quantum_restante = pcb_get_quantum_restante(pcb) - temporal_gettime(clock_exec);
+        int quantum_restante = quantum_inicial - (int)temporal_gettime(clock_exec);
         pcb_set_quantum_restante(pcb, quantum_restante);
         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
-
-        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec);
         
-        eliminar_buffer(buffer);
+        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec, contar_quantum_parametros);
+        
+        eliminar_contar_quantum_parametros(contar_quantum_parametros);
         temporal_destroy(clock_exec);
+        eliminar_buffer(buffer);
     }
 }
 
@@ -341,7 +347,7 @@ void enviar_contexto_de_ejecucion(t_pcb *pcb){
     eliminar_paquete(paquete_contexto_de_ejecucion);
 }
 
-void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_buffer *buffer, t_temporal *clock_exec){
+void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_buffer *buffer, t_temporal *clock_exec, t_contar_quantum_parametros *contar_quantum_parametros){
     sem_wait(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
 
     pthread_mutex_lock(&mutex_diccionario_procesos_a_finalizar); 
@@ -362,6 +368,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
             break;
         case INTERRUPT_QUANTUM:
             log_fin_quantum(pcb);
+            pcb_set_quantum_inicial(pcb, QUANTUM);
             pcb_set_quantum_restante(pcb, QUANTUM);
             proceso_a_ready(pcb);
             break;
@@ -396,19 +403,20 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
                         
-                        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
+                        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL, NULL);
                     }
                     else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
-                        int quantum_restante = QUANTUM - temporal_gettime(clock_exec);
+                        int quantum_restante = QUANTUM - (int)temporal_gettime(clock_exec);
                         if( quantum_restante > 0 ){
                             proceso_a_exec(pcb); // lo vuelvo a encolar en exec
                             sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
 
+                            contar_quantum_parametros_set_quantum(contar_quantum_parametros, quantum_restante);
                             enviar_contexto_de_ejecucion(pcb);
                             temporal_resume(clock_exec);
 
                             pthread_t hilo_quantum;
-                            pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)&quantum_restante);
+                            pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)contar_quantum_parametros);
                             pthread_detach(hilo_quantum);
 
                             recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
@@ -418,11 +426,11 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                             pthread_mutex_unlock(&mutex_interrupcion_quantum);
                             buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
-                            manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
+                            manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec, contar_quantum_parametros); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
                         }
                         else{
                             log_fin_quantum(pcb);
-                            // pcb_set_quantum_restante(pcb, QUANTUM); -> no es necesario xq en RR no modifico el quantum restante
+                            // pcb_set_quantum_restante(pcb, QUANTUM); -> no es necesario xq en RR no modifico el quantum restante ni el inicial
                             proceso_a_ready(pcb);
                         }
                     }
@@ -432,11 +440,12 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                             proceso_a_exec(pcb); // lo vuelvo a encolar en exec
                             sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
                             
+                            contar_quantum_parametros_set_quantum(contar_quantum_parametros, quantum_restante);
                             enviar_contexto_de_ejecucion(pcb);
                             temporal_resume(clock_exec);
 
                             pthread_t hilo_quantum;
-                            pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)&quantum_restante);
+                            pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)contar_quantum_parametros);
                             pthread_detach(hilo_quantum);
 
                             recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
@@ -444,14 +453,15 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                             pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                             pthread_cancel(hilo_quantum);
                             pthread_mutex_unlock(&mutex_interrupcion_quantum);
-                            quantum_restante = pcb_get_quantum_restante(pcb) - temporal_gettime(clock_exec);
+                            quantum_restante = pcb_get_quantum_inicial(pcb) - (int)temporal_gettime(clock_exec);
                             pcb_set_quantum_restante(pcb, quantum_restante);
                             buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
-
-                            manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
+                            
+                            manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec, contar_quantum_parametros); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
                         }
                         else{
                             log_fin_quantum(pcb);
+                            pcb_set_quantum_inicial(pcb, QUANTUM);
                             pcb_set_quantum_restante(pcb, QUANTUM);
                             proceso_a_ready(pcb);
                         }
@@ -490,19 +500,20 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                     recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
                     buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
                     
-                    manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL);
+                    manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, NULL, NULL);
                 }
                 else if( strcmp(ALGORITMO_PLANIFICACION, "RR") == 0 ){
-                    int quantum_restante = QUANTUM - temporal_gettime(clock_exec);
+                    int quantum_restante = QUANTUM - (int)temporal_gettime(clock_exec);
                     if( quantum_restante > 0 ){
                         proceso_a_exec(pcb);
                         sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
                         
+                        contar_quantum_parametros_set_quantum(contar_quantum_parametros, quantum_restante);
                         enviar_contexto_de_ejecucion(pcb);
                         temporal_resume(clock_exec);
 
                         pthread_t hilo_quantum;
-                        pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)&quantum_restante);
+                        pthread_create(&hilo_quantum, NULL, (void*)contar_quantum, (void *)contar_quantum_parametros);
                         pthread_detach(hilo_quantum);
 
                         recibir_paquete(fd_cpu_dispatch, &motivo_desalojo, buffer);
@@ -512,7 +523,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         pthread_mutex_unlock(&mutex_interrupcion_quantum);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
-                        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
+                        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec, contar_quantum_parametros); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
                     }
                     else{
                         log_fin_quantum(pcb);
@@ -526,6 +537,7 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         proceso_a_exec(pcb);
                         sem_post(&sem_estado_planificacion_exec_to_exec_or_ready_or_blocked);
 
+                        contar_quantum_parametros_set_quantum(contar_quantum_parametros, quantum_restante);
                         enviar_contexto_de_ejecucion(pcb);
                         temporal_resume(clock_exec);
 
@@ -538,14 +550,15 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                         pthread_mutex_lock(&mutex_interrupcion_quantum); // uso este mutex porq si cancelo el hilo con el mutex del socket cpu_interrupt tomado pero no libero, hago cagada y lo mas probable es q haya deadlock
                         pthread_cancel(hilo_quantum);
                         pthread_mutex_unlock(&mutex_interrupcion_quantum);
-                        quantum_restante = pcb_get_quantum_restante(pcb) - temporal_gettime(clock_exec);
+                        quantum_restante = pcb_get_quantum_inicial(pcb) - (int)temporal_gettime(clock_exec);
                         pcb_set_quantum_restante(pcb, quantum_restante);
                         buffer_desempaquetar_contexto_ejecucion(buffer, pcb); // Modifica al pcb con lo que recibe
 
-                        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
+                        manejar_motivo_desalojo(pcb, motivo_desalojo, buffer, clock_exec, contar_quantum_parametros); // -> muy probablemente tenga q mandarlo a esta funcion y mandarle tambien el quantum restante y el clock, por si otra vez desalojo por un wait o signal
                     }
                     else{
                         log_fin_quantum(pcb);
+                        pcb_set_quantum_inicial(pcb, QUANTUM);
                         pcb_set_quantum_restante(pcb, QUANTUM);
                         proceso_a_ready(pcb);
                     }
@@ -967,6 +980,7 @@ void ejecutar_instruccion_signal(t_pcb *pcb, char *nombre_recurso){
         estado_desencolar_pcb_por_pid(estado_blocked, pcb_get_pid(pcb_bloqueado)); // REVISAR SI ESTO ESTA BIEN, LA IDEA ES DESBLOQUEARLO DEL RECURSO Y TMB DE LA LISTA DE BLOQUEADOS
         pcb_set_nombre_recurso_causa_bloqueo(pcb_bloqueado, ""); // Para poder determinar que el proceso ya no esta bloqueado por ningun recurso
         // ACA PROBABLEMENTE TENGA Q HACER UN IF( LE_QUEDA_QUANTUM(PCB) ){ PROCESO_A_READY_PLUS } ELSE{ PROCESO_A_READY } -> NO! Por lo de abajo
+        pcb_set_quantum_inicial(pcb_bloqueado, QUANTUM);
         pcb_set_quantum_restante(pcb_bloqueado, QUANTUM); // -> si no entendi mal, cuando un proceso se bloquea por wait, al desbloquearse siempre vuelve a ready y con el quantum inicial. Si el algoritmo es vrr, esto tmb se debe cumplir, xq la idea del mismo es beneficiar a los procesos que hacen io, por lo q un bloqueo por recurso no deberia ser beneficiado
         proceso_a_ready(pcb_bloqueado);
     }

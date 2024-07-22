@@ -59,6 +59,7 @@ typedef struct{
 
 typedef struct{
     int pid;
+    int quantum_inicial;
     int quantum_restante;
     t_nombre_estado estado;
     uint32_t PC;
@@ -67,6 +68,11 @@ typedef struct{
     char *nombre_recurso_causa_bloqueo;
     t_dictionary *diccionario_recursos_usados;
 } t_pcb;
+
+typedef struct{
+    int quantum;
+    int pid;
+} t_contar_quantum_parametros;
 
 // Recurso
 typedef struct{

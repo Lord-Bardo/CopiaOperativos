@@ -27,9 +27,12 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                                 }
                                 else{ // es VRR
                                     if( pcb_get_quantum_restante(pcb) > 0 ){ // Le sobro quantum
+                                        pcb_set_quantum_inicial(pcb, pcb_get_quantum_restante(pcb));
                                         proceso_a_ready_plus(pcb);
                                     }
                                     else{ // Se quedo sin quantum justo cuando pidio la IO
+                                        pcb_set_quantum_inicial(pcb, QUANTUM);
+                                        pcb_set_quantum_restante(pcb, QUANTUM);
                                         proceso_a_ready(pcb);
                                     }
                                 }

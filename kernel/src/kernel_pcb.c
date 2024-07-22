@@ -1,6 +1,6 @@
 #include "../include/kernel_pcb.h"
 
-// PCB
+// PCB --------------------------------------------------
 t_pcb *crear_pcb(int pid, char* path){
     t_pcb *pcb = malloc(sizeof(t_pcb));
     if( pcb == NULL ){
@@ -9,8 +9,9 @@ t_pcb *crear_pcb(int pid, char* path){
     }
 
     pcb->pid = pid;
-    pcb->estado = NEW;
+    pcb->quantum_inicial = QUANTUM;
     pcb->quantum_restante = QUANTUM;
+    pcb->estado = NEW;
     pcb->PC = 0;
     pcb->registros.AX = 0;
     pcb->registros.BX = 0;
@@ -73,8 +74,12 @@ int pcb_get_pid(t_pcb *pcb){
     return pcb->pid;
 }
 
-t_nombre_estado pcb_get_estado(t_pcb *pcb){
-    return pcb->estado;
+int pcb_get_quantum_inicial(t_pcb *pcb){
+    return pcb->quantum_inicial;
+}
+
+void pcb_set_quantum_inicial(t_pcb *pcb, int quantum){
+    pcb->quantum_inicial = quantum;
 }
 
 int pcb_get_quantum_restante(t_pcb *pcb){
@@ -83,6 +88,10 @@ int pcb_get_quantum_restante(t_pcb *pcb){
 
 void pcb_set_quantum_restante(t_pcb *pcb, int quantum){
     pcb->quantum_restante = quantum;
+}
+
+t_nombre_estado pcb_get_estado(t_pcb *pcb){
+    return pcb->estado;
 }
 
 t_registros pcb_get_registros(t_pcb *pcb){
@@ -129,7 +138,7 @@ bool pcb_esta_bloqueado_por_recurso(t_pcb *pcb){
     return !string_is_empty(pcb_get_nombre_recurso_causa_bloqueo(pcb));
 }
 
-// Procesos a finalizar
+// PROCESOS A FINALIZAR --------------------------------------------------
 // Implementacion con diccionario
 void diccionario_procesos_a_finalizar_agregar_proceso(t_dictionary *diccionario_procesos_a_finalizar, t_pcb *pcb){
     dictionary_put(diccionario_procesos_a_finalizar, string_itoa(pcb_get_pid(pcb)), NULL);
@@ -157,3 +166,35 @@ void diccionario_procesos_a_finalizar_remover_proceso(t_dictionary *diccionario_
 // void diccionario_procesos_a_finalizar_remover_proceso(t_list *lista_procesos_a_finalizar, t_pcb *pcb){
 //     list_remove_element(lista_procesos_a_finalizar, lista_procesos_a_finalizar_buscar_pid(lista_procesos_a_finalizar, pcb));
 // }
+
+// CONTAR QUANTUM PARAMETROS --------------------------------------------------
+t_contar_quantum_parametros *crear_contar_quantum_parametros(int quantum, int pid){
+    t_contar_quantum_parametros *contar_quantum_parametros = malloc(sizeof(t_contar_quantum_parametros));
+    if( contar_quantum_parametros == NULL ){
+        log_error(kernel_logger, "Error al asignar memoria para la estructura CONTAR_QUANTUM");
+        return NULL;
+    }
+
+    contar_quantum_parametros->quantum = quantum;
+    contar_quantum_parametros->pid = pid;
+
+    return contar_quantum_parametros;
+}
+
+void eliminar_contar_quantum_parametros(t_contar_quantum_parametros *contar_quantum_parametros){
+    if( contar_quantum_parametros != NULL ){
+        free(contar_quantum_parametros);
+    }
+}
+
+int contar_quantum_parametros_get_quantum(t_contar_quantum_parametros *contar_quantum_parametros){
+    return contar_quantum_parametros->quantum;
+}
+
+void contar_quantum_parametros_set_quantum(t_contar_quantum_parametros *contar_quantum_parametros, int quantum){
+    contar_quantum_parametros->quantum = quantum;
+}
+
+int contar_quantum_parametros_get_pid(t_contar_quantum_parametros *contar_quantum_parametros){
+    return contar_quantum_parametros->pid;
+}
