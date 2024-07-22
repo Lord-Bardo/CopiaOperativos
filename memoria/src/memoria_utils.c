@@ -6,13 +6,13 @@ t_pcb_memoria* inicializar_proceso()
     t_pcb_memoria *proceso = malloc(sizeof(t_pcb_memoria));
     proceso->tabla_paginas = malloc((TAM_MEMORIA / TAM_PAGINA) * sizeof(t_pagina));
     proceso->path = NULL;
-    proceso->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char*));
+    proceso->memoria_de_instrucciones = malloc(TAM_MEMORIA * sizeof(char) * 40);
 
     for (int i = 0; i < (TAM_MEMORIA / TAM_PAGINA); i++) 
         proceso->tabla_paginas[i].num_frame = -1;
 
     for (int i = 0; i < TAM_MEMORIA; i++) 
-        proceso->memoria_de_instrucciones[i] = string_new();
+        proceso->memoria_de_instrucciones[i] = malloc(sizeof(char) * 40);
 
     // Verificar si la asignación de memoria fue exitosa
     if (proceso->tabla_paginas == NULL || proceso->memoria_de_instrucciones == NULL) {

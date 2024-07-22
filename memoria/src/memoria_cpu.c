@@ -14,7 +14,7 @@ void atender_memoria_cpu(){
 
 				// Creo estructuras necesarias.
 				int pid_fetch, pc;
-				char* instruccion = string_new(); 
+				char* instruccion = malloc(sizeof(char) * 40); 
 				if (instruccion == NULL) {
 					perror("Error al asignar memoria");
 					enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
@@ -174,7 +174,7 @@ void obtener_instruccion(int pid, int pc, char* instruccion)
 	}
 
 	// Obtengo la instrucción.
-	string_append(&instruccion,procesos[index].memoria_de_instrucciones[pc]);
+	string_append(&instruccion, procesos[index].memoria_de_instrucciones[pc]);
 }
 
 void obtener_frame(int pid, int pag, int* frame) 
