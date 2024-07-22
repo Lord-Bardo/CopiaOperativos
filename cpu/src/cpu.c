@@ -1,6 +1,6 @@
 #include "../include/cpu.h"
 
-
+int tamanio_pagina;
 
 int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
@@ -129,14 +129,19 @@ void terminar_programa(){
 
 
 void conectar_a_memoria(){
+	t_codigo_operacion handshake;
+	t_buffer *buffer = crear_buffer();
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	enviar_handshake(fd_memoria, HANDSHAKE_CPU);
-	if( recibir_handshake(fd_memoria) == HANDSHAKE_OK ){
+	recibir_paquete(fd_memoria, &handshake, buffer);
+	if( handshake == HANDSHAKE_OK ){
+		buffer_desempaquetar(buffer, tamanio_pagina);
 		log_info(cpu_logger, "Conexion con MEMORIA establecida!");
 	}
 	else{
 		log_info(cpu_logger, "No se pudo establcer conexion con MEMORIA!");
 	}
+	eliminar_buffer(buffer);
 }
 
 void aceptar_conexion_kernel_dispatch(){
