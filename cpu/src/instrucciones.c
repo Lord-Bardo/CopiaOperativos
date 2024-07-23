@@ -119,26 +119,50 @@ void ejecutarSum(char * registro_destino, char * registro_origen){ //x lo que vi
 
 	if(es_reg_chico(registro_destino)){
 		uint8_t regd = get_reg_chico(registro_destino);
-		uint8_t rego = get_reg_chico(registro_origen);
-		set_reg_chico(registro_destino, regd + rego);
+		if(es_reg_chico(registro_origen)){
+			uint8_t rego = get_reg_chico(registro_origen);
+			set_reg_chico(registro_destino, regd + rego);
+		}
+		else{
+			uint32_t rego = get_reg_grande(registro_origen);
+			set_reg_chico(registro_destino,(uint8_t)(regd+rego));
+		}
 	}
 	else{
 		uint32_t regd = get_reg_grande(registro_destino);
-		uint32_t rego = get_reg_grande(registro_origen);
-		set_reg_grande(registro_destino, regd + rego);
+		if(es_reg_chico(registro_origen)){
+			uint8_t rego =get_reg_chico(registro_origen);
+			set_reg_grande(registro_destino, regd + rego);
+		}
+		else{
+			uint32_t rego = get_reg_grande(registro_origen);
+			set_reg_grande(registro_destino, regd + rego);
+		}	
 	}
 }
 void ejecutarSub(char * registro_destino, char * registro_origen){ //x lo que vi en las pruebas siempre suman mismo tipo registros
 
 	if(es_reg_chico(registro_destino)){
 		uint8_t regd = get_reg_chico(registro_destino);
-		uint8_t rego = get_reg_chico(registro_origen);
-		set_reg_chico(registro_destino, regd - rego);
+		if(es_reg_chico(registro_origen)){
+			uint8_t rego = get_reg_chico(registro_origen);
+			set_reg_chico(registro_destino, regd - rego);
+		}
+		else{
+			uint32_t rego = get_reg_grande(registro_origen);
+			set_reg_chico(registro_destino,(uint8_t)(regd - rego));
+		}
 	}
 	else{
 		uint32_t regd = get_reg_grande(registro_destino);
-		uint32_t rego = get_reg_grande(registro_origen);
-		set_reg_grande(registro_destino, regd - rego);
+		if(es_reg_chico(registro_origen)){
+			uint8_t rego =get_reg_chico(registro_origen);
+			set_reg_grande(registro_destino, regd - rego);
+		}
+		else{
+			uint32_t rego = get_reg_grande(registro_origen);
+			set_reg_grande(registro_destino, regd - rego);
+		}	
 	}
 }
 

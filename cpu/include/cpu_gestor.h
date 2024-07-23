@@ -27,6 +27,19 @@ typedef struct nodo {
     struct nodo* siguiente;
 } nodo_t;
 
+typedef struct{
+	int pid;
+	int pagina;
+	int frame;
+	int tiempo;
+}t_entrada_tlb;
+
+typedef struct{
+	int reemplazar_fifo;
+	int tiempo_actual;
+	t_list *entradas;
+}t_tlb;
+
 typedef struct {
 	uint8_t ax;
 	uint8_t bx;
@@ -83,6 +96,7 @@ extern int salir_ciclo_instruccion;
 extern int tamanio_pagina;
 extern t_codigo_operacion motivo_desalojo;
 extern nodo_t *lista_interrupciones;
+extern t_tlb tlb;
 //HABIRA QUE PONER EL PCB ACA CREO
 extern char* IP_MEMORIA;
 extern char* PUERTO_MEMORIA;

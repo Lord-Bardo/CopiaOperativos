@@ -1,9 +1,74 @@
 #include "../include/mmu.h"
+t_tlb tlb;
 
 int min(int a, int b) {
     return (a < b) ? a : b;
 }
+int *min_puntero(int a, int b) {
+    return (a < b) ? &a : &b;
+}
 
+int consultar_tlb(int pid,int pagina){
+    t_entrada_tlb *entrada=list_find(tlb.entradas,esta_la_pagina(pid,pagina));
+
+    if(entrada!=NULL){
+        log_info(cpu_logger,"PID: %d- TLB HIT - Pagina: %d",pid,pagina);
+        return entrada->frame;
+    }
+    else{
+        log_info(cpu_logger,"PID: %d- TLB MISS - Pagina: %d",pid,pagina);
+        return -1;
+    }
+
+}
+int esta_la_pagina(void *entrada_void,int pid,int pagina){
+    t_entrada_tlb *entrada = (t_entrada_tlb *)entrada_void;
+    return ((entrada->pid ==pid )&&(entrada->pagina==pagina));
+
+}
+void agregar_entrada_tlb(int pid,int pagina, int frame){
+    t_entrada_tlb *nuevo = malloc(sizeof(t_entrada_tlb));
+    nuevo->frame=frame;
+    nuevo->pagina=pagina;
+    nuevo->pid=pid;
+    nuevo->tiempo = tlb.tiempo_actual;
+    tlb.tiempo_actual++;
+    if(list_size(tlb.entradas)<=CANTIDAD_ENTRADAS_TLB){
+        list_add(tlb.entradas,nuevo);
+    }
+    else{
+        reemplazar_entrada(nuevo);
+    }
+}
+void reemplazar_entrada(t_entrada_tlb *nuevo){
+    if(strcmp(ALGORITMO_TLB,"FIFO")==0){
+        reemplazar_fifo(nuevo);
+    }
+    else if(strcmp(ALGORITMO_TLB,"LRU")==0){
+        reemplazar_lru(nuevo);
+        
+    }
+
+} 
+void reemplazar_fifo(t_entrada_tlb * nuevo){
+    list_replace_and_destroy_element(tlb.entradas,tlb.reemplazar_fifo,nuevo,free);
+    tlb.reemplazar_fifo++;
+    if(tlb.reemplazar_fifo == CANTIDAD_ENTRADAS_TLB){
+        tlb.reemplazar_fifo=0;
+    }
+}
+void reemplazar_lru(t_entrada_tlb * nuevo){
+    t_entrada_tlb *reemplazar = list_get_minimum(tlb.entradas,comparar_tiempo);
+    list_remove_element(tlb.entradas,reemplazar);
+    free(reemplazar);
+    list_add(tlb.entradas,nuevo);
+}
+
+void *comparar_tiempo(void *entrada1_void,void * entrada2_void){
+    t_entrada_tlb * entrada1 = (t_entrada_tlb *)entrada1_void;
+    t_entrada_tlb * entrada2 = (t_entrada_tlb *)entrada2_void;
+    return (void *)min_puntero(entrada1->tiempo,entrada2->tiempo);
+}
 
 int obtener_pagina(int dl){
     return floor(dl/tamanio_pagina);
@@ -33,7 +98,7 @@ int obtener_frame(int pagina){
 
     return frame;
 }
-/*Obtener Marco: “PID: <PID> - OBTENER MARCO - Página: <NUMERO_PAGINA> - Marco: <NUMERO_MARCO>”.*/
+/*Obtener Marco: PID: <PID> - OBTENER MARCO - Página: <NUMERO_PAGINA> - Marco: <NUMERO_MARCO>.*/
 int obtener_df(int dl){
     int pagina = obtener_pagina(dl);
     int frame = obtener_frame(pagina);

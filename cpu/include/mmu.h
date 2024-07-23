@@ -23,4 +23,12 @@ void mmu_escribir(int dl,int bytes, void *valor);
 void mmu_leer(int dl, int bytes, void * valor);
 void leer_un_frame(int df, int bytes, void * dato);
 void leer_un_byte(int df,void *valor);
+
+void reemplazar_entrada(t_entrada_tlb *nuevo);
+void reemplazar_fifo(t_entrada_tlb * nuevo);
+void reemplazar_lru(t_entrada_tlb * nuevo);
+void *comparar_tiempo(void *entrada1,void * entrada2);
+void agregar_entrada_tlb(int pid,int pagina, int frame);
+int *min_puntero(int a, int b);
+
 #endif

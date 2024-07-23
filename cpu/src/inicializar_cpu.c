@@ -3,7 +3,9 @@
 void inicializar_cpu(){
     iniciar_logger();
     iniciar_config();
-	
+	tlb.entradas = list_create();
+	tlb.reemplazar_fifo =0;
+	tlb.tiempo_actual=0;
 }
 
 void iniciar_logger(){
