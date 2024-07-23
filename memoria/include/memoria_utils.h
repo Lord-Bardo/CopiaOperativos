@@ -11,14 +11,17 @@ void aumentar_proceso(t_pcb_memoria* proceso, int size);
 void reducir_proceso(t_pcb_memoria* proceso, int size);
 void obtener_frame(int pag, int* frame);
 
+
 // AUXILIARES.
 bool instruccion_valida(char* instruccion);
-int frame_libre();
+int obtener_primer_frame_libre();
 void escribir(int direc_fisica, int bytes, void* dato);
 void leer(int direc_fisica_read, int bytes_read, void* dato);
 bool comparar_pid_kernel(void* pid);
 bool comparar_pid_cpu(void* pid);
 bool comparar_pid_es(void* pid);
+t_pagina *crear_pagina();
+int asignar_frame_libre();
 
 // MANEJO DE BUFFERS.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria* proceso);

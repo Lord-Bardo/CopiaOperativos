@@ -30,33 +30,10 @@ void asignar_size_proceso(t_pcb_memoria* proceso, int size)
 {
     int i = 0, frame = 0;
     
-    while(i < size && frame <= TAM_MEMORIA/TAM_PAGINA){
-        t_pagina* pagina = malloc(sizeof(t_pagina));
-        pagina->num_frame = frame_libre();
+    while(i < size && frame < TAM_MEMORIA/TAM_PAGINA){
+        t_pagina* pagina = crear_pagina(); 
+        frame = pagina->num_frame;
         list_add(proceso->tabla_paginas, pagina);
-        obtener_frame(i, &frame); // !!!!!!!!!!!!!!!!!!!!!! Para que obtener el frame asi si ya lo tenes? Es pagina->frame
-        bitarray_set_bit(frames_libres, frame);
-
-        // t_pagina* pagina = crear_pagina(asignar_frame_libre()); -> deberia consultar por el primer frame libre y setearlo
-        // proceso_agregar_pagina_a_tabla_paginas(pagina);
-        // i++;
-
-        // t_pagina *crear_pagina(int frame){
-        //     t_pagina* pagina = malloc(sizeof(t_pagina));
-        //     if( pagina == NULL ){
-        //         log_info(memoria_logger, "Error al asignar memoria para la PAGINA!")
-        //         return NULL;
-        //     }
-        //     pagina->num_frame = frame_libre();
-        // }
-
-        // int asignar_frame_libre(){
-        //     int frame = obtener_primer_frame_libre()
-        //     bitarray_set_bit(frames_libres, frame);
-
-        //     return frame;
-        // }
-
         i++;
     }
 
@@ -78,14 +55,13 @@ void aumentar_proceso(t_pcb_memoria* proceso, int size)
 
     int i = list_size(proceso->tabla_paginas), frame = 0;
     
-    while(i < size && frame <= TAM_MEMORIA/TAM_PAGINA){
-        t_pagina* pagina = malloc(sizeof(t_pagina));
-        pagina->num_frame = frame_libre();
+    while(i < size && frame < TAM_MEMORIA/TAM_PAGINA){
+        t_pagina* pagina = crear_pagina(); 
+        frame = pagina->num_frame;
         list_add(proceso->tabla_paginas, pagina);
-        obtener_frame(i, &frame);
-        bitarray_set_bit(frames_libres, frame);;
         i++;
     }
+
     if(i == size && frame <= TAM_MEMORIA/TAM_PAGINA)
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     else{
@@ -118,6 +94,8 @@ void obtener_frame(int pag, int* frame)
 
 	// Obtengo el frame.
 	t_pagina* pagina_recibida = list_get(proceso->tabla_paginas, pag);
+    printf("IMPRIMO NUMERO DE PAG: %d\n", pag);
+    printf("IMPRIMO NUMERO DE FRAME: %d\n", pagina_recibida->num_frame);
 	*frame = pagina_recibida->num_frame;
 
 	// Log mínimo y obligatorio - Acceso a Tabla de Páginas.
@@ -149,7 +127,7 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
            strstr(instruccion, "IO_STDOUT_WRITE") == instruccion;
 }
 
-int frame_libre()
+int obtener_primer_frame_libre()
 {
     int num_frame = 0;
     while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
@@ -196,6 +174,27 @@ void leer(int direc_fisica, int bytes, void* dato)
 bool comparar_pid_kernel(void *pid){return pid_kernel == *(int*) pid;}
 bool comparar_pid_cpu(void *pid){return pid_cpu == *(int*) pid;}
 bool comparar_pid_es(void *pid){return pid_es == *(int*) pid;}
+
+t_pagina *crear_pagina()
+{
+    t_pagina* pagina = malloc(sizeof(t_pagina));
+    if( pagina == NULL ){
+        log_info(memoria_logger, "Error al asignar memoria para la PAGINA!");
+        return NULL;
+    }
+    pagina->num_frame = asignar_frame_libre();
+    
+    return pagina;
+}
+
+int asignar_frame_libre()
+{
+    int frame = obtener_primer_frame_libre();
+    log_info(memoria_logger, "IMPRIMO FRAME A ASIGNAR: %d", frame);
+    bitarray_set_bit(frames_libres, frame);
+
+    return frame;
+}
 
 // MANEJO DE BUFFER.
 void buffer_desempaquetar_proceso(t_buffer *buffer, t_pcb_memoria *proceso)

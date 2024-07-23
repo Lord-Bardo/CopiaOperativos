@@ -216,6 +216,12 @@ void ejecutarResize(char *tamanio){
 	if(respuesta==OUT_OF_MEMORY){
 		motivo_desalojo =OUT_OF_MEMORY;
 		salir_ciclo_instruccion =1;
+
+		t_paquete *paquete = crear_paquete(OUT_OF_MEMORY);
+		agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+		
+		enviar_paquete(fd_kernel_dispatch,paquete);
+		eliminar_paquete(paquete);
 	}
 	log_info(cpu_logger,"Confirmacion resize %d",respuesta);
 	//aca deberia esperar recibir el out of memory
