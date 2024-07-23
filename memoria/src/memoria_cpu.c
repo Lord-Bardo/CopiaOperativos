@@ -178,6 +178,8 @@ void resize(int size)
 	// Obtengo el proceso con el pid.
 	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu);
 
+	printf("ME IMPRIMO EL SIZE DEL PROCESO: %d", list_size(proceso->tabla_paginas));
+
 	// Si el proceso no tiene asignado páginas aún, se las creo por primera vez.
 	if(list_size(proceso->tabla_paginas) == 0)
 	    asignar_size_proceso(proceso, size);

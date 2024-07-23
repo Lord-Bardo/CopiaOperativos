@@ -17,7 +17,6 @@ int fd_memoria;
 int main(int argc, char* argv[]) {
 	// Inicializar estructuras de memoria (loggers y config)
 	inicializar_memoria();
-	//atender_memoria_cpu();
 	
 	// Inciar servidor de Memoria
 	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);
@@ -90,15 +89,15 @@ int main(int argc, char* argv[]) {
 	aceptar_conexion_kernel();
  
 //  Esperar conexion de ENTRADASALIDA
-// 	aceptar_conexion_entradasalida();
+ 	//aceptar_conexion_entradasalida();
 
 //  Atender los mensajes de CPU
 	pthread_t hilo_cpu;
 	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
 
 //  Atender los mensajes de ENTRADASALIDA
-//  pthread_t hilo_entradasalida;
-//  pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
+    //pthread_t hilo_entradasalida;
+    //pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
 
 //  Atender los mensajes de KERNEL 
 	pthread_t hilo_kernel;
@@ -106,7 +105,7 @@ int main(int argc, char* argv[]) {
 	
 //  Esperar a que los hilos finalicen su ejecucion
 	pthread_join(hilo_kernel, NULL); 
-//  pthread_join(hilo_entradasalida, NULL);
+    //pthread_join(hilo_entradasalida, NULL);
     pthread_join(hilo_cpu, NULL);
 
 

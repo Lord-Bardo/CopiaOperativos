@@ -29,9 +29,9 @@ void destruir_proceso(void* proceso_void)
 void asignar_size_proceso(t_pcb_memoria* proceso, int size)
 {
     int i = 0, frame = 0;
-    t_pagina* pagina = malloc(sizeof(t_pagina));
     
     while(i < size && frame <= TAM_MEMORIA/TAM_PAGINA){
+        t_pagina* pagina = malloc(sizeof(t_pagina));
         pagina->num_frame = frame_libre();
         list_add(proceso->tabla_paginas, pagina);
         obtener_frame(i, &frame);
@@ -56,9 +56,9 @@ void aumentar_proceso(t_pcb_memoria* proceso, int size)
     log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", proceso->pid, list_size(proceso->tabla_paginas), size);
 
     int i = list_size(proceso->tabla_paginas), frame = 0;
-    t_pagina* pagina = malloc(sizeof(t_pagina));
     
     while(i < size && frame <= TAM_MEMORIA/TAM_PAGINA){
+        t_pagina* pagina = malloc(sizeof(t_pagina));
         pagina->num_frame = frame_libre();
         list_add(proceso->tabla_paginas, pagina);
         obtener_frame(i, &frame);
