@@ -34,8 +34,29 @@ void asignar_size_proceso(t_pcb_memoria* proceso, int size)
         t_pagina* pagina = malloc(sizeof(t_pagina));
         pagina->num_frame = frame_libre();
         list_add(proceso->tabla_paginas, pagina);
-        obtener_frame(i, &frame);
+        obtener_frame(i, &frame); // !!!!!!!!!!!!!!!!!!!!!! Para que obtener el frame asi si ya lo tenes? Es pagina->frame
         bitarray_set_bit(frames_libres, frame);
+
+        // t_pagina* pagina = crear_pagina(asignar_frame_libre()); -> deberia consultar por el primer frame libre y setearlo
+        // proceso_agregar_pagina_a_tabla_paginas(pagina);
+        // i++;
+
+        // t_pagina *crear_pagina(int frame){
+        //     t_pagina* pagina = malloc(sizeof(t_pagina));
+        //     if( pagina == NULL ){
+        //         log_info(memoria_logger, "Error al asignar memoria para la PAGINA!")
+        //         return NULL;
+        //     }
+        //     pagina->num_frame = frame_libre();
+        // }
+
+        // int asignar_frame_libre(){
+        //     int frame = obtener_primer_frame_libre()
+        //     bitarray_set_bit(frames_libres, frame);
+
+        //     return frame;
+        // }
+
         i++;
     }
 
@@ -93,7 +114,7 @@ void reducir_proceso(t_pcb_memoria* proceso, int size)
 void obtener_frame(int pag, int* frame) 
 {
 	// Obtengo el proceso con el pid.
-	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu);
+	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu); // !!!!!!!!!!!!!! procesos no esta protegido y la usa cpu y kernel
 
 	// Obtengo el frame.
 	t_pagina* pagina_recibida = list_get(proceso->tabla_paginas, pag);
