@@ -6,9 +6,10 @@ int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
 	printf("ARRANQUE CPU");
 	inicializar_cpu();
+
 	conectar_a_memoria();
 	//Conexion con MEMORIA
-
+	
 	//iniciar_ciclo_instruccion(pcb);
 	// Iniciar servidor DISPATCH de CPU
 	fd_cpu_dispatch = iniciar_servidor(PUERTO_ESCUCHA_DISPATCH);
@@ -98,7 +99,7 @@ void paquete(int conexion) //esta definido en memoria.h, en cpu.h y kernel.h
 	// Leo y agrego las lineas al paquete
 	leido = readline("> ");
 	while (leido[0] != '\0')
-	{
+	{ 
 		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
 		leido = readline("> ");
 	}
@@ -129,13 +130,13 @@ void terminar_programa(){
 
 
 void conectar_a_memoria(){
-	t_codigo_operacion handshake;
-	t_buffer *buffer = crear_buffer();
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	enviar_handshake(fd_memoria, HANDSHAKE_CPU);
+	t_codigo_operacion handshake;
+	t_buffer *buffer = crear_buffer();
 	recibir_paquete(fd_memoria, &handshake, buffer);
 	if( handshake == HANDSHAKE_OK ){
-		buffer_desempaquetar(buffer, tamanio_pagina);
+		buffer_desempaquetar(buffer, &tamanio_pagina);
 		log_info(cpu_logger, "Conexion con MEMORIA establecida!");
 	}
 	else{
