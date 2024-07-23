@@ -161,6 +161,7 @@ void ejecutarJnz(char * registro_string, char * nro_instruccion_string){
 
 void ejecutarWait(char * recurso){
 	t_paquete * paquete = crear_paquete(COP_WAIT);
+	pcb.pc ++;
 	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
 	agregar_string_a_paquete(paquete, recurso);
 	enviar_paquete(fd_kernel_dispatch,paquete);
@@ -172,6 +173,7 @@ void ejecutarWait(char * recurso){
 
 void ejecutarSignal(char * recurso){
 	t_paquete * paquete = crear_paquete(COP_SIGNAL);
+	pcb.pc ++;
 	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
 	agregar_string_a_paquete(paquete, recurso);
 	enviar_paquete(fd_kernel_dispatch,paquete);
@@ -184,6 +186,7 @@ void ejecutarSignal(char * recurso){
 void ejecutarIoGenSleep(char * interfaz, char * tiempo_string){ //pasar a int el tiempo
 	t_codigo_operacion op= COP_IO_GEN_SLEEP;
 	t_paquete *paquete =crear_paquete(IO);
+	pcb.pc ++;
 	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
 	int tiempo_int = atoi(tiempo_string);
 	agregar_string_a_paquete(paquete,interfaz);

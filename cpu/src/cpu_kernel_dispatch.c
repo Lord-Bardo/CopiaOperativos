@@ -36,7 +36,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
                 mostrarInstruccion(*instr);
                 log_n_parametros(list_size(instr->argumentos),instr); //PID: <PID> - Ejecutando: <INSTRUCCION> - <PARAMETROS>
                 execute(instr);
-                if( instr->instr_code != JNZ ){
+                if(instr->instr_code != JNZ){
                     pcb.pc++;
                 }
                 mostrarPCB(pcb);
