@@ -183,7 +183,6 @@ void resize(int size)
 	    asignar_size_proceso(proceso, size);
 	
     t_pagina* pagina_recibida = list_get(proceso->tabla_paginas, 0);
-	printf("IMPRIMO NUMERO DE FRAME: %d\n", pagina_recibida->num_frame);
 
 	// Si el proceso tiene menos páginas que el size, aumento su tamaño.
 	if(list_size(proceso->tabla_paginas) < size)

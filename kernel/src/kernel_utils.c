@@ -29,7 +29,7 @@ char *estado_get_nombre_estado_string(t_nombre_estado nombre_estado){
         case EXIT:
             return "EXIT";
         default:
-            return "";
+            return "123";
     }
 }
 

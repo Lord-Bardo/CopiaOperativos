@@ -36,13 +36,13 @@ int main(int argc, char* argv[]) {
 	crear_proceso(proceso_recibido);
 	
 	// TEST - RESIZE
-	resize(123, 5);
+	resize(5);
 	printf("El tamanio del proceso es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 5.
 	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser 4.
-	resize(123, 10); // agrando el proceso.
+	resize(10); // agrando el proceso.
 	printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 10
 	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
-	resize(123, 4); // reduzco el proceso.
+	resize(4); // reduzco el proceso.
 	printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 4
 	printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1. 
 

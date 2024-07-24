@@ -17,7 +17,6 @@ int consultar_tlb(int pid,int pagina){
     }
     else{
         log_info(cpu_logger,"PID: %d- TLB MISS - Pagina: %d",pid,pagina);
-        agregar_entrada_tlb(pid,pagina,)
         return -1;
     }
 
@@ -147,7 +146,7 @@ void leer_un_frame(int df, int bytes, void * dato){
     }
     else{
         buffer_desempaquetar(buffer,dato);
-        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb.pid,df,(uint32_t)dato);
+        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb.pid,df,*(uint8_t*)dato);
     }
     eliminar_buffer(buffer);
 }
@@ -157,7 +156,6 @@ void mmu_leer(int dl, int bytes, void * valor){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
     int df = obtener_df(dl);
-    log_info(cpu_logger,"PID: %d - Acción: LEER -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,(uint8_t)valor);    
     if(bytes==1){
         leer_un_byte(df,valor);
     }
@@ -189,7 +187,6 @@ void mmu_escribir(int dl,int bytes, void *valor){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
     int df = obtener_df(dl);
-    log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,(uint8_t)valor);
     if(bytes==1){
         escribir_un_byte(df,valor);
     }
@@ -233,7 +230,7 @@ void escribir_un_frame(int df, int bytes, void *valor){
         log_info(cpu_logger,"ERROR NO SE PUDO ESCRIBIR EN MEMORIA");
     }
     else{
-        log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR - Dirección Física: %d - Valor: %d", pcb.pid,df,(uint8_t)valor);
+        log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR - Dirección Física: %d - Valor: %d", pcb.pid,df,*(uint8_t*)valor);
     }
 }
 

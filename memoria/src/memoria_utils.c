@@ -78,8 +78,9 @@ void reducir_proceso(t_pcb_memoria* proceso, int size)
     log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", proceso->pid, list_size(proceso->tabla_paginas), size);
 
     int frame;
+    int tam_original = list_size(proceso->tabla_paginas);
     
-    for(int i = list_size(proceso->tabla_paginas); i >= size; i--){
+    for(int i = tam_original - 1; i >= size; i--){
         obtener_frame(i, &frame);
         bitarray_clean_bit(frames_libres, frame);
         list_remove_and_destroy_element(proceso->tabla_paginas, i, free);
@@ -94,8 +95,7 @@ void obtener_frame(int pag, int* frame)
 
 	// Obtengo el frame.
 	t_pagina* pagina_recibida = list_get(proceso->tabla_paginas, pag);
-    printf("IMPRIMO NUMERO DE PAG: %d\n", pag);
-    printf("IMPRIMO NUMERO DE FRAME: %d\n", pagina_recibida->num_frame);
+   
 	*frame = pagina_recibida->num_frame;
 
 	// Log mínimo y obligatorio - Acceso a Tabla de Páginas.
@@ -154,6 +154,10 @@ void escribir(int direc_fisica, int bytes, void* dato)
     pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
 	memmove((char*)espacio_usuario + direc_fisica, dato, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);
+
+    uint8_t dato_escrito;
+    memcpy(&dato_escrito, (char*)espacio_usuario + direc_fisica, sizeof(uint8_t));
+    printf("Valor escrito en el espacio de usuario: %d\n", dato_escrito);
 }
 
 void leer(int direc_fisica, int bytes, void* dato)
@@ -169,6 +173,8 @@ void leer(int direc_fisica, int bytes, void* dato)
     pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
     memmove(dato, (char*)espacio_usuario + direc_fisica, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);    
+
+    printf("Valor leído del espacio de usuario: %d\n", *(uint8_t*)dato);
 }
 
 bool comparar_pid_kernel(void *pid){return pid_kernel == *(int*) pid;}
@@ -190,7 +196,6 @@ t_pagina *crear_pagina()
 int asignar_frame_libre()
 {
     int frame = obtener_primer_frame_libre();
-    log_info(memoria_logger, "IMPRIMO FRAME A ASIGNAR: %d", frame);
     bitarray_set_bit(frames_libres, frame);
 
     return frame;

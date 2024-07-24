@@ -262,12 +262,14 @@ void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
 		if(es_reg_chico(registro_datos)){
 			uint8_t valor;
 			mmu_leer(dl,1,&valor);
+			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
 			set_reg_chico(registro_datos,valor);
 		}
 		else{
 			uint32_t valor;
 			mmu_leer(dl,4,&valor);
-			set_reg_chico(registro_datos,valor);
+			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
+			set_reg_grande(registro_datos,valor);
 		}
 	}
 	else{
@@ -275,11 +277,13 @@ void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
 		if(es_reg_chico(registro_datos)){
 			uint8_t valor;
 			mmu_leer(dl,1,&valor);
-			set_reg_grande(registro_datos,valor);
+			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
+			set_reg_chico(registro_datos,valor);
 		}
 		else{
 			uint32_t valor;
 			mmu_leer(dl,4,&valor);
+			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
 			set_reg_grande(registro_datos,valor);
 		}
 	}
