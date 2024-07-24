@@ -19,8 +19,7 @@ int main(int argc, char* argv[]) {
 	inicializar_memoria();
 	
 	// Inciar servidor de Memoria
-	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);
-														
+	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);													
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
 	
 //  -----------------------------------TESTS (SIN ENVÍO Y RECIBO DE PAQUETES)---------------------------------------------------------------------
@@ -82,34 +81,31 @@ int main(int argc, char* argv[]) {
 //  ----------------------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)----------------------------------------------------------------------------------------
 
 
-//  Esperar conexion de CPU
+	// Esperar conexion de CPU
 	aceptar_conexion_cpu();
 
-//  Esperar conexion de KERNEL
+	// Esperar conexion de KERNEL
 	aceptar_conexion_kernel();
- 
-//  Esperar conexion de ENTRADASALIDA
- 	//aceptar_conexion_entradasalida();
 
-//  Atender los mensajes de CPU
+	// Esperar conexiones de interfaces ENTRADASALIDA y atender los mensajes de las interfaces ENTRADASALIDA 
+	pthread_t hilo_entradasalida;
+	pthread_create(&hilo_entradasalida, NULL, (void*)aceptar_conexiones_entradasalida, NULL);
+
+	// Atender los mensajes de CPU
 	pthread_t hilo_cpu;
 	pthread_create(&hilo_cpu, NULL, (void*)atender_memoria_cpu, NULL);
 
-//  Atender los mensajes de ENTRADASALIDA
-    //pthread_t hilo_entradasalida;
-    //pthread_create(&hilo_entradasalida, NULL, (void*)atender_memoria_entradasalida, NULL);
-
-//  Atender los mensajes de KERNEL 
+	// Atender los mensajes de KERNEL 
 	pthread_t hilo_kernel;
 	pthread_create(&hilo_kernel, NULL, (void*)atender_memoria_kernel, NULL);
 	
-//  Esperar a que los hilos finalicen su ejecucion
+	// Esperar a que los hilos finalicen su ejecucion
 	pthread_join(hilo_kernel, NULL); 
-    //pthread_join(hilo_entradasalida, NULL);
+    pthread_join(hilo_entradasalida, NULL);
     pthread_join(hilo_cpu, NULL);
 
 
-//  Finalizar MEMORIA (liberar memoria usada)
+	// Finalizar MEMORIA (liberar memoria usada)
 	terminar_programa();
 
 	return 0;
@@ -162,17 +158,29 @@ void aceptar_conexion_cpu(){
 		eliminar_paquete(paquete);
 		log_info(memoria_logger, "¡Se conectó el cliente CPU al servidor MEMORIA!");
 	}
-	else
+	else{
+		liberar_conexion(fd_cpu);
 		enviar_handshake(fd_cpu, HANDSHAKE_ERROR);
+	}
 }
 
-void aceptar_conexion_entradasalida(){
-	fd_entradasalida = esperar_cliente(fd_memoria);
-	if( recibir_handshake(fd_entradasalida) == HANDSHAKE_ENTRADASALIDA ){
-		enviar_handshake(fd_entradasalida, HANDSHAKE_OK);
-		log_info(memoria_logger, "¡Se conectó el cliente ENTRADASALIDA al servidor MEMORIA!");
-	}
-	else{
-		enviar_handshake(fd_entradasalida, HANDSHAKE_ERROR);
+void aceptar_conexiones_entradasalida(){
+	int fd_entradasalida;
+	while(1){
+		fd_entradasalida = esperar_cliente(fd_memoria);
+		if( recibir_handshake(fd_entradasalida) == HANDSHAKE_ENTRADASALIDA ){
+			enviar_handshake(fd_entradasalida, HANDSHAKE_OK);
+
+			// Atiendo los mensajes de la interfaz
+			pthread_t hilo_interfaz;
+			pthread_create(&hilo_interfaz, NULL, (void*)atender_memoria_entradasalida, (void *)&fd_entradasalida);
+			pthread_detach(hilo_interfaz);
+
+			log_info(memoria_logger, "¡Se conectó el cliente ENTRADASALIDA al servidor MEMORIA!");
+		}
+		else{
+			liberar_conexion(fd_entradasalida);
+			enviar_handshake(fd_entradasalida, HANDSHAKE_ERROR);
+		}
 	}
 }

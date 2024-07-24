@@ -44,7 +44,6 @@ extern int RETARDO_RESPUESTA;
 
 extern int fd_cpu;
 extern int fd_kernel;
-extern int fd_entradasalida;
 extern int fd_memoria;
 
 extern void* espacio_usuario; 

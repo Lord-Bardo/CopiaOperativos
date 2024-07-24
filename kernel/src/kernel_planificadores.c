@@ -847,8 +847,8 @@ void planificador_largo_plazo(){
     // Manejar NEW -> READY
     while(1){
         sem_wait(&sem_control_cambio_grado_multiprogramacion); // Este semaforo es para garantizar que la modificacion (reduccion enrealidad es lo que genera complicaciones) se haga por completo y no se sigan mandando procesos a ready -> si reduzco el grado tengo que hacer waits, pero si ya estaba en 0 el hilo q reduce se va a bloquear al igual que este hilo al intentar mandar un proceso a ready y el signal tras finalizar un proceso podria activar cualquiera de los dos hilos y, en lugar de reducir el grado seguiria mandando procesos -> con este sem me aseguro q eso no pasa 
-        sem_wait(&sem_grado_multiprogramacion);
         sem_post(&sem_control_cambio_grado_multiprogramacion);
+        sem_wait(&sem_grado_multiprogramacion);
         sem_wait(estado_get_sem(estado_new)); // debe haber elementos en la lista para poder desencolar - Pongo el wait del estado antes que el wait de la plani xq si lo hago al reves y no hay elementos en la cola, el hilo se va a bloquear con el wait de la plani tomado y nunca se va a detener la planificacion
         sem_wait(&sem_estado_planificacion_new_to_ready);
         t_pcb *pcb = estado_desencolar_primer_pcb(estado_new);

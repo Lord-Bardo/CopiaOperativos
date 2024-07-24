@@ -18,13 +18,12 @@ extern int RETARDO_RESPUESTA;
 
 extern int fd_cpu;
 extern int fd_kernel;
-extern int fd_entradasalida;
 extern int fd_memoria;
 
 //FUNCIONES
 void terminar_programa();
 void aceptar_conexion_cpu();
 void aceptar_conexion_kernel();
-void aceptar_conexion_entradasalida();
+void aceptar_conexiones_entradasalida();
 
 #endif

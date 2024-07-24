@@ -230,7 +230,7 @@ void mmu_leer(int dl, int bytes, void * valor){
         leer_un_byte(df,valor);
     }
     else{
-        if(offset==0){
+        if( offset != 0 ){
             //puede que tengamos que leer dos pags y juntarlo
             int bytes_leer = min(tamanio_pagina -offset,bytes);
             bytes -= bytes_leer;

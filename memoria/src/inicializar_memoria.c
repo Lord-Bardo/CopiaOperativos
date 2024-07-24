@@ -18,7 +18,7 @@ void iniciar_logger(void)
 
 void iniciar_config(void)
 {
-	memoria_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria_tlb.config");
+	memoria_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria_io.config");
 	if(memoria_config == NULL){
 		printf("No se pudo crear el config.");
 		exit(2);
@@ -38,7 +38,7 @@ void iniciar_variables(void)
 	pthread_mutex_init(&mutex_espacio_usuario, NULL);
 	char *puntero_a_bits = malloc((TAM_MEMORIA/TAM_PAGINA)/8);
     frames_libres = bitarray_create_with_mode(puntero_a_bits, (TAM_MEMORIA/TAM_PAGINA)/8, MSB_FIRST);
-	for(int i = 0; i < (TAM_MEMORIA/TAM_PAGINA); i++){
+	for(int i = 0; i < (TAM_MEMORIA/TAM_PAGINA); i++){ 
 		bitarray_clean_bit(frames_libres, i);
 	}
 	procesos = list_create(); //array es dinámico porque la info viene en el momento

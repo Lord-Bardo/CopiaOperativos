@@ -3,12 +3,14 @@
 
 #include "memoria_utils.h"
 
-void atender_memoria_entradasalida(void);
+void atender_memoria_entradasalida(void *fd_entradasalida_void);
 
 // Variables globales
 extern void* espacio_usuario; // Memoria contigua simulada
 extern int fd_entradasalida; // File descriptor de entrada/salida
 extern t_log* memoria_logger; // Logger para el módulo de memoria
+
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // Funciones
 //t_log* memoria_logger = log_create("memoria.log", "MEMORIA", 1, LOG_LEVEL_DEBUG);

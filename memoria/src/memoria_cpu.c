@@ -17,7 +17,7 @@ void atender_memoria_cpu(){
 
 				// Creo estructuras necesarias.
 				int pc;
-				char* instruccion = string_new(); 
+				char* instruccion = malloc(sizeof(char) * 40);
 				if (instruccion == NULL) {
 					perror("Error al asignar memoria");
 					enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
@@ -166,7 +166,9 @@ void obtener_instruccion(int pc, char* instruccion)
 	pthread_mutex_unlock(&mutex_procesos);
 
 	// Obtengo la instrucción.
-	string_append(&instruccion, list_get(proceso->memoria_de_instrucciones, pc));
+	//string_append(&instruccion, list_get(proceso->memoria_de_instrucciones, pc));
+	//*instruccion = string_duplicate(list_get(proceso->memoria_de_instrucciones, pc));
+	strcpy(instruccion, list_get(proceso->memoria_de_instrucciones, pc));
 }
 
 void resize(int size)

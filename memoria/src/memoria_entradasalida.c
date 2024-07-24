@@ -2,7 +2,8 @@
 
 int pid_es;
 
-void atender_memoria_entradasalida(){
+void atender_memoria_entradasalida(void *fd_entradasalida_void){
+	int fd_entradasalida = *(int *)fd_entradasalida_void;
     int continuar = 1;
 	while(continuar){
 		t_codigo_operacion cod_op;
