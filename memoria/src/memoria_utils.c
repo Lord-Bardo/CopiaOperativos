@@ -133,9 +133,7 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
 int obtener_primer_frame_libre()
 {
     int num_frame = 0;
-    //while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
-    bool i = bitarray_test_bit(frames_libres, num_frame) == true;
-    while(bitarray_test_bit(frames_libres, num_frame) == true)
+    while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
         num_frame++;
     return num_frame;
 }
