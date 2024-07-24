@@ -40,10 +40,12 @@ void agregar_entrada_tlb(int pid,int pagina, int frame){
     nuevo->pid=pid;
     nuevo->tiempo = tlb.tiempo_actual;
     tlb.tiempo_actual++;
-    if(list_size(tlb.entradas)<=CANTIDAD_ENTRADAS_TLB){
+    if(list_size(tlb.entradas)<CANTIDAD_ENTRADAS_TLB){
+        log_info(cpu_logger,"Agrego entrada \n");
         list_add(tlb.entradas,nuevo);
     }
     else{
+        log_info(cpu_logger,"Reemplazo entrada \n");
         reemplazar_entrada(nuevo);
     }
 }
@@ -58,6 +60,7 @@ void reemplazar_entrada(t_entrada_tlb *nuevo){
 
 } 
 void reemplazar_fifo(t_entrada_tlb * nuevo){
+    log_info(cpu_logger,"Entrada a reemplazar: %d \n",tlb.reemplazar_fifo);
     list_replace_and_destroy_element(tlb.entradas,tlb.reemplazar_fifo,nuevo,free);
     tlb.reemplazar_fifo++;
     if(tlb.reemplazar_fifo == CANTIDAD_ENTRADAS_TLB){
