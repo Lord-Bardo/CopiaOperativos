@@ -69,6 +69,9 @@ void set_reg_grande(char * registro_string, uint32_t valor){
 	if(strcmp("EDX",registro_string)== 0){
 		set_reg_edx(valor);
 	}
+    if(strcmp("PC",registro_string)== 0){
+		set_reg_pc(valor);
+	}
 }
 
 //esto va en otor lado creo
@@ -163,6 +166,10 @@ void set_reg_ecx(uint32_t valor) {
 
 void set_reg_edx(uint32_t valor) {
     pcb.registros.edx = valor;
+}
+
+void set_reg_pc(uint32_t valor) {
+    pcb.pc = valor;
 }
 
 void set_reg_di(uint32_t valor) {

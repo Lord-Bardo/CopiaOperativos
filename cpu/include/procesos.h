@@ -28,6 +28,7 @@ void set_reg_eax(uint32_t valor);
 void set_reg_ebx(uint32_t valor);
 void set_reg_ecx(uint32_t valor);
 void set_reg_edx(uint32_t valor);
+void set_reg_pc(uint32_t valor);
 void set_reg_di(uint32_t valor);
 void set_reg_si(uint32_t valor);
 

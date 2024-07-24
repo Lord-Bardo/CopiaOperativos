@@ -18,7 +18,7 @@ void iniciar_logger(void)
 
 void iniciar_config(void)
 {
-	memoria_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria_plani.config");
+	memoria_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria_tlb.config");
 	if(memoria_config == NULL){
 		printf("No se pudo crear el config.");
 		exit(2);

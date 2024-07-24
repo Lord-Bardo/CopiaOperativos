@@ -176,15 +176,17 @@ void resize(int size)
 	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu);
 	pthread_mutex_unlock(&mutex_procesos);
 
+	int cant_pags = size / TAM_PAGINA;
+
 	// Si el proceso no tiene asignado páginas aún, se las creo por primera vez.
 	if(list_size(proceso->tabla_paginas) == 0)
-	    asignar_size_proceso(proceso, size);
+	    asignar_size_proceso(proceso, cant_pags);
 
 	// Si el proceso tiene menos páginas que el size, aumento su tamaño.
-	if(list_size(proceso->tabla_paginas) < size)
-	    aumentar_proceso(proceso, size);
+	else if(list_size(proceso->tabla_paginas) < cant_pags)
+	    aumentar_proceso(proceso, cant_pags);
 	
 	// Si el proceso tiene más páginas que el size, disminuyo su tamaño.
-	if(list_size(proceso->tabla_paginas) > size)
-	    reducir_proceso(proceso, size); 	
+	else if(list_size(proceso->tabla_paginas) > cant_pags)
+	    reducir_proceso(proceso, cant_pags); 	
 }

@@ -110,6 +110,7 @@ t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
         if( pcb != NULL ){
             return pcb;
         }
+        sem_post(estado_get_sem(estado_new));
     }
     if( estado_contiene_pcbs(estado_ready) ){
         sem_wait(estado_get_sem(estado_ready)); // debe haber elementos en la lista para poder desencolar
@@ -117,6 +118,7 @@ t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
         if( pcb != NULL ){
             return pcb;
         }
+        sem_post(estado_get_sem(estado_ready));
     }
     if( estado_contiene_pcbs(estado_ready_plus) ){
         sem_wait(estado_get_sem(estado_ready_plus)); // debe haber elementos en la lista para poder desencolar
@@ -124,6 +126,7 @@ t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
         if( pcb != NULL ){
             return pcb;
         }
+        sem_post(estado_get_sem(estado_ready_plus));
     }
     if( estado_contiene_pcbs(estado_blocked) ){
         sem_wait(estado_get_sem(estado_blocked)); // debe haber elementos en la lista para poder desencolar
@@ -131,6 +134,7 @@ t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
         if( pcb != NULL ){
             return pcb;
         }
+        sem_post(estado_get_sem(estado_blocked));
     }
     if( estado_contiene_pcbs(estado_exec) ){
         sem_wait(estado_get_sem(estado_exec)); // debe haber elementos en la lista para poder desencolar
@@ -138,6 +142,7 @@ t_pcb *estado_rastrear_y_desencolar_pcb_por_pid(int pid){
         if( pcb != NULL ){
             return pcb;
         }
+        sem_post(estado_get_sem(estado_exec));
     }
     
     return pcb;

@@ -129,7 +129,7 @@ void terminar_programa(){
 }
 
 
-void conectar_a_memoria(){
+void conectar_a_memoria(){ 
 	fd_memoria = crear_conexion(IP_MEMORIA, PUERTO_MEMORIA);
 	enviar_handshake(fd_memoria, HANDSHAKE_CPU);
 	t_codigo_operacion handshake;
