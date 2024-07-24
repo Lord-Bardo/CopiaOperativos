@@ -85,8 +85,30 @@ int obtener_offset(int dl, int pagina){
     return dl - (pagina * tamanio_pagina);
 }
 int obtener_frame(int pagina){
-    int frame = consultar_tlb(pcb.pid,pagina);
-    if(frame==-1){
+    int frame;
+    if(CANTIDAD_ENTRADAS_TLB!=0){
+        frame = consultar_tlb(pcb.pid,pagina);
+        if(frame==-1){
+            t_paquete *paquete = crear_paquete(FRAME);
+            agregar_int_a_paquete(paquete,pcb.pid);
+            agregar_int_a_paquete(paquete,pagina);
+            enviar_paquete(fd_memoria,paquete);
+            eliminar_paquete(paquete);
+            t_buffer * buffer = crear_buffer();
+            t_codigo_operacion cop;
+            recibir_paquete(fd_memoria,&cop,buffer);
+            if(cop!=FRAME){
+                log_info(cpu_logger,"ERROR AL RECIBIR EL FRAME DE MEMORIA");
+            }
+            else{
+                buffer_desempaquetar(buffer,&frame);
+                log_info(cpu_logger,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
+                agregar_entrada_tlb(pcb.pid,pagina,frame);
+            }
+            eliminar_buffer(buffer);
+        }
+    }
+    else{
         t_paquete *paquete = crear_paquete(FRAME);
         agregar_int_a_paquete(paquete,pcb.pid);
         agregar_int_a_paquete(paquete,pagina);
@@ -103,9 +125,8 @@ int obtener_frame(int pagina){
             log_info(cpu_logger,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
             agregar_entrada_tlb(pcb.pid,pagina,frame);
         }
-    eliminar_buffer(buffer);
+        eliminar_buffer(buffer);
     }
-	
     return frame;
 }
 /*Obtener Marco: PID: <PID> - OBTENER MARCO - Página: <NUMERO_PAGINA> - Marco: <NUMERO_MARCO>.*/
