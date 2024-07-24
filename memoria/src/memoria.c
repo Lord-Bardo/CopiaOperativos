@@ -129,7 +129,9 @@ void terminar_programa(){
 	pthread_mutex_destroy(&mutex_procesos);
 
 	// Destruyo mis procesos, el espacio de usuario y los frames libres.
+	pthread_mutex_lock(&mutex_procesos);
 	list_destroy_and_destroy_elements(procesos, free);
+	pthread_mutex_unlock(&mutex_procesos);
 	free(espacio_usuario);
 	bitarray_destroy(frames_libres); 
 

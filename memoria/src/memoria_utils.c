@@ -91,7 +91,9 @@ void reducir_proceso(t_pcb_memoria* proceso, int size)
 void obtener_frame(int pag, int* frame) 
 {
 	// Obtengo el proceso con el pid.
-	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu); // !!!!!!!!!!!!!! procesos no esta protegido y la usa cpu y kernel
+    pthread_mutex_lock(&mutex_procesos);
+	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu);
+    pthread_mutex_unlock(&mutex_procesos);
 
 	// Obtengo el frame.
 	t_pagina* pagina_recibida = list_get(proceso->tabla_paginas, pag);

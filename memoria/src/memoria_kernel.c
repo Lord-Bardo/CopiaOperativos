@@ -44,7 +44,9 @@ void atender_memoria_kernel(){
                 buffer_desempaquetar(buffer, &pid_kernel);
 
                 // Finalizo el proceso.
+                pthread_mutex_lock(&mutex_procesos);
                 list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
+                pthread_mutex_unlock(&mutex_procesos);
 
                 //Avisar a KERNEL 
                 enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_FINALIZADO);
@@ -81,7 +83,9 @@ void crear_proceso(t_pcb_memoria *proceso)
         perror("Error al abrir el archivo");
         fclose(archivo);
         free(ruta_completa);
+        pthread_mutex_lock(&mutex_procesos);
         list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
+        pthread_mutex_unlock(&mutex_procesos);
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     }
@@ -106,7 +110,9 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Instrucción inválida en el archivo");
             fclose(archivo);
             free(ruta_completa);
+            pthread_mutex_lock(&mutex_procesos);
             list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
+            pthread_mutex_unlock(&mutex_procesos);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
@@ -117,18 +123,24 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Error al duplicar la instrucción");
             fclose(archivo);
             free(ruta_completa);
+            pthread_mutex_lock(&mutex_procesos);
             list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
+            pthread_mutex_unlock(&mutex_procesos);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
 
         // Almacenar la instrucción en memoria_de_instrucciones
+        pthread_mutex_lock(&mutex_procesos);
         list_add(proceso->memoria_de_instrucciones, instruccion);
+        pthread_mutex_unlock(&mutex_procesos);
         
         num_instruccion++;
     }
 
+    pthread_mutex_lock(&mutex_procesos);
     list_add(procesos, proceso); // Agreso el proceso a lista de procesos.
+    pthread_mutex_unlock(&mutex_procesos);
     enviar_codigo_operacion(fd_kernel, CONFIRMACION_PROCESO_INICIADO); 
 
     // Cerrar el archivo
@@ -136,13 +148,15 @@ void crear_proceso(t_pcb_memoria *proceso)
     free(ruta_completa);
     
     // Borrar una vez terminado el testeo
-    t_pcb_memoria* proceso_print = list_get(procesos, 0);
-    char* primer_instruc = list_get(proceso_print->memoria_de_instrucciones, 0);
-    char* ult_instruc = list_get(proceso_print->memoria_de_instrucciones, num_instruccion - 1);
-    printf("Imprimo primer y ultima instruccion del proceso: %d\n", proceso_print->pid);
-    printf("Primera instruccion: %s\n", primer_instruc);
-	printf("Ultima instruccion: %s\n", ult_instruc);
-	log_info(memoria_logger, "Entré a crear proceso y cree proceso %d existosamente", proceso_print->pid);
+    // pthread_mutex_lock(&mutex_procesos);
+    // t_pcb_memoria* proceso_print = list_get(procesos, 0);
+    // pthread_mutex_unlock(&mutex_procesos);
+    // char* primer_instruc = list_get(proceso_print->memoria_de_instrucciones, 0);
+    // char* ult_instruc = list_get(proceso_print->memoria_de_instrucciones, num_instruccion - 1);
+    // printf("Imprimo primer y ultima instruccion del proceso: %d\n", proceso_print->pid);
+    // printf("Primera instruccion: %s\n", primer_instruc);
+	// printf("Ultima instruccion: %s\n", ult_instruc);
+	// log_info(memoria_logger, "Entré a crear proceso y cree proceso %d existosamente", proceso_print->pid);
 }
 
 
