@@ -9,10 +9,17 @@ int *min_puntero(int a, int b) {
 }
 
 int consultar_tlb(int pid,int pagina){
-    t_entrada_tlb *entrada=list_find(tlb.entradas,esta_la_pagina(pid,pagina));
-
+    
+    bool esta_la_pagina(void *entrada_void){
+        t_entrada_tlb *entrada = (t_entrada_tlb *)entrada_void;
+        return ((entrada->pid ==pid )&&(entrada->pagina==pagina));
+    };
+    t_entrada_tlb *entrada=list_find(tlb.entradas,esta_la_pagina);
+    
     if(entrada!=NULL){
         log_info(cpu_logger,"PID: %d- TLB HIT - Pagina: %d",pid,pagina);
+        entrada->tiempo=tlb.tiempo_actual;
+        tlb.tiempo_actual++;
         return entrada->frame;
     }
     else{
@@ -21,11 +28,11 @@ int consultar_tlb(int pid,int pagina){
     }
 
 }
-int esta_la_pagina(void *entrada_void,int pid,int pagina){
-    t_entrada_tlb *entrada = (t_entrada_tlb *)entrada_void;
-    return ((entrada->pid ==pid )&&(entrada->pagina==pagina));
+// int esta_la_pagina(void *entrada_void,int pid,int pagina){
+//     t_entrada_tlb *entrada = (t_entrada_tlb *)entrada_void;
+//     return ((entrada->pid ==pid )&&(entrada->pagina==pagina));
 
-}
+// }
 void agregar_entrada_tlb(int pid,int pagina, int frame){
     t_entrada_tlb *nuevo = malloc(sizeof(t_entrada_tlb));
     nuevo->frame=frame;
@@ -78,24 +85,27 @@ int obtener_offset(int dl, int pagina){
     return dl - (pagina * tamanio_pagina);
 }
 int obtener_frame(int pagina){
-    int frame;
-	t_paquete *paquete = crear_paquete(FRAME);
-    agregar_int_a_paquete(paquete,pcb.pid);
-    agregar_int_a_paquete(paquete,pagina);
-    enviar_paquete(fd_memoria,paquete);
-    eliminar_paquete(paquete);
-    t_buffer * buffer = crear_buffer();
-    t_codigo_operacion cop;
-    recibir_paquete(fd_memoria,&cop,buffer);
-    if(cop!=FRAME){
-        log_info(cpu_logger,"ERROR AL RECIBIR EL FRAME DE MEMORIA");
-    }
-    else{
-        buffer_desempaquetar(buffer,&frame);
-        log_info(cpu_logger,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
-    }
+    int frame = consultar_tlb(pcb.pid,pagina);
+    if(frame==-1){
+        t_paquete *paquete = crear_paquete(FRAME);
+        agregar_int_a_paquete(paquete,pcb.pid);
+        agregar_int_a_paquete(paquete,pagina);
+        enviar_paquete(fd_memoria,paquete);
+        eliminar_paquete(paquete);
+        t_buffer * buffer = crear_buffer();
+        t_codigo_operacion cop;
+        recibir_paquete(fd_memoria,&cop,buffer);
+        if(cop!=FRAME){
+            log_info(cpu_logger,"ERROR AL RECIBIR EL FRAME DE MEMORIA");
+        }
+        else{
+            buffer_desempaquetar(buffer,&frame);
+            log_info(cpu_logger,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
+            agregar_entrada_tlb(pcb.pid,pagina,frame);
+        }
     eliminar_buffer(buffer);
-
+    }
+	
     return frame;
 }
 /*Obtener Marco: PID: <PID> - OBTENER MARCO - Página: <NUMERO_PAGINA> - Marco: <NUMERO_MARCO>.*/
@@ -146,7 +156,7 @@ void leer_un_frame(int df, int bytes, void * dato){
     }
     else{
         buffer_desempaquetar(buffer,dato);
-        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb.pid,df,*(uint8_t*)dato);
+        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb.pid,df,(uint32_t)dato);
     }
     eliminar_buffer(buffer);
 }
@@ -156,6 +166,7 @@ void mmu_leer(int dl, int bytes, void * valor){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
     int df = obtener_df(dl);
+    log_info(cpu_logger,"PID: %d - Acción: LEER -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,(uint8_t)valor);    
     if(bytes==1){
         leer_un_byte(df,valor);
     }
@@ -169,7 +180,7 @@ void mmu_leer(int dl, int bytes, void * valor){
             memcpy(valor, dato_parte_1 , bytes_leer);
             if(bytes>0){
                 df = obtener_df(dl + bytes_leer);
-                void * dato_parte_2 = malloc(bytes);
+                void *dato_parte_2 = malloc(bytes);
                 leer_un_frame(df,bytes,dato_parte_2);
                 memcpy(valor+bytes_leer, dato_parte_2,bytes);
                 free(dato_parte_2);
@@ -187,6 +198,7 @@ void mmu_escribir(int dl,int bytes, void *valor){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
     int df = obtener_df(dl);
+    log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,(uint8_t)valor);
     if(bytes==1){
         escribir_un_byte(df,valor);
     }
@@ -230,7 +242,7 @@ void escribir_un_frame(int df, int bytes, void *valor){
         log_info(cpu_logger,"ERROR NO SE PUDO ESCRIBIR EN MEMORIA");
     }
     else{
-        log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR - Dirección Física: %d - Valor: %d", pcb.pid,df,*(uint8_t*)valor);
+        log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR - Dirección Física: %d - Valor: %d", pcb.pid,df,(uint8_t)valor);
     }
 }
 
@@ -240,7 +252,5 @@ void escribir_un_byte(int df,void *regd){
 void leer_un_byte(int df,void *valor){
     leer_un_frame(df,1,valor);
 }
-
-
 
 
