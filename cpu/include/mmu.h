@@ -30,5 +30,6 @@ void reemplazar_lru(t_entrada_tlb * nuevo);
 void *comparar_tiempo(void *entrada1,void * entrada2);
 void agregar_entrada_tlb(int pid,int pagina, int frame);
 int *min_puntero(int a, int b);
-
+int obtener_cantidad_dirs(int dl,int tamanio);
+void mmu_agregar_dirs_tamanio_paquete(int dl,int tamanio,t_paquete *paquete);
 #endif

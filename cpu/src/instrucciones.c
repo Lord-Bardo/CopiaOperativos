@@ -326,38 +326,100 @@ void ejecutarCopyString(char *tamanio){
 }
 
 void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_tamanio){
-	//TODO
-	printf("ENTRE STDREAD");
+	/* Esta instrucción solicita al Kernel que mediante la interfaz seleccionada, 
+	se lea desde la posición de memoria indicada por la Dirección Lógica almacenada en el Registro Dirección,
+	 un tamaño indicado por el Registro Tamaño y se imprima por pantalla.*/
+	t_codigo_operacion op= COP_IO_STDIN_READ;
+	t_paquete *paquete =crear_paquete(IO);
+	pcb.pc ++;
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete,interfaz);
+	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
+	int cantidad_dirs;
+	if(es_reg_chico(registro_tamanio)){
+		uint8_t tamanio = get_reg_chico(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+	}
+	else{
+		uint32_t tamanio = get_reg_grande(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		
+	}
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio){ 
 	/*(Interfaz, Registro Dirección, Registro Tamaño): Esta instrucción solicita al Kernel 
 	que mediante la interfaz ingresada se lea desde el STDIN (Teclado) 
 	un valor cuyo tamaño está delimitado por el valor del Registro Tamaño 
 	y el mismo se guarde a partir de la Dirección Lógica almacenada en el Registro Dirección.*/
+	t_codigo_operacion op= COP_IO_STDOUT_WRITE;
+	t_paquete *paquete =crear_paquete(IO);
+	pcb.pc ++;
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete,interfaz);
+	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
+	int cantidad_dirs;
 	if(es_reg_chico(registro_tamanio)){
-		uint8_t regd = get_reg_chico(registro_tamanio);
+		uint8_t tamanio = get_reg_chico(registro_tamanio);
 		if(es_reg_chico(registro_direccion)){
 			uint8_t dl = get_reg_chico(registro_direccion);
-			
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
 		}
 		else{
 			uint32_t dl = get_reg_grande(registro_direccion);
-			
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
 		}
 	}
 	else{
-		uint32_t regd = get_reg_grande(registro_tamanio);
+		uint32_t tamanio = get_reg_grande(registro_tamanio);
 		if(es_reg_chico(registro_direccion)){
 			uint8_t dl = get_reg_chico(registro_direccion);
-			
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
 		}
 		else{
 			uint32_t dl = get_reg_grande(registro_direccion);
-			
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
 		}
 		
 	}
-	printf("ENTRE STDWRITE");
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
+	
 }
 void ejecutarIOFsCreate(char * interfaz, char * archivo){
 	t_codigo_operacion op= COP_IO_FS_CREATE;
@@ -405,11 +467,11 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 
 	if(es_reg_chico(registro_tamanio)){
 		uint8_t valor_registro = get_reg_chico(registro_tamanio);
-		agregar_a_paquete(paquete,valor_registro, sizeof(uint8_t));
+		agregar_uint8_a_paquete(paquete,valor_registro);
 	}
 	else{
 		uint32_t valor_registro = get_reg_grande(registro_tamanio);
-		agregar_a_paquete(paquete,valor_registro, sizeof(uint32_t));
+		agregar_uint32_a_paquete(paquete,valor_registro);
 	}	
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
