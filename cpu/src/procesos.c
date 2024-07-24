@@ -60,18 +60,36 @@ void set_reg_grande(char * registro_string, uint32_t valor){
     if(strcmp("EAX",registro_string)== 0){
 		set_reg_eax(valor);
 	}
-	if(strcmp("EBX",registro_string)== 0){
-		set_reg_ebx(valor);
-	}
-	if(strcmp("ECX",registro_string)== 0){
-		set_reg_ecx(valor);
-	}
-	if(strcmp("EDX",registro_string)== 0){
-		set_reg_edx(valor);
-	}
-    if(strcmp("PC",registro_string)== 0){
-		set_reg_pc(valor);
-	}
+    else{
+        if(strcmp("EBX",registro_string)== 0){
+            set_reg_ebx(valor);
+        }
+        else{
+            if(strcmp("ECX",registro_string)== 0){
+                set_reg_ecx(valor);
+            }
+            else{
+                if(strcmp("EDX",registro_string)== 0){
+                    set_reg_edx(valor);
+                }
+                else{
+                    if(strcmp("PC",registro_string)== 0){
+                        set_reg_pc(valor);
+                    }
+                    else{
+                        if(strcmp("DI",registro_string)== 0){
+                        set_reg_di(valor);
+                        }
+                        else{
+                            if(strcmp("SI",registro_string)== 0){
+                                set_reg_si(valor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 //esto va en otor lado creo

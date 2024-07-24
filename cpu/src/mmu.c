@@ -72,7 +72,7 @@ void reemplazar_lru(t_entrada_tlb * nuevo){
     log_info(cpu_logger,"Entrada a reemplazar (pagina): %d | Tiempo: %d \n", reemplazar->pagina, reemplazar->tiempo);
     list_remove_element(tlb.entradas,reemplazar);
     free(reemplazar);
-    list_add(tlb.entradas,nuevo); 
+    list_add(tlb.entradas,nuevo);
 }
 
 void *comparar_tiempo(void *entrada1_void,void * entrada2_void){
@@ -169,6 +169,35 @@ void mmu(t_direccion *direcciones, int dl, int tamanio_total){
 
 }
 
+
+void mmu_agregar_dirs_tamanio_paquete(int dl,int tamanio,t_paquete *paquete){
+    int pagina = obtener_pagina(dl);
+    int offset = obtener_offset(dl,pagina);
+    int bytes_usar=min(tamanio_pagina-offset,tamanio);
+    int df;
+    while (tamanio>0)
+    {
+        df = obtener_df(dl);
+        agregar_int_a_paquete(paquete,df);
+        agregar_int_a_paquete(paquete,bytes_usar);
+        tamanio-=bytes_usar;
+        dl+=bytes_usar;
+    }
+}
+
+int obtener_cantidad_dirs(int dl,int tamanio){
+    int pagina = obtener_pagina(dl);
+    int offset = obtener_offset(dl,pagina);
+    int i=0;
+    int bytes_usar=min(tamanio_pagina-offset,tamanio);
+    while (tamanio>0)
+    {
+        tamanio-=bytes_usar;
+        i++;
+    }
+    return i;
+
+}
 void leer_un_frame(int df, int bytes, void * dato){
     t_paquete *paquete = crear_paquete(SOLICITUD_LECTURA);
     agregar_a_paquete(paquete,&(pcb.pid),sizeof(int));
@@ -245,7 +274,7 @@ void mmu_escribir(int dl,int bytes, void *valor){
                 df = obtener_df(dl + bytes_escribir);
                 escribir_un_frame(df,bytes,dato_parte_2);
                 free(dato_parte_2);
-            } 
+            }
             free(dato_parte_1);
         }
         else{
