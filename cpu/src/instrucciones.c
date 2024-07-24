@@ -289,30 +289,30 @@ void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
 	}
 	
 }
-void ejecutarMovOut(char* registro_direrccion,char* registro_datos){
+void ejecutarMovOut(char* registro_direccion,char* registro_datos){
 	/*(Registro Dirección, Registro Datos): Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida
 	 a partir de la Dirección Lógica almacenada en el Registro Dirección.
 	*/
 	printf("ENTRE MOV OUT");
 	if(es_reg_chico(registro_datos)){
 		uint8_t regd = get_reg_chico(registro_datos);
-		if(es_reg_chico(registro_direrccion)){
-			uint8_t dl = get_reg_chico(registro_direrccion);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
 			mmu_escribir(dl,1,&regd);
 		}
 		else{
-			uint32_t dl = get_reg_grande(registro_direrccion);
+			uint32_t dl = get_reg_grande(registro_direccion);
 			mmu_escribir(dl,1,&regd);
 		}
 	}
 	else{
 		uint32_t regd = get_reg_grande(registro_datos);
-		if(es_reg_chico(registro_direrccion)){
-			uint8_t dl = get_reg_chico(registro_direrccion);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
 			mmu_escribir(dl,4,&regd);
 		}
 		else{
-			uint32_t dl = get_reg_grande(registro_direrccion);
+			uint32_t dl = get_reg_grande(registro_direccion);
 			mmu_escribir(dl,4,&regd);
 		}
 		
@@ -329,49 +329,93 @@ void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_t
 	//TODO
 	printf("ENTRE STDREAD");
 }
-void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio){ //entiendo que voy a leer un registro y ese valor es el tamanio
-	//TODO
+void ejecutarStdWrite(char * interfaz, char *registro_direccion, char * registro_tamanio){ 
+	/*(Interfaz, Registro Dirección, Registro Tamaño): Esta instrucción solicita al Kernel 
+	que mediante la interfaz ingresada se lea desde el STDIN (Teclado) 
+	un valor cuyo tamaño está delimitado por el valor del Registro Tamaño 
+	y el mismo se guarde a partir de la Dirección Lógica almacenada en el Registro Dirección.*/
+	if(es_reg_chico(registro_tamanio)){
+		uint8_t regd = get_reg_chico(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			
+		}
+	}
+	else{
+		uint32_t regd = get_reg_grande(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			
+		}
+		
+	}
 	printf("ENTRE STDWRITE");
 }
 void ejecutarIOFsCreate(char * interfaz, char * archivo){
-	t_paquete * paquete = crear_paquete(COP_IO_FS_CREATE);
-	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
-	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
+	t_codigo_operacion op= COP_IO_FS_CREATE;
+	t_paquete *paquete =crear_paquete(IO);
+	
+	pcb.pc ++;
+
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete,interfaz);
+	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
+	agregar_string_a_paquete(paquete,archivo);
+	
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
+	
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 void ejecutarIOFsDelete(char * interfaz, char * archivo){
-	t_paquete * paquete = crear_paquete(COP_IO_FS_DELETE);
-	agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
-	agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
+	t_codigo_operacion op= COP_IO_FS_DELETE;
+	t_paquete *paquete =crear_paquete(IO);
+	
+	pcb.pc ++;
+
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete,interfaz);
+	agregar_a_paquete(paquete,&op,sizeof(t_codigo_operacion));
+	agregar_string_a_paquete(paquete,archivo);
+	
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
+	
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio){
-	
+	//INTERFAZ,ARCHIVO,VALOR_REGISTRO
+	t_codigo_operacion cop=IO_FS_TRUNCATE;
+	t_paquete * paquete = crear_paquete(IO);
+	pcb.pc++;
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete,interfaz);
+	agregar_a_paquete(paquete,&cop,sizeof(t_codigo_operacion));
+	agregar_string_a_paquete(paquete,archivo);
+
 	if(es_reg_chico(registro_tamanio)){
-
 		uint8_t valor_registro = get_reg_chico(registro_tamanio);
-		t_paquete * paquete = crear_paquete(COP_IO_FS_TRUNCATE);
-		agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
-		agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
-		agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
-		enviar_paquete(fd_kernel_dispatch,paquete);
-		eliminar_paquete(paquete);
-
+		agregar_a_paquete(paquete,valor_registro, sizeof(uint8_t));
 	}
-
 	else{
-
 		uint32_t valor_registro = get_reg_grande(registro_tamanio);
-		t_paquete * paquete = crear_paquete(COP_IO_FS_TRUNCATE);
-		agregar_a_paquete(paquete, interfaz, sizeof(interfaz)+1);
-		agregar_a_paquete(paquete, archivo, sizeof(archivo)+1);
-		agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
-		enviar_paquete(fd_kernel_dispatch,paquete);
-		eliminar_paquete(paquete);
-		
+		agregar_a_paquete(paquete,valor_registro, sizeof(uint32_t));
 	}	
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 
 // t_instruccion* pedidoAMemoria(int pid, int pc) {
