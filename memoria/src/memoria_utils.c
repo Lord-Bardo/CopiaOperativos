@@ -51,9 +51,10 @@ void aumentar_proceso(t_pcb_memoria* proceso, int size)
 {
     //Log mínimo y obligatorio - Ampliación de Proceso
     printf("Log mínimo y obligatorio - Ampliación de Proceso\n");
-    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size);
+    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size*TAM_PAGINA);
 
-    int i = list_size(proceso->tabla_paginas), frame = 0;
+    int i = list_size(proceso->tabla_paginas);
+    int frame = list_size(proceso->tabla_paginas);
     
     while(i < size && frame < TAM_MEMORIA/TAM_PAGINA){
         t_pagina* pagina = crear_pagina(); 
@@ -75,7 +76,7 @@ void reducir_proceso(t_pcb_memoria* proceso, int size)
 {
     //Log mínimo y obligatorio - Reducción de Proceso
     printf("Log mínimo y obligatorio - Reducción de Proceso\n");
-    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size);
+    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size*TAM_PAGINA);
 
     int frame;
     int tam_original = list_size(proceso->tabla_paginas);
@@ -132,7 +133,9 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
 int obtener_primer_frame_libre()
 {
     int num_frame = 0;
-    while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
+    //while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
+    bool i = bitarray_test_bit(frames_libres, num_frame) == true;
+    while(bitarray_test_bit(frames_libres, num_frame) == true)
         num_frame++;
     return num_frame;
 }

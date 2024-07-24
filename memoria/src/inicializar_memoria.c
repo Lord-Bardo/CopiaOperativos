@@ -36,7 +36,7 @@ void iniciar_variables(void)
 	espacio_usuario = malloc(TAM_MEMORIA);
     memset(espacio_usuario, 0, TAM_MEMORIA);
 	pthread_mutex_init(&mutex_espacio_usuario, NULL);
-    frames_libres = bitarray_create_with_mode(espacio_usuario, (TAM_MEMORIA/TAM_PAGINA), MSB_FIRST);
+    frames_libres = bitarray_create_with_mode(espacio_usuario, (TAM_MEMORIA/TAM_PAGINA)/8, MSB_FIRST);
 	procesos = list_create(); //array es dinámico porque la info viene en el momento
 	pthread_mutex_init(&mutex_procesos, NULL);
 }

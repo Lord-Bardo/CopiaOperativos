@@ -4,9 +4,9 @@ t_tlb tlb;
 int min(int a, int b) {
     return (a < b) ? a : b;
 }
-int *min_puntero(int a, int b) {
-    return (a < b) ? &a : &b;
-}
+// int *min_puntero(int a, int b) {
+//     return (a < b) ? &a : &b;
+// }
 
 int consultar_tlb(int pid,int pagina){
     
@@ -69,15 +69,21 @@ void reemplazar_fifo(t_entrada_tlb * nuevo){
 }
 void reemplazar_lru(t_entrada_tlb * nuevo){
     t_entrada_tlb *reemplazar = list_get_minimum(tlb.entradas,comparar_tiempo);
+    log_info(cpu_logger,"Entrada a reemplazar (pagina): %d | Tiempo: %d \n", reemplazar->pagina, reemplazar->tiempo);
     list_remove_element(tlb.entradas,reemplazar);
     free(reemplazar);
-    list_add(tlb.entradas,nuevo);
+    list_add(tlb.entradas,nuevo); 
 }
 
 void *comparar_tiempo(void *entrada1_void,void * entrada2_void){
     t_entrada_tlb * entrada1 = (t_entrada_tlb *)entrada1_void;
     t_entrada_tlb * entrada2 = (t_entrada_tlb *)entrada2_void;
-    return (void *)min_puntero(entrada1->tiempo,entrada2->tiempo);
+    if( min(entrada1->tiempo,entrada2->tiempo) == entrada1->tiempo ){
+        return entrada1_void;
+    }
+    else{
+        return entrada2_void;
+    }
 }
 
 int obtener_pagina(int dl){
@@ -239,7 +245,7 @@ void mmu_escribir(int dl,int bytes, void *valor){
                 df = obtener_df(dl + bytes_escribir);
                 escribir_un_frame(df,bytes,dato_parte_2);
                 free(dato_parte_2);
-            }
+            } 
             free(dato_parte_1);
         }
         else{
