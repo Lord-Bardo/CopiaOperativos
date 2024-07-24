@@ -30,9 +30,7 @@ void atender_memoria_cpu(){
 				
 
 				// Busco y obtengo la instrucción solicitada
-				pthread_mutex_lock(&mutex_procesos); //protejo con semáfotos mutex los procesos.
 				obtener_instruccion(pc, instruccion);
-				pthread_mutex_unlock(&mutex_procesos); 
 				printf("La instruccion solicitada fue: %s\n", instruccion); // BORRAR una vez finalizado el testeo
 
 				// Empaqueto la instrucción con el opcode correspondiente y lo envío a CPU.
@@ -59,9 +57,7 @@ void atender_memoria_cpu(){
 				buffer_desempaquetar(buffer, &pag);
 				
 				// Busco y obtengo el frame.
-				pthread_mutex_lock(&mutex_procesos); //protejo con semáfotos mutex los procesos.
 				obtener_frame(pag, &frame);
-				pthread_mutex_unlock(&mutex_procesos);
 
 				// Empaqueto el frame solicitado.
 				t_paquete* paquete_frame = crear_paquete(FRAME);
@@ -86,9 +82,7 @@ void atender_memoria_cpu(){
 				buffer_desempaquetar(buffer, &size);
 
 				// Cambio el tamaño del proceso.
-				pthread_mutex_lock(&mutex_procesos); //protejo con semáfotos mutex los procesos.
 				resize(size);
-				pthread_mutex_unlock(&mutex_procesos); 
 
 				// Libero memoria.
 				eliminar_buffer(buffer);
@@ -167,7 +161,9 @@ void atender_memoria_cpu(){
 void obtener_instruccion(int pc, char* instruccion)
 {
 	// Obtengo el proceso con el pid.
+	pthread_mutex_lock(&mutex_procesos);
     t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu);
+	pthread_mutex_unlock(&mutex_procesos);
 
 	// Obtengo la instrucción.
 	string_append(&instruccion, list_get(proceso->memoria_de_instrucciones, pc));
@@ -176,13 +172,13 @@ void obtener_instruccion(int pc, char* instruccion)
 void resize(int size)
 {
 	// Obtengo el proceso con el pid.
+	pthread_mutex_lock(&mutex_procesos);
 	t_pcb_memoria* proceso = list_find(procesos, comparar_pid_cpu);
+	pthread_mutex_unlock(&mutex_procesos);
 
 	// Si el proceso no tiene asignado páginas aún, se las creo por primera vez.
 	if(list_size(proceso->tabla_paginas) == 0)
 	    asignar_size_proceso(proceso, size);
-	
-    t_pagina* pagina_recibida = list_get(proceso->tabla_paginas, 0);
 
 	// Si el proceso tiene menos páginas que el size, aumento su tamaño.
 	if(list_size(proceso->tabla_paginas) < size)
