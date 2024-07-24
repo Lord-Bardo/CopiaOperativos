@@ -931,7 +931,7 @@ void liberar_recursos_usados(t_pcb *pcb){
         liberar_recurso(pcb, nombre_recurso);
     }
 
-    list_destroy_and_destroy_elements(nombres_recursos, free);
+    list_destroy(nombres_recursos); // Cada char *nombre_recurso es liberado (free) en el signal con el dictionary_remove_and_destroy
 }
 
 void liberar_recurso(t_pcb *pcb, char *nombre_recurso){
