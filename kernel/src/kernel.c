@@ -3,7 +3,7 @@
 volatile sig_atomic_t continuar = 1;
 
 int main(int argc, char* argv[]) {	
-	// signal(SIGINT, signal_handler);	
+	// signal(SIGINT, signal_handler); 
 	
 	// Inicializar estructuras de KERNEL (loggers y config)
 	inicializar_kernel();
