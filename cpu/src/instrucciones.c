@@ -405,15 +405,15 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 
 	if(es_reg_chico(registro_tamanio)){
 		uint8_t valor_registro = get_reg_chico(registro_tamanio);
-		agregar_a_paquete(paquete,valor_registro, sizeof(u_int8_t));
+		agregar_a_paquete(paquete,valor_registro, sizeof(uint8_t));
 	}
 	else{
 		uint32_t valor_registro = get_reg_grande(registro_tamanio);
-		agregar_a_paquete(paquete,valor_registro, sizeof(u_int32_t));
+		agregar_a_paquete(paquete,valor_registro, sizeof(uint32_t));
 	}	
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
-	
+
 	salir_ciclo_instruccion =1;
 	motivo_desalojo = IO;
 }
