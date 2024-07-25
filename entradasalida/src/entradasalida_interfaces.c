@@ -155,24 +155,30 @@ void interfaz_fs_create(char* filename) {
     string_append(&path_archivo_metadata, "/");
     string_append(&path_archivo_metadata, filename);
 
-    t_config* metadata_file = config_create(path_archivo_metadata);
-    if (metadata_file == NULL) {
-        perror("Error al crear el archivo de metadata");
+    FILE* metadata_file = fopen(path_archivo_metadata, "w");
+    if(metadata_file == NULL){
+        log_error(entradasalida_logger, "Error al abrir el archivo de metadata");
+        return;
+    } 
+
+    t_config* metadata_file_config = config_create(path_archivo_metadata);
+    if (metadata_file_config == NULL) {
+        log_error(entradasalida_logger, "Error al crear el config de metadata");
         return;
     }
-    // fprintf(metadata_file, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
-    config_set_value(metadata_file, "BLOQUE_INICIAL", string_itoa(block_index));
-    config_set_value(metadata_file, "TAMANIO_ARCHIVO", "0");
+    // fprintf(metadata_file_config, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
+    config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(block_index));
+    config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", "0");
 
-    dictionary_put(metadata_dictionary_files, filename, metadata_file);
+    dictionary_put(metadata_dictionary_files, filename, metadata_file_config);
 }
 
 
 void interfaz_fs_delete(char* filename) {
-    t_config* metadata_file = dictionary_remove(metadata_dictionary_files, filename);
+    t_config* metadata_file_config = dictionary_remove(metadata_dictionary_files, filename);
 
     // Lee el bloque inicial del archivo
-    int block_index = config_get_int_value(metadata_file, "BLOQUE_INICIAL");
+    int block_index = config_get_int_value(metadata_file_config, "BLOQUE_INICIAL");
 
     // Libera el bloque en el bitarray
     bitarray_clean_bit(bitarray, block_index);
@@ -184,27 +190,27 @@ void interfaz_fs_delete(char* filename) {
     // if (remove(filename) != 0) {
     //     perror("Error al eliminar el archivo de metadata");
     // }
-    config_destroy(metadata_file);
+    config_destroy(metadata_file_config);
 }
 
 /*
 void IO_FS_TRUNCATE(char* filename, int new_size) {
     // Abrir el archivo de metadata
-    FILE* metadata_file = fopen(filename, "r+");
-    if (metadata_file == NULL) {
+    FILE* metadata_file_config = fopen(filename, "r+");
+    if (metadata_file_config == NULL) {
         perror("Error al abrir el archivo de metadata");
         return;
     }
 
     int block_index, current_size;
-    fscanf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+    fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
 
     int current_blocks = (current_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Número actual de bloques
     int new_blocks = (new_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Nuevos bloques necesarios
 
     if (new_blocks == current_blocks) {
         // No se requiere cambio de tamaño
-        fclose(metadata_file);
+        fclose(metadata_file_config);
         return;
     } else if (new_blocks < current_blocks) {
         // Reducción del tamaño del archivo
@@ -244,24 +250,24 @@ void IO_FS_TRUNCATE(char* filename, int new_size) {
     }
 
     // Actualizar el tamaño del archivo en el archivo de metadata
-    fseek(metadata_file, 0, SEEK_SET);
-    fprintf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, new_size);
-    fclose(metadata_file);
+    fseek(metadata_file_config, 0, SEEK_SET);
+    fprintf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, new_size);
+    fclose(metadata_file_config);
 }
  */
 
 /* void IO_FS_WRITE(char* filename, int offset, char* data, int size) {
     // Abre el archivo de metadata
-    FILE* metadata_file = fopen(filename, "r");
-    if (metadata_file == NULL) {
+    FILE* metadata_file_config = fopen(filename, "r");
+    if (metadata_file_config == NULL) {
         perror("Error al abrir el archivo de metadata");
         return;
     }
 
     // Lee el bloque inicial y el tamaño actual del archivo
     int block_index, current_size;
-    fscanf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
-    fclose(metadata_file);
+    fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+    fclose(metadata_file_config);
 
     // Abre el archivo de bloques
     FILE* bloques_file = fopen(BLOQUES_PATH, "rb+");
@@ -277,30 +283,30 @@ void IO_FS_TRUNCATE(char* filename, int new_size) {
 
     // Actualiza el tamaño del archivo en el archivo de metadata si es necesario
     if (offset + size > current_size) {
-        metadata_file = fopen(filename, "r+");
-        if (metadata_file == NULL) {
+        metadata_file_config = fopen(filename, "r+");
+        if (metadata_file_config == NULL) {
             perror("Error al abrir el archivo de metadata");
             return;
         }
-        fseek(metadata_file, 0, SEEK_SET);
-        fprintf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, offset + size);
-        fclose(metadata_file);
+        fseek(metadata_file_config, 0, SEEK_SET);
+        fprintf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, offset + size);
+        fclose(metadata_file_config);
     }
 }
  */
 
 /* void IO_FS_READ(char* filename, int offset, char* buffer, int size) {
     // Abre el archivo de metadata
-    FILE* metadata_file = fopen(filename, "r");
-    if (metadata_file == NULL) {
+    FILE* metadata_file_config = fopen(filename, "r");
+    if (metadata_file_config == NULL) {
         perror("Error al abrir el archivo de metadata");
         return;
     }
 
     // Lee el bloque inicial y el tamaño actual del archivo
     int block_index, current_size;
-    fscanf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
-    fclose(metadata_file);
+    fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+    fclose(metadata_file_config);
 
     // Asegúrate de no leer más allá del final del archivo
     if (offset + size > current_size) {
