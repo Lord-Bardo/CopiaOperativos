@@ -2,7 +2,7 @@
 
 
 int salir_ciclo_instruccion=0;
-t_codigo_operacion motivo_desalojo;
+t_codigo_operacion motivo_desalojo; 
 
 void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	

@@ -132,7 +132,6 @@ int obtener_frame(int pagina){
         else{
             buffer_desempaquetar(buffer,&frame);
             log_info(cpu_logger,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
-            agregar_entrada_tlb(pcb.pid,pagina,frame);
         }
         eliminar_buffer(buffer);
     }

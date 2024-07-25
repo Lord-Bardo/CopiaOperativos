@@ -6,7 +6,7 @@ void atender_cpu_memoria(){
 		t_codigo_operacion cod_op;
 		t_buffer * buffer = crear_buffer();
 		recibir_paquete(fd_memoria,&cod_op,buffer);
-		switch(cod_op){
+		switch(cod_op){ 
 			case FETCH: // ... aca hay que recibir bb recive_buffer size instruccion
 				
 				//contemplar interrupciones?

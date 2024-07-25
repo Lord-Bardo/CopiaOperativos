@@ -57,10 +57,14 @@ void interfaz_stdin(t_list *lista_direcciones){
         enviar_paquete(fd_memoria, paquete);
 
         eliminar_paquete(paquete);
-        
+        t_codigo_operacion op_code;
         /* DEFINIR CUAL VA A SER EL COD OP*/ /* VER SI ESTÁ BIEN COLOCADO ACÁ */ /* VALIDACIONES DE ERRORES */
-        recibir_codigo_operacion(fd_memoria, CONFIRMACION_ESCRITURA);
-
+        recibir_codigo_operacion(fd_memoria, &op_code);
+        if(op_code!= CONFIRMACION_ESCRITURA){
+            log_error(entradasalida_logger,"NO SE RECIBE CONFIRMACION ESCRITURA");
+            break;
+        }
+        
 	    free(textoCortado);
         
         bytesLeidos += bytes_a_enviar;
