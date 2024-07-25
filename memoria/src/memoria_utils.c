@@ -40,7 +40,7 @@ void asignar_size_proceso(t_pcb_memoria* proceso, int size)
     if(i == size && frame <= TAM_MEMORIA/TAM_PAGINA){
         // Log mínimo y obligatorio - Creación de Tabla de Páginas
         printf("Log mínimo y obligatorio - Creación de Tabla de Páginas \n");
-        log_info(memoria_logger, "PID: %d - Tamaño: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA);
+        log_info(memoria_logger_min_y_obl, "PID: %d - Tamaño: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA);
         enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
     }
     else
@@ -51,7 +51,7 @@ void aumentar_proceso(t_pcb_memoria* proceso, int size)
 {
     //Log mínimo y obligatorio - Ampliación de Proceso
     printf("Log mínimo y obligatorio - Ampliación de Proceso\n");
-    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size*TAM_PAGINA);
+    log_info(memoria_logger_min_y_obl, "PID: %d - Tamaño Actual: %d - Tamaño a Ampliar: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size*TAM_PAGINA);
 
     int i = list_size(proceso->tabla_paginas);
     int frame = list_size(proceso->tabla_paginas);
@@ -76,7 +76,7 @@ void reducir_proceso(t_pcb_memoria* proceso, int size)
 {
     //Log mínimo y obligatorio - Reducción de Proceso
     printf("Log mínimo y obligatorio - Reducción de Proceso\n");
-    log_info(memoria_logger, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size*TAM_PAGINA);
+    log_info(memoria_logger_min_y_obl, "PID: %d - Tamaño Actual: %d - Tamaño a Reducir: %d\n", proceso->pid, list_size(proceso->tabla_paginas)*TAM_PAGINA, size*TAM_PAGINA);
 
     int frame;
     int tam_original = list_size(proceso->tabla_paginas);
@@ -103,7 +103,7 @@ void obtener_frame(int pag, int* frame)
 
 	// Log mínimo y obligatorio - Acceso a Tabla de Páginas.
 	printf("Log mínimo y obligatorio - Acceso a Tabla de Páginas \n");
-	log_info(memoria_logger, "PID: %d - Pagina: %d - Marco: %d\n", proceso->pid, pag, *frame);
+	log_info(memoria_logger_min_y_obl, "PID: %d - Pagina: %d - Marco: %d\n", proceso->pid, pag, *frame);
 }
 
 // AUXILIARES.

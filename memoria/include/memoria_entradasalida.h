@@ -9,6 +9,7 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void);
 extern void* espacio_usuario; // Memoria contigua simulada
 extern int fd_entradasalida; // File descriptor de entrada/salida
 extern t_log* memoria_logger; // Logger para el módulo de memoria
+extern t_log* memoria_logger_min_y_obl; // Logger para el módulo de memoria
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

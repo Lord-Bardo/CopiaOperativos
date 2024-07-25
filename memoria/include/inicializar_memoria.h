@@ -3,9 +3,9 @@
 
 #include "memoria_utils.h"
 
-void inicializar_memoria(void);
+void inicializar_memoria(char* archivo_configuracion);
 void iniciar_logger(void);
-void iniciar_config(void);
+void iniciar_config(char* archivo_configuracion);
 void iniciar_variables(void);
 
 #endif

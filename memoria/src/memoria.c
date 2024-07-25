@@ -1,6 +1,7 @@
 #include "../include/memoria.h"
 
 t_log* memoria_logger;
+t_log* memoria_logger_min_y_obl;
 t_config* memoria_config;
 
 char *PUERTO_ESCUCHA;
@@ -15,71 +16,15 @@ int fd_entradasalida;
 int fd_memoria;
 
 int main(int argc, char* argv[]) {
+
+    char* archivo_configuracion = argv[1];
+
 	// Inicializar estructuras de memoria (loggers y config)
-	inicializar_memoria();
+	inicializar_memoria(archivo_configuracion);
 	
 	// Inciar servidor de Memoria
 	fd_memoria = iniciar_servidor(PUERTO_ESCUCHA);													
 	log_info(memoria_logger, "Servidor MEMORIA iniciado!");
-	
-//  -----------------------------------TESTS (SIN ENVÍO Y RECIBO DE PAQUETES)---------------------------------------------------------------------
-/*
-	// TEST - CREAR PROCESO
-	t_pcb_memoria *proceso_recibido = inicializar_proceso();
-	
-	num_instruccion = 0;
-	
-	proceso_recibido->pid = 123;
-	proceso_recibido->path = "/ArchivoPseudocodigo.txt"; 
-
-	crear_proceso(proceso_recibido);
-	
-	// TEST - RESIZE
-	resize(5);
-	printf("El tamanio del proceso es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 5.
-	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser 4.
-	resize(10); // agrando el proceso.
-	printf("El tamanio del proceso agrandado es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 10
-	printf("Ultimo frame asignado: %d\n", procesos[0].tabla_paginas[9].num_frame); // debería ser 9.
-	resize(4); // reduzco el proceso.
-	printf("El tamanio del proceso reducido es: %d\n", sizeof_proceso(*proceso_recibido)); // debería ser 4
-	printf("Ultimo frame liberado: %d\n", procesos[0].tabla_paginas[4].num_frame); // debería ser -1. 
-
-    // TEST OBTENER FRAME - ACCESO A TABLA DE PÁGINAS
-	int frame;
-	obtener_frame(123, 3, frame);
-
-	// TEST - FETCH
-	char* instruccion = malloc(sizeof(char));
-	obtener_instruccion(123, 5, instruccion);
-	printf("La instruccion solicitada fue: %s\n", instruccion); 
-	log_info(memoria_logger, "Se obtuvo instrucción existosamente :)");
-
-	// TEST - ESCRIBIR/LEER
-	int dato_a_escribir = 12345;
-    int direc_fisica = 100;
-
-	escribir(direc_fisica, sizeof(int), &dato_a_escribir);
-
-	int dato_escrito;
-    memcpy(&dato_escrito, (char*)espacio_usuario + direc_fisica, sizeof(int));
-    printf("Valor escrito en el espacio de usuario: %d\n", dato_escrito);
-
-	int dato_leido = 0;
-
-    leer(direc_fisica, sizeof(int), &dato_leido);
-
-    
-    printf("Valor leído del espacio de usuario: %d\n", dato_leido);
-
-    // TEST - FINALIZAR PROCESO
-	finalizar_proceso(123);
-
-	printf("PID del espacio vacío: %d\n", procesos[0].pid);
-	log_info(memoria_logger, "Finalizó el proceso existosamente :)");
-*/
-//  ----------------------------------FIN DE TEST, GRACIAS VUELVA PRONTOS :)----------------------------------------------------------------------------------------
-
 
 	// Esperar conexion de CPU
 	aceptar_conexion_cpu();
@@ -114,6 +59,9 @@ int main(int argc, char* argv[]) {
 void terminar_programa(){
     if(memoria_logger != NULL){
         log_destroy(memoria_logger);
+    }
+	if(memoria_logger_min_y_obl != NULL){
+        log_destroy(memoria_logger_min_y_obl);
     }
     
     if(memoria_config != NULL){

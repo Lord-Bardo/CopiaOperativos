@@ -104,12 +104,12 @@ void atender_memoria_cpu(){
 				dato_write = malloc(bytes_write);
 				buffer_desempaquetar(buffer, dato_write);
 
-				// Log mínimo y obligatorio - Acceso a espacio de usuario.
-				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
-				log_info(memoria_logger, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid_cpu, direc_fisica_write, bytes_write);
-
 				// Escribo en el espacio de usuario de la memoria.
 				escribir(direc_fisica_write, bytes_write, dato_write);
+
+				// Log mínimo y obligatorio - Acceso a espacio de usuario.
+				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
+				log_info(memoria_logger_min_y_obl, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid_cpu, direc_fisica_write, bytes_write);
 
 				// Envío confirmación de escritura.
 				enviar_codigo_operacion(fd_cpu, CONFIRMACION_ESCRITURA);
@@ -133,12 +133,12 @@ void atender_memoria_cpu(){
 				buffer_desempaquetar(buffer, &bytes_read);
 				dato_read = malloc(bytes_read);
 
-				// Log mínimo y obligatorio - Acceso a espacio de usuario.
-				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
-				log_info(memoria_logger, "PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid_cpu, direc_fisica_read, bytes_read);
-
 				// Leo el espacio de usuario de la memoria.
 				leer(direc_fisica_read, bytes_read, dato_read);
+
+				// Log mínimo y obligatorio - Acceso a espacio de usuario.
+				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
+				log_info(memoria_logger_min_y_obl, "PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid_cpu, direc_fisica_read, bytes_read);
 
 				// Envío dato leído.
 				t_paquete* paquete_read = crear_paquete(DATO);
@@ -166,8 +166,6 @@ void obtener_instruccion(int pc, char* instruccion)
 	pthread_mutex_unlock(&mutex_procesos);
 
 	// Obtengo la instrucción.
-	//string_append(&instruccion, list_get(proceso->memoria_de_instrucciones, pc));
-	//*instruccion = string_duplicate(list_get(proceso->memoria_de_instrucciones, pc));
 	strcpy(instruccion, list_get(proceso->memoria_de_instrucciones, pc));
 }
 

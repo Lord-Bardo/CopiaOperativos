@@ -8,6 +8,7 @@
 
 //VARIABLES GLOBALES
 extern t_log* memoria_logger;
+extern t_log* memoria_logger_min_y_obl;
 extern t_config* memoria_config;
 
 extern char *PUERTO_ESCUCHA;

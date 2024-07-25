@@ -1,9 +1,9 @@
 #include "../include/inicializar_memoria.h"
 
-void inicializar_memoria()
+void inicializar_memoria(char* archivo_configuracion)
 {
     iniciar_logger();
-    iniciar_config();
+    iniciar_config(archivo_configuracion);
 	iniciar_variables();
 }
 
@@ -14,13 +14,24 @@ void iniciar_logger(void)
 		printf("No se pudo crear el logger.");
 		exit(1);
 	}
+
+	memoria_logger_min_y_obl = log_create("memoria_min_y_obl.log", "ENTRADASALIDA", 1, LOG_LEVEL_INFO);
+	if(memoria_logger_min_y_obl == NULL){
+		perror("No se pudo crear el logger.");
+		exit(1);
+	}
 }
 
-void iniciar_config(void)
+void iniciar_config(char* archivo_configuracion)
 {
-	memoria_config = config_create("/home/utnso/tp-2024-1c-GSN/memoria/memoria_io.config");
+	char config_path[256]; 
+    sprintf(config_path, "/home/utnso/tp-2024-1c-GSN/memoria/%s", archivo_configuracion);
+
+	memoria_config = config_create(config_path);
+
 	if(memoria_config == NULL){
-		printf("No se pudo crear el config.");
+		perror("No se pudo crear el config.");
+		perror(config_path);
 		exit(2);
 	}
 

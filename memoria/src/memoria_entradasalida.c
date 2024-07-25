@@ -26,12 +26,12 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 				dato_write = malloc(bytes_write);
 				buffer_desempaquetar(buffer, dato_write);
 
-				// Log mínimo y obligatorio - Acceso a espacio de usuario.
-				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
-				log_info("PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid_es, direc_fisica_write, bytes_write);
-
 				// Escribo en el espacio de usuario de la memoria.
 				escribir(direc_fisica_write, bytes_write, dato_write);
+
+				// Log mínimo y obligatorio - Acceso a espacio de usuario.
+				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
+				log_info(memoria_logger_min_y_obl, "PID: %d - Accion: ESCRIBIR - Direccion fisica: %d - Tamaño: %d", pid_es, direc_fisica_write, bytes_write);
 
 				// Envío confirmación de escritura.
 				enviar_codigo_operacion(fd_entradasalida, CONFIRMACION_ESCRITURA);
@@ -55,12 +55,12 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 				buffer_desempaquetar(buffer, &bytes_read);
 				dato_read = malloc(bytes_read);
 
-				// Log mínimo y obligatorio - Acceso a espacio de usuario.
-				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
-				log_info("PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid_es, direc_fisica_read, bytes_read);
-
 				// Leo el espacio de usuario de la memoria.
 				leer(direc_fisica_read, bytes_read, dato_read);
+
+				// Log mínimo y obligatorio - Acceso a espacio de usuario.
+				printf("Log mínimo y obligatorio - Acceso a espacio de usuario\n");
+				log_info(memoria_logger_min_y_obl, "PID: %d - Accion: LEER - Direccion fisica: %d - Tamaño: %d", pid_es, direc_fisica_read, bytes_read);
 
 				// Envío dato leído.
 				t_paquete* paquete_read = crear_paquete(DATO);
