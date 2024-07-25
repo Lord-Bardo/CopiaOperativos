@@ -684,8 +684,8 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                                 agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
                                 
                                 // Desempaqueto los parametros de la operacion y los agrego al paquete
-                                char *path_archivo = buffer_desempaquetar_string(buffer);
-                                agregar_string_a_paquete(paquete_solicitud_io, path_archivo);
+                                char *nombre_archivo = buffer_desempaquetar_string(buffer);
+                                agregar_string_a_paquete(paquete_solicitud_io, nombre_archivo);
                                 
                                 // Creo la solicitud de entrada salida
                                 t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
@@ -704,8 +704,8 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                                 agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
                                 
                                 // Desempaqueto los parametros de la operacion y los agrego al paquete
-                                char *path_archivo = buffer_desempaquetar_string(buffer);
-                                agregar_string_a_paquete(paquete_solicitud_io, path_archivo);
+                                char *nombre_archivo = buffer_desempaquetar_string(buffer);
+                                agregar_string_a_paquete(paquete_solicitud_io, nombre_archivo);
                                 
                                 // Creo la solicitud de entrada salida
                                 t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
@@ -720,9 +720,77 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                             case COP_IO_FS_TRUNCATE:
                                 break;
                             case COP_IO_FS_WRITE:
+                            {
+                                // Creo el paquete con la operacion a realizar y agrego el pid del proceso
+                                t_paquete *paquete_solicitud_io = crear_paquete(operacion);
+                                agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
+                                
+                                // Desempaqueto los parametros de la operacion y los agrego al paquete
+                                char *nombre_archivo = buffer_desempaquetar_string(buffer);
+                                agregar_string_a_paquete(paquete_solicitud_io, nombre_archivo);
+
+                                int puntero_archivo;
+                                buffer_desempaquetar(buffer, &puntero_archivo);
+                                agregar_int_a_paquete(paquete_solicitud_io, puntero_archivo);
+
+                                int cantidad_direcciones;
+                                buffer_desempaquetar(buffer, &cantidad_direcciones);
+                                agregar_int_a_paquete(paquete_solicitud_io, cantidad_direcciones);
+                                
+                                int direccion_fisica, bytes;
+                                for(int i = 0; i < cantidad_direcciones; i++){
+                                    buffer_desempaquetar(buffer, &direccion_fisica);
+                                    agregar_int_a_paquete(paquete_solicitud_io, direccion_fisica);
+                                    buffer_desempaquetar(buffer, &bytes);
+                                    agregar_int_a_paquete(paquete_solicitud_io, bytes);
+                                }
+
+                                // Creo la solicitud de entrada salida
+                                t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
+                                
+                                // Bloqueo al proceso
+                                proceso_a_blocked(pcb, nombre_interfaz);
+                                
+                                // Encolo la solicitud
+                                interfaz_encolar_solicitud_io(interfaz, solicitud_io);
                                 break;
+                            }
                             case COP_IO_FS_READ:
+                            {
+                                // Creo el paquete con la operacion a realizar y agrego el pid del proceso
+                                t_paquete *paquete_solicitud_io = crear_paquete(operacion);
+                                agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
+                                
+                                // Desempaqueto los parametros de la operacion y los agrego al paquete
+                                char *nombre_archivo = buffer_desempaquetar_string(buffer);
+                                agregar_string_a_paquete(paquete_solicitud_io, nombre_archivo);
+
+                                int puntero_archivo;
+                                buffer_desempaquetar(buffer, &puntero_archivo);
+                                agregar_int_a_paquete(paquete_solicitud_io, puntero_archivo);
+
+                                int cantidad_direcciones;
+                                buffer_desempaquetar(buffer, &cantidad_direcciones);
+                                agregar_int_a_paquete(paquete_solicitud_io, cantidad_direcciones);
+                                
+                                int direccion_fisica, bytes;
+                                for(int i = 0; i < cantidad_direcciones; i++){
+                                    buffer_desempaquetar(buffer, &direccion_fisica);
+                                    agregar_int_a_paquete(paquete_solicitud_io, direccion_fisica);
+                                    buffer_desempaquetar(buffer, &bytes);
+                                    agregar_int_a_paquete(paquete_solicitud_io, bytes);
+                                }
+
+                                // Creo la solicitud de entrada salida
+                                t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
+                                
+                                // Bloqueo al proceso
+                                proceso_a_blocked(pcb, nombre_interfaz);
+                                
+                                // Encolo la solicitud
+                                interfaz_encolar_solicitud_io(interfaz, solicitud_io);
                                 break;
+                            }
                             default:
                                 proceso_a_exit(pcb, FINALIZACION_INVALID_INTERFACE);
                                 // sem_post(&sem_grado_multiprogramacion);
