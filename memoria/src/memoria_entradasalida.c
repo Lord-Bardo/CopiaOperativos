@@ -75,7 +75,6 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de ENTRADASALIDA");
-				break;
 		}
 	}
 }

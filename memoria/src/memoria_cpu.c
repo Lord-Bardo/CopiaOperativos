@@ -153,7 +153,6 @@ void atender_memoria_cpu(){
 
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de CPU");
-				break;
 		}
 	}
 }
