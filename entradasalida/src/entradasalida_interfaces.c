@@ -131,7 +131,7 @@ void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones, int pid){
     }
     
 }
-/* 
+
 void interfaz_fs_create(char* filename) {
     // Busca un bloque libre en el bitmap
     int block_index = -1;
@@ -160,7 +160,7 @@ void interfaz_fs_create(char* filename) {
     fprintf(metadata_file, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
     fclose(metadata_file);
 }
- */
+
 
 /*
 void interfaz_fs_delete(char* filename) {
