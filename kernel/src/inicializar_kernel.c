@@ -23,7 +23,7 @@ void inicializar_logger(){
 
 void inicializar_config(){
     // Creo el kernel_config
-	kernel_config = config_create("/home/utnso/tp-2024-1c-GSN/kernel/kernel_se.config");
+	kernel_config = config_create("/home/utnso/tp-2024-1c-GSN/kernel/kernel_io.config");
 	if(kernel_config == NULL){
 		perror("No se pudo crear el config.");
 		exit(2);
