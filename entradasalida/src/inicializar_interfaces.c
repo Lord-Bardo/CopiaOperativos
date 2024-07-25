@@ -130,20 +130,22 @@ void crear_archivo_bloques(){
 }
 
 // MATI: Crearia una estructura para el bitmap y mandaria la creacion del bitmap a una funcion aparte. Idem bloque de datos
-// typedef struct{
-//     void *data;
-//     int size;
-//     t_bitarray *bitarray;
-// } t_bitmap;
 
 void crear_bitmap(){
     // Le asigno el path al archivo de bloques
     char *path_bitmap = string_duplicate(PATH_BASE_DIALFS);
     string_append(&path_bitmap, "/bitmap.dat");
     
-    bitmap_fd = open(path_bitmap, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
-    if (bitmap_fd == -1) {
-        perror("Error al abrir bitmap.dat");
+    int bitmap_fd = open(path_bitmap, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    if( bitmap_fd == -1 ){
+        log_info(entradasalida_logger, "Error al abrir bitmap.dat");
+        exit(1);
+    }
+
+    // fstat se usa para obtener información sobre el archivo de bitmap
+    struct stat st;
+    if( fstat(bitmap_fd, &st) == -1 ){
+        log_info(entradasalida_logger, "Error al obtener información del bitmap");
         exit(1);
     }
 
@@ -151,17 +153,10 @@ void crear_bitmap(){
     // teniendo en cuenta que pueden ser necesarios bits adicionales si el número de bloques no es un múltiplo exacto de 8 (por eso el + si no da un multiplo exactao)
     size_t bitmap_size = (BLOCK_COUNT / 8) + (BLOCK_COUNT % 8 != 0);
 
-    // fstat se usa para obtener información sobre el archivo de bitmap
-    struct stat st;
-    if (fstat(bitmap_fd, &st) == -1) {
-        perror("Error al obtener información del bitmap");
-        exit(1);
-    }
-
     // Si el tamaño del archivo es 0, se inicializa el tamaño del archivo a bitmap_size usando ftruncate
-    if (st.st_size == 0) {
-        if (ftruncate(bitmap_fd, bitmap_size) == -1) {
-            perror("Error al inicializar el tamaño del bitmap");
+    if( st.st_size == 0 ){
+        if( ftruncate(bitmap_fd, bitmap_size) == -1 ){
+            log_info(entradasalida_logger, "Error al inicializar el tamaño del bitmap");
             exit(1);
         }
     }
@@ -173,20 +168,19 @@ void crear_bitmap(){
     //   - MAP_SHARED: Los cambios en el mapeo se reflejan en el archivo 
     //   - bitmap_fd: Descriptor de archivo del bitmap
     //   - 0: Desplazamiento desde el inicio del archivo
-    /* mmap se usa para mapear el archivo en memoria, lo que permite un acceso más eficiente a los datos del bitmap. Necesitas un file descriptor para esta operación, y open es la forma estándar de obtenerlo. */
-    bitmap_data = mmap(NULL, bitmap_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
-    if (bitmap_data == MAP_FAILED) {
-        perror("Error al mapear el archivo del bitmap");
+    /* mmap se usa para mapear el archivo en memoria, lo que permite un acceso más eficiente a los datos del bitmap. Necesitas un file descriptor para esta operación, y open es la forma estándar de obtenerlo. */ 
+    void *bitmap_data = mmap(NULL, bitmap_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
+    if( bitmap_data == MAP_FAILED ){
+        log_info(entradasalida_logger, "Error al mapear el archivo del bitmap");
         close(bitmap_fd);
         exit(1);
     }
 
     // Crear el bitarray
     // se usa para crear el bitarray utilizando los datos mapeados en memoria. MSB_FIRST indica que el bit más significativo es el primero
-    /* Ver si usar MSB O LSB */
-    bitarray = bitarray_create_with_mode(bitmap_data, bitmap_size, MSB_FIRST);
-    if (bitarray == NULL) {
-        perror("Error al crear el bitarray");
+    bitmap = bitarray_create_with_mode(bitmap_data, bitmap_size, MSB_FIRST);
+    if( bitmap == NULL ){
+        log_info(entradasalida_logger, "Error al crear el bitarray");
         // munmap se usa para liberar la región de memoria mapeada
         //  - bitmap_data es el puntero a la región de memoria mapeada.
         //  - bitmap_size es el tamaño de la región de memoria a desmapear.
@@ -196,21 +190,32 @@ void crear_bitmap(){
         close(bitmap_fd);
         exit(1);
     }
+        
+    // Vamos seteando en
+    int i = 0;
+    bool bit = false;
+    while( bit == false && i < BLOCK_COUNT ){
+        bit = bitarray_test_bit(bitmap, i);
+        if( bit == false ){
+            bitarray_clean_bit(bitmap, i);
+        }
+        i++;
+    }
+    msync(bitmap_data, bitmap->size, MS_SYNC);
 
-    // Inicializar el bitarray si es un nuevo archivo
     /* Se repite el if, ver si puedo hacerlo de otra manera */
     if (st.st_size == 0) {
         // memset se usa para establecer todos los bits del bitarray a 0, marca todos los bloques del sistema de archivos como libres
         //  - bitarray->bitarray es el puntero a la región de memoria que representa el bitarray
         //  - 0 es el valor con el que se inicializa cada byte (todos los bits en 0)
         //  - bitmap_size es el tamaño total de la región de memoria a inicializar
-        memset(bitarray->bitarray, 0, bitmap_size);
+        memset(bitmap->bitarray, 0, bitmap_size);
 
         // msync se usa para asegurarse de que los cambios realizados en la región de memoria mapeada se escriban en el archivo en disco
         //  - bitmap_data es el puntero a la región de memoria mapeada
         //  - bitmap_size es el tamaño de la región de memoria a sincronizar /* LE PUSE BITARRAY SIZE AHORA */
         //  - MS_SYNC es una bandera que indica que la función debe bloquearse hasta que los cambios estén escritos en el disco
-        msync(bitmap_data, bitarray->size, MS_SYNC);
+        msync(bitmap_data, bitmap->size, MS_SYNC);
     }
 
     close(bitmap_fd);

@@ -136,9 +136,9 @@ void interfaz_fs_create(char* filename) {
     // Busca un bloque libre en el bitmap
     int block_index = -1;
     for (int i = 0; i < BLOCK_COUNT; i++) {
-        if (!bitarray_test_bit(bitarray, i)) {
+        if (!bitarray_test_bit(bitmap, i)) {
             block_index = i;
-            bitarray_set_bit(bitarray, i);
+            bitarray_set_bit(bitmap, i);
             break;
         }
     }
@@ -148,7 +148,7 @@ void interfaz_fs_create(char* filename) {
         return;
     }
 
-    msync(bitmap_data, bitarray->size, MS_SYNC);
+    msync(bitmap_data, bitmap->size, MS_SYNC);
 
     // Creo el archivo de metadata
     char *path_archivo_metadata = string_duplicate(PATH_BASE_DIALFS);

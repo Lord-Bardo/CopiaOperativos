@@ -27,11 +27,11 @@ int fd_memoria;
 int fd_entradasalida;
 
 // Puntero a una estructura de tipo t_bitarray que se usará para gestionar el bitmap
-t_bitarray* bitarray; 
-// Puntero que va a apuntar al área de memoria donde el archivo del bitmap va a ser mapeado
-void* bitmap_data;
-// File descriptor que se va a usar para manejar el archivo bitmap.dat
-int bitmap_fd;
+t_bitarray* bitmap; 
+// // Puntero que va a apuntar al área de memoria donde el archivo del bitmap va a ser mapeado
+// void* bitmap_data;
+// // File descriptor que se va a usar para manejar el archivo bitmap.dat
+// int bitmap_fd;
 // Lista de archivos metadata
 t_dictionary* metadata_dictionary_files;
 
