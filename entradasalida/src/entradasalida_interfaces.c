@@ -48,6 +48,7 @@ void interfaz_stdin(t_list *lista_direcciones, int pid){
         // Considerando el caso donde bytesLeidos es 10 y bytesTexto es 16:
         // bytesTexto - bytesLeidos = 6 bytes restantes.
         // Si el próximo bytes_a_enviar es 8, se ajusta a 6 para no exceder los bytes restantes
+        /* REVISAR ESTO !! */
 
         // Creo el texto a enviar
         void *textoCortado = malloc(bytes_a_enviar);
@@ -68,7 +69,6 @@ void interfaz_stdin(t_list *lista_direcciones, int pid){
         eliminar_paquete(paquete);
 
         t_codigo_operacion op_code;
-        /* DEFINIR CUAL VA A SER EL COD OP*/ /* VER SI ESTÁ BIEN COLOCADO ACÁ */ /* VALIDACIONES DE ERRORES */
         recibir_codigo_operacion(fd_memoria, &op_code);
         if(op_code!= CONFIRMACION_ESCRITURA){
             log_error(entradasalida_logger,"NO SE RECIBE CONFIRMACION ESCRITURA");
@@ -89,7 +89,7 @@ void interfaz_stdin(t_list *lista_direcciones, int pid){
                 // la cómo 
                 // andas/0
 
-	free(texto); // Es necesario?
+	free(texto);
 }
 
 void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones, int pid){
@@ -151,31 +151,28 @@ void interfaz_fs_create(char* filename) {
     msync(bitmap_data, bitarray->size, MS_SYNC);
 
     // Creo el archivo de metadata
-    FILE* metadata_file = fopen(filename, "w");
+    char *path_archivo_metadata = string_duplicate(PATH_BASE_DIALFS);
+    string_append(&path_archivo_metadata, "/");
+    string_append(&path_archivo_metadata, filename);
+
+    t_config* metadata_file = config_create(path_archivo_metadata);
     if (metadata_file == NULL) {
         perror("Error al crear el archivo de metadata");
         return;
     }
-    // USAR CONFIG_SET_VALUE 
-    fprintf(metadata_file, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
-    fclose(metadata_file);
+    // fprintf(metadata_file, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
+    config_set_value(metadata_file, "BLOQUE_INICIAL", string_itoa(block_index));
+    config_set_value(metadata_file, "TAMANIO_ARCHIVO", "0");
+
+    dictionary_put(metadata_dictionary_files, filename, metadata_file);
 }
 
 
-/*
 void interfaz_fs_delete(char* filename) {
-    // Abro el archivo de metadata
-    FILE* metadata_file = fopen(filename, "r");
-    if (metadata_file == NULL) {
-        perror("Error al abrir el archivo de metadata");
-        return;
-    }
+    t_config* metadata_file = dictionary_remove(metadata_dictionary_files, filename);
 
     // Lee el bloque inicial del archivo
-    int block_index;
-    // USAR CONFIG_GET_VALUE 
-    fscanf(metadata_file, "BLOQUE_INICIAL=%d\n", &block_index);
-    fclose(metadata_file);
+    int block_index = config_get_int_value(metadata_file, "BLOQUE_INICIAL");
 
     // Libera el bloque en el bitarray
     bitarray_clean_bit(bitarray, block_index);
@@ -184,12 +181,13 @@ void interfaz_fs_delete(char* filename) {
     msync(bitmap_data, bitarray->size, MS_SYNC);
 
     // Elimina el archivo de metadata
-    if (remove(filename) != 0) {
-        perror("Error al eliminar el archivo de metadata");
-    }
+    // if (remove(filename) != 0) {
+    //     perror("Error al eliminar el archivo de metadata");
+    // }
+    config_destroy(metadata_file);
 }
-/* 
 
+/*
 void IO_FS_TRUNCATE(char* filename, int new_size) {
     // Abrir el archivo de metadata
     FILE* metadata_file = fopen(filename, "r+");

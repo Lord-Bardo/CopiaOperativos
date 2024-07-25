@@ -46,7 +46,7 @@ void execute(t_instruccion *instruccion){
 		log_info(cpu_logger,"ENTRE AL EXIT");
 		salir_ciclo_instruccion=1;
 		motivo_desalojo = SUCCESS;
-		enviar_pcb_kernel(motivo_desalojo); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		enviar_pcb_kernel(motivo_desalojo);
 		break;
 	case SET:
 		ejecutarSet(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1));
@@ -434,7 +434,7 @@ void ejecutarIOFsCreate(char * interfaz, char * archivo){
 	t_codigo_operacion op= COP_IO_FS_CREATE;
 	t_paquete *paquete =crear_paquete(IO);
 	
-	pcb.pc ++;
+	pcb.pc++;
 
 	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
 	agregar_string_a_paquete(paquete,interfaz);
@@ -444,9 +444,10 @@ void ejecutarIOFsCreate(char * interfaz, char * archivo){
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 	
-	salir_ciclo_instruccion =1;
+	salir_ciclo_instruccion = 1;
 	motivo_desalojo = IO;
 }
+
 void ejecutarIOFsDelete(char * interfaz, char * archivo){
 	t_codigo_operacion op= COP_IO_FS_DELETE;
 	t_paquete *paquete =crear_paquete(IO);
@@ -464,6 +465,7 @@ void ejecutarIOFsDelete(char * interfaz, char * archivo){
 	salir_ciclo_instruccion =1;
 	motivo_desalojo = IO;
 }
+
 void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio){
 	//INTERFAZ,ARCHIVO,VALOR_REGISTRO
 	t_codigo_operacion cop=IO_FS_TRUNCATE;

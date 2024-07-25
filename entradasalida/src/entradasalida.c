@@ -1,6 +1,4 @@
 #include "../include/entradasalida.h"
-void* bitmap_data = NULL;
-int	bitmap_fd = -1;
 
 int main(int argc, char* argv[]) {
 	
@@ -34,7 +32,6 @@ int main(int argc, char* argv[]) {
 	// Espera a que los hilos finalicen su ejecución
 	pthread_join(hilo_kernel, NULL);
 	pthread_join(hilo_memoria, NULL);
-	/* Consulta para mati: en que momento terminarian la ejecución de los hilos */
 
 	// Deberia finalizar filesystem tambien -- ver como implementarlo
 	/* if (dialfs_inicializado){

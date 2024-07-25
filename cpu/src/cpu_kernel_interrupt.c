@@ -26,7 +26,7 @@ void atender_cpu_kernel_interrupt(){
 				eliminar_buffer(buffer);
 				insertar_ordenado_lista_interrupciones(interrupcion);
 				break;
-			case INTERRUPT_USER:
+			case INTERRUPT_USER: 
 				log_info(cpu_logger, "Me llego una interrupcion de quantum de kernel");
 				buffer_desempaquetar(buffer,&pid_interrupcion);
 				interrupcion.pid=pid_interrupcion;

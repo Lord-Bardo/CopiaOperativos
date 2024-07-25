@@ -46,4 +46,6 @@ extern t_bitarray* bitarray;
 extern void* bitmap_data;
 extern int bitmap_fd;
 
+extern t_dictionary* metadata_dictionary_files;
+
 #endif
