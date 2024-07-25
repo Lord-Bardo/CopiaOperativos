@@ -39,7 +39,7 @@ void atender_entradasalida_kernel(){
                     list_add(lista_direcciones, direccion);
                 }              
 
-                interfaz_stdin(lista_direcciones);
+                interfaz_stdin(lista_direcciones, pid_proceso);
 
                 list_destroy_and_destroy_elements(lista_direcciones, free);
 
@@ -61,7 +61,7 @@ void atender_entradasalida_kernel(){
                     list_add(lista_direcciones, direccion);
                 }              
 
-                interfaz_stdout(lista_direcciones, cant_direcciones);
+                interfaz_stdout(lista_direcciones, cant_direcciones, pid_proceso);
                 
                 list_destroy_and_destroy_elements(lista_direcciones, free);
 

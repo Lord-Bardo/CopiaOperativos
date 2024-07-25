@@ -116,7 +116,7 @@ int obtener_frame(int pagina){
             }
             eliminar_buffer(buffer);
         }
-    }
+    } 
     else{
         t_paquete *paquete = crear_paquete(FRAME);
         agregar_int_a_paquete(paquete,pcb.pid);

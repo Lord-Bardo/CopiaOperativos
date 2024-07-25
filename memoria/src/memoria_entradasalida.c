@@ -34,7 +34,7 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 				escribir(direc_fisica_write, bytes_write, dato_write);
 
 				// Envío confirmación de escritura.
-				enviar_codigo_operacion(fd_cpu, CONFIRMACION_ESCRITURA);
+				enviar_codigo_operacion(fd_entradasalida, CONFIRMACION_ESCRITURA);
 
 				// Libero memoria.
 				eliminar_buffer(buffer);
@@ -65,7 +65,7 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 				// Envío dato leído.
 				t_paquete* paquete_read = crear_paquete(DATO);
 				agregar_a_paquete(paquete_read, dato_read, bytes_read);
-				enviar_paquete(fd_cpu, paquete_read);
+				enviar_paquete(fd_entradasalida, paquete_read);
 
 				// Libero memoria.
 				eliminar_buffer(buffer);

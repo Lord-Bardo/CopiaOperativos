@@ -14,7 +14,7 @@ void interfaz_generica(int cant_unidades_trabajo) {
 }
 
 // SOPORTE: lista de direcciones fisicas - tamaño total (preguntar)
-void interfaz_stdin(t_list *lista_direcciones){
+void interfaz_stdin(t_list *lista_direcciones, int pid){
     char *texto;
 	texto = readline("Ingrese el texto a escribir en MEMORIA: ");
 
@@ -28,35 +28,46 @@ void interfaz_stdin(t_list *lista_direcciones){
     int indice = 0;
 
     while(bytesLeidos < bytesTexto){
-        t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); 
+        t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA);
+        agregar_int_a_paquete(paquete, pid);
 
         t_direccion* t_direccion = list_get(lista_direcciones, indice);
         int df_a_enviar  = t_direccion->direccion_fisica;
         int bytes_a_enviar = t_direccion->bytes;
 
-        agregar_a_paquete(paquete, df_a_enviar, sizeof(int));
-        agregar_a_paquete(paquete, bytes_a_enviar, sizeof(int));
+        agregar_int_a_paquete(paquete, df_a_enviar);
+        agregar_int_a_paquete(paquete, bytes_a_enviar);
 
         // Calculo el tamaño del texto a enviar
         int bytes_restantes = bytesTexto - bytesLeidos;
+        log_info(entradasalida_logger, "FALTAN ESCRIBIR %d BYTES!", bytes_restantes);
         if (bytes_restantes < bytes_a_enviar) {
             bytes_a_enviar = bytes_restantes;
         }
+        log_info(entradasalida_logger, "VOY A ENVIAR %d BYTES!", bytes_a_enviar);
 
         // Considerando el caso donde bytesLeidos es 10 y bytesTexto es 16:
         // bytesTexto - bytesLeidos = 6 bytes restantes.
         // Si el próximo bytes_a_enviar es 8, se ajusta a 6 para no exceder los bytes restantes
 
         // Creo el texto a enviar
-        char *textoCortado = malloc(bytes_a_enviar + 1);
+        void *textoCortado = malloc(bytes_a_enviar);
         memmove(textoCortado, texto + bytesLeidos, bytes_a_enviar);
-        textoCortado[bytes_a_enviar] = '\0';
+        //textoCortado[bytes_a_enviar] = '\0';
 
-        agregar_string_a_paquete(paquete, textoCortado);
+        char *cadena_a_enviar = malloc(bytes_a_enviar+1);
+        memcpy(cadena_a_enviar, textoCortado, bytes_a_enviar);
+        cadena_a_enviar[bytes_a_enviar] = '\0';
+        log_info(entradasalida_logger, "VOY A ENVIAR LA CADENA: %s", cadena_a_enviar);
+        free(cadena_a_enviar);
+        
+        agregar_a_paquete(paquete, textoCortado, bytes_a_enviar);
+        //agregar_string_a_paquete(paquete, textoCortado);
 
         enviar_paquete(fd_memoria, paquete);
 
         eliminar_paquete(paquete);
+
         t_codigo_operacion op_code;
         /* DEFINIR CUAL VA A SER EL COD OP*/ /* VER SI ESTÁ BIEN COLOCADO ACÁ */ /* VALIDACIONES DE ERRORES */
         recibir_codigo_operacion(fd_memoria, &op_code);
@@ -82,28 +93,35 @@ void interfaz_stdin(t_list *lista_direcciones){
 	free(texto); // Es necesario?
 }
 
-void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones){
-    char* texto;
+void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones, int pid){
+    char* texto = string_new();
     for (int i = 0; i < cant_direcciones; i++)
     {
         t_paquete* paquete = crear_paquete(SOLICITUD_LECTURA);
+        agregar_int_a_paquete(paquete, pid);
         
         t_direccion* t_direccion = list_get(lista_direcciones, i);
         int df_a_enviar  = t_direccion->direccion_fisica;
         int bytes_a_enviar = t_direccion->bytes;
 
-        agregar_a_paquete(paquete, df_a_enviar, sizeof(int));
-        agregar_a_paquete(paquete, bytes_a_enviar, sizeof(int));
+        agregar_int_a_paquete(paquete, df_a_enviar);
+        agregar_int_a_paquete(paquete, bytes_a_enviar);
 
         enviar_paquete(fd_memoria, paquete);
         eliminar_paquete(paquete);
 
         /* DEFINIR COMO ME VA A TRAER LOS DATOS QUE LE MANDO ASÍ LOS PUEDO GUARDAR EN EL TEXTO */
         /* LECTURA_RESPUESTA DEBERIA SER CONFIRMACIÓN_LECTURA */
+        t_codigo_operacion op_code;
         t_buffer *buffer = crear_buffer(); 
-        recibir_paquete(fd_memoria,LECTURA_RESPUESTA, buffer);
+        recibir_paquete(fd_memoria, &op_code, buffer);
+        if( op_code != DATO){
+            log_error(entradasalida_logger,"NO SE RECIBE DATO");
+            break;
+        }
         char* textoTemporal = buffer_desempaquetar_string(buffer);
-        strcat(texto,textoTemporal);
+        string_append(&texto, textoTemporal);
+        free(textoTemporal);
     }
 
 
