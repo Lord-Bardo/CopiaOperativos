@@ -15,7 +15,8 @@ int obtener_frame(int pagina);
 int obtener_bytes(int offset,int tamanio_total);
 void mmu(t_direccion *direcciones, int dl, int tamanio_total);
 int obtener_pagina(int dl);
-
+void mmu_escribir_copy_string(int dl,int tamanio,void * cadena);
+void mmu_leer_copy_string(int dl,int tamanio,void * cadena);
 void escribir_un_byte(int df,void *regd);
 void escribir_un_frame(int df, int bytes, void *valor);
 void mmu_escribir(int dl,int bytes, void *valor);
