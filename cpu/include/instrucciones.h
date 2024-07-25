@@ -26,6 +26,8 @@ void ejecutarSignal(char * recurso);
 void ejecutarIOFsCreate(char * interfaz, char * archivo);
 void ejecutarIOFsDelete(char * interfaz, char * archivo);
 void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio);
+void ejecutarIOFsWrite(char * interfaz, char * archivo,char* registro_direccion, char * registro_tamanio, char * registro_puntero);
+void ejecutarIOFsRead(char * interfaz, char * archivo,char* registro_direccion, char * registro_tamanio, char * registro_puntero);
 
 t_instruccion* crear_instruccion();
 void inicializarInstruccion(t_instruccion* instr, t_instr_code code, char* args[5]);

@@ -97,8 +97,10 @@ void execute(t_instruccion *instruccion){
 		ejecutarIOFsTruncate(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2));
 		break;
 	case IO_FS_WRITE:
+		ejecutarIOFsWrite(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2),list_get(instruccion->argumentos,3),list_get(instruccion->argumentos,4));
 		break;
 	case IO_FS_READ:
+		ejecutarIOFsRead(list_get(instruccion->argumentos,0),list_get(instruccion->argumentos,1),list_get(instruccion->argumentos,2),list_get(instruccion->argumentos,3),list_get(instruccion->argumentos,4));
 		break;
 	default:
 		break;
@@ -477,7 +479,7 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 	agregar_string_a_paquete(paquete,archivo);
 
 	if(es_reg_chico(registro_tamanio)){
-		uint8_t valor_registro = get_reg_chico(registro_tamanio);
+		uint8_t valor_registro = get_reg_chico(registro_tamanio);//puede generar un problema para lucho si esempaqueta un string
 		agregar_uint8_a_paquete(paquete,valor_registro);
 	}
 	else{
@@ -490,20 +492,112 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 	salir_ciclo_instruccion =1;
 	motivo_desalojo = IO;
 }
+void ejecutarIOFsRead(char * interfaz, char * archivo,char* registro_direccion, char * registro_tamanio, char * registro_puntero){
+//(Interfaz, Nombre Archivo, Registro Dirección, Registro Tamaño, Registro Puntero Archivo)
+	t_codigo_operacion cop=IO_FS_READ;
+	t_paquete * paquete = crear_paquete(IO);
+	pcb.pc++;
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete,interfaz);
+	agregar_a_paquete(paquete,&cop,sizeof(t_codigo_operacion));
+	agregar_string_a_paquete(paquete,archivo);
+	
+	if(es_reg_chico(registro_puntero)){
+		uint8_t puntero =get_reg_chico(registro_puntero);	
+		agregar_uint8_a_paquete(paquete,puntero); 
+	}
+	else{
+		uint32_t puntero = get_reg_grande(registro_puntero);
+		agregar_uint32_a_paquete(paquete,puntero);
+	}
 
-// t_instruccion* pedidoAMemoria(int pid, int pc) {
-//     // Simulación de obtención de instrucción de memoria
-//     char* args[5] = {"EDX", "69", NULL, "arg4", "arg5"};
-//     t_instruccion* instr = (t_instruccion*) malloc(sizeof(t_instruccion));
-//     if (instr == NULL) {
-//         printf("Error al asignar memoria para la instrucción\n");
-//         return NULL;
-//     }
-//      printf("Op Code PEDIDOmemoria: %d\n", SET);
-//     inicializarInstruccion(instr, EXIT, args);
-//     return instr;
-// }
+	int cantidad_dirs;
+	if(es_reg_chico(registro_tamanio)){
+		uint8_t tamanio = get_reg_chico(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+	}
+	else{
+		uint32_t tamanio = get_reg_grande(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		
+	}
 
+
+}
+void ejecutarIOFsWrite(char * interfaz, char * archivo,char* registro_direccion, char * registro_tamanio, char * registro_puntero){
+//Interfaz, Nombre Archivo, Registro Dirección, Registro Tamaño, Registro Puntero Archivo
+	t_codigo_operacion cop=IO_FS_WRITE;
+	t_paquete * paquete = crear_paquete(IO);
+	pcb.pc++;
+	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
+	agregar_string_a_paquete(paquete,interfaz);
+	agregar_a_paquete(paquete,&cop,sizeof(t_codigo_operacion));
+	agregar_string_a_paquete(paquete,archivo);
+	
+	if(es_reg_chico(registro_puntero)){
+		uint8_t puntero =get_reg_chico(registro_puntero);	
+		agregar_uint8_a_paquete(paquete,puntero); 
+	}
+	else{
+		uint32_t puntero = get_reg_grande(registro_puntero);
+		agregar_uint32_a_paquete(paquete,puntero);
+	}
+
+	int cantidad_dirs;
+	if(es_reg_chico(registro_tamanio)){
+		uint8_t tamanio = get_reg_chico(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+	}
+	else{
+		uint32_t tamanio = get_reg_grande(registro_tamanio);
+		if(es_reg_chico(registro_direccion)){
+			uint8_t dl = get_reg_chico(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		else{
+			uint32_t dl = get_reg_grande(registro_direccion);
+			cantidad_dirs=obtener_cantidad_dirs((int)dl,(int)tamanio);
+			agregar_int_a_paquete(paquete,cantidad_dirs);
+			mmu_agregar_dirs_tamanio_paquete((int)dl,(int)tamanio,paquete);
+		}
+		
+	}
+}
 
 
 int obtener_numero_instruccion(char * cadena){
