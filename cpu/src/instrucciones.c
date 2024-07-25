@@ -319,10 +319,19 @@ void ejecutarMovOut(char* registro_direccion,char* registro_datos){
 	}
 	
 }
-void ejecutarCopyString(char *tamanio){
+void ejecutarCopyString(char *tamanio_string){
 	/*Toma del string apuntado por el registro SI y copia la cantidad de bytes
 	 indicadas en el parámetro tamaño a la posición de memoria apuntada por el registro DI.*/
-    printf("entre copy string");
+    printf("entre copy string \n");
+
+	int tamanio = atoi(tamanio_string);
+	int dl_leer = (int)get_reg_si();
+	void * cadena = malloc(tamanio);
+	mmu_leer_copy_string(dl_leer,tamanio,cadena);
+	log_info(cpu_logger,"La cadena resultado es : %s",cadena);
+	int dl_escribir = (int)get_reg_di();
+	mmu_escribir_copy_string(dl_escribir,tamanio,cadena);
+	free(cadena);
 }
 
 void ejecutarStdRead(char* interfaz, char *registro_direccion, char * registro_tamanio){

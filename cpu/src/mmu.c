@@ -167,15 +167,46 @@ void mmu(t_direccion *direcciones, int dl, int tamanio_total){
     }
 
 }
+void mmu_leer_copy_string(int dl,int tamanio,void *cadena){
+    int pagina = obtener_pagina(dl);
+    int offset = obtener_offset(dl,pagina);
+    int bytes_leidos;
+    int df;
+    int desplazamiento=0;
+    char *aux=malloc(tamanio+1);
+    
+    while(tamanio>0){
+        bytes_leidos=min(tamanio_pagina-offset,tamanio);
+        df=obtener_df(dl);
+        
+        void * dato_partido=malloc(bytes_leidos);
+        leer_un_frame(df,bytes_leidos,dato_partido);
+        memcpy(cadena+desplazamiento,dato_partido,bytes_leidos);
 
+        //SE PUEDE BORRAR
+        memmove(aux+desplazamiento,dato_partido,bytes_leidos);
+        aux[desplazamiento+bytes_leidos]='\0';
+        log_info(cpu_logger,"Estado cadena : %s",aux);
+        //HASTA ACA
+        
+        free(dato_partido);
+        tamanio-=bytes_leidos;
+        offset=0;
+        dl+=bytes_leidos;
+        desplazamiento+=bytes_leidos;
+    }
+    free(aux);
+
+}
 
 void mmu_agregar_dirs_tamanio_paquete(int dl,int tamanio,t_paquete *paquete){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
-    int bytes_usar=min(tamanio_pagina-offset,tamanio);
+    int bytes_usar;
     int df;
     while (tamanio>0)
     {
+        bytes_usar=min(tamanio_pagina-offset,tamanio);
         df = obtener_df(dl);
         agregar_int_a_paquete(paquete,df);
         agregar_int_a_paquete(paquete,bytes_usar);
@@ -183,7 +214,36 @@ void mmu_agregar_dirs_tamanio_paquete(int dl,int tamanio,t_paquete *paquete){
         dl+=bytes_usar;
     }
 }
+void mmu_escribir_copy_string(int dl,int tamanio,void * cadena){
 
+    int pagina = obtener_pagina(dl);
+    int offset = obtener_offset(dl,pagina);
+    int bytes_usar;
+    int df;
+    int copiar_desde=0;
+    while (tamanio>0)
+    {
+        bytes_usar= min(tamanio_pagina-offset,tamanio);
+        df = obtener_df(dl);
+        void *textoCortado = malloc(bytes_usar);
+        memmove(textoCortado, cadena + copiar_desde, bytes_usar);
+
+        //ESTO LO HAGO PARA VER QUE ESCRIBE NADA MAS
+        char *cadena_a_enviar = malloc(bytes_usar+1);
+        memcpy(cadena_a_enviar, textoCortado, bytes_usar);
+        cadena_a_enviar[bytes_usar] = '\0';
+        log_info(cpu_logger, "VOY A ENVIAR LA CADENA: %s", cadena_a_enviar);
+        free(cadena_a_enviar);
+        //PODES BORRAR HASTA ACA
+
+        escribir_un_frame(df,bytes_usar,textoCortado);
+        tamanio-=bytes_usar;
+        dl+=bytes_usar;
+        copiar_desde+=bytes_usar;
+        free(textoCortado);
+        offset=0;
+    }
+}
 int obtener_cantidad_dirs(int dl,int tamanio){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
@@ -214,7 +274,10 @@ void leer_un_frame(int df, int bytes, void * dato){
     }
     else{
         buffer_desempaquetar(buffer,dato);
-        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb.pid,df,(uint32_t)dato);
+        char * aux=malloc(bytes+1);
+        memcpy(aux,dato,bytes);
+        aux[bytes]='\0';
+        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb.pid,df,aux);
     }
     eliminar_buffer(buffer);
 }
