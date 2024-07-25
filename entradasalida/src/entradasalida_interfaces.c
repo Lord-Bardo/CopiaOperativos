@@ -159,7 +159,7 @@ void interfaz_fs_create(char* filename) {
     if(metadata_file == NULL){
         log_error(entradasalida_logger, "Error al abrir el archivo de metadata");
         return;
-    } 
+    }
 
     t_config* metadata_file_config = config_create(path_archivo_metadata);
     if (metadata_file_config == NULL) {
@@ -169,6 +169,8 @@ void interfaz_fs_create(char* filename) {
     // fprintf(metadata_file_config, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
     config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(block_index));
     config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", "0");
+    
+    config_save(metadata_file_config); // Ver de manejar error
 
     dictionary_put(metadata_dictionary_files, filename, metadata_file_config);
 }
@@ -185,12 +187,15 @@ void interfaz_fs_delete(char* filename) {
 
     // Sincronizar los cambios en el bitarray con el archivo bitmap
     msync(bitmap_data, bitarray->size, MS_SYNC);
+    
+    char *path_archivo_metadata = string_duplicate(metadata_file_config->path);
 
     // Elimina el archivo de metadata
-    // if (remove(filename) != 0) {
-    //     perror("Error al eliminar el archivo de metadata");
-    // }
-    config_destroy(metadata_file_config);
+    if (remove(path_archivo_metadata) != 0) {
+        log_error(entradasalida_logger, "Error al eliminar el archivo de metadata");
+    }
+
+    config_destroy(metadata_file_config);    
 }
 
 /*
