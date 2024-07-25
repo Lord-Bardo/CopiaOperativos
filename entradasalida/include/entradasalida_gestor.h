@@ -42,5 +42,7 @@ extern int fd_memoria;
 extern int fd_entradasalida;
 
 extern t_bitarray* bitarray; 
+extern void* bitmap_data;
+extern int bitmap_fd;
 
 #endif

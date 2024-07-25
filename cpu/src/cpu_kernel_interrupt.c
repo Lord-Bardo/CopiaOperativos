@@ -5,7 +5,7 @@
 REcordemos prioridad de interrpts:
 	-CLock
 	-IO
-	-NO SE
+	-New
 */
 nodo_t *lista_interrupciones=NULL; 
 

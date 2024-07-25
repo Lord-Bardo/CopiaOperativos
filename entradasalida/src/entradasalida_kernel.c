@@ -23,6 +23,7 @@ void atender_entradasalida_kernel(){
                 interfaz_generica(cant_unidades_trabajo);
 
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
+                /* MATI - ¿NECESITAS EL PID CON ESTA INTERFAZ? */
                 break; // Para salir del switch, sino intenta desempaquetar denuevo
             case COP_IO_STDIN_READ:
                 // IO_STDIN_READ Int2 EAX AX
@@ -68,17 +69,26 @@ void atender_entradasalida_kernel(){
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
             }
-            case COP_IO_FS_CREATE:
-                // IO_FS_CREATE Int4 notas.txt
-                char* filename = buffer_desempaquetar_string(buffer);
+            // case COP_IO_FS_CREATE:
+            // {
+            //     // IO_FS_CREATE Int4 notas.txt
+            //     char* filename = buffer_desempaquetar_string(buffer);
 
-                interfaz_fs_create(filename);
+            //     interfaz_fs_create(filename);
 
-                free(filename);
-                enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
-                break;
-            case COP_IO_FS_DELETE:
-                break;
+            //     free(filename);
+            //     enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
+            //     break;
+            // }
+            // case COP_IO_FS_DELETE:
+            //     // IO_FS_DELETE Int4 notas.txt
+            //     char* filename = buffer_desempaquetar_string(buffer);
+
+            //     interfaz_fs_delete(filename);
+
+            //     free(filename);
+            //     enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
+            //     break;
             case COP_IO_FS_TRUNCATE:
                 break;
             case COP_IO_FS_WRITE:

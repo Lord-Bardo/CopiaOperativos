@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
 	inicializar_cpu();
 
 	conectar_a_memoria();
-	//Conexion con MEMORIA
+	//Conexion con MEMORIA 
 	
 	//iniciar_ciclo_instruccion(pcb);
 	// Iniciar servidor DISPATCH de CPU

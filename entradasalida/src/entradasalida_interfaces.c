@@ -10,7 +10,6 @@ void interfaz_generica(int cant_unidades_trabajo) {
     usleep(tiempo_total);
     log_info(entradasalida_logger, "E/S: deje de hacer un sleep");
 
-    /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
 }
 
 // SOPORTE: lista de direcciones fisicas - tamaño total (preguntar)
@@ -124,8 +123,6 @@ void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones, int pid){
         free(textoTemporal);
     }
 
-
-    /* HACER UN STRCAT PARA UNIR LAS CADENAS */
     if (texto != NULL) {
         log_info(entradasalida_logger, "TEXTO LEIDO: %s", texto); // Preguntar si puede ser así o tiene que ser un printf u otra cosa
         free(texto);
@@ -134,51 +131,7 @@ void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones, int pid){
     }
     
 }
-
-// void interfaz_stdout(char* registro_direccion, char* registro_tamanio) {
-//     solicitar_datos_a_memoria(registro_direccion, atoi(registro_tamanio));
-
-//     char* texto = recibir_datos_de_memoria(atoi(registro_tamanio));
-    
-//     if (texto != NULL) {
-//         log_info(entradasalida_logger, "TEXTO LEIDO: %s", texto);
-//         /* Agregar log obligatorio: Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>" */
-//         free(texto);
-//     } else {
-//         log_error(entradasalida_logger, "Error al recibir datos de memoria.\n");
-//     }
-// }
-
-/* VER DE USAR ESTA FUNCION ASÍ LA UNIFICO PARA STDIN Y ST */
-// void solicitar_datos_a_memoria(char* direccion_fisica, int tamanio){
-//     t_paquete* paquete = crear_paquete(SOLICITUD_LECTURA);
-
-//     agregar_a_paquete(paquete, direccion_fisica, sizeof(char*));
-//     agregar_a_paquete(paquete, tamanio, sizeof(int));
-
-//     enviar_paquete(fd_memoria, paquete);
-
-//     eliminar_paquete(paquete);
-// }
-
-// char* recibir_datos_de_memoria(int tamanio) {
-//     t_buffer* buffer = crear_buffer();
-//     t_codigo_operacion cod_operacion;
-//     recibir_paquete(fd_memoria, &cod_operacion, buffer);
-
-//     /* Poner logica para leer cod operacion */
-//     char* texto = malloc(tamanio + 1);
-//     if (texto != NULL) {
-//         buffer_desempaquetar(buffer, texto);
-//         /* Poner desempaquetar string */
-//         texto[tamanio] = '\0';
-//     }
-
-//     eliminar_buffer(buffer);
-
-//     return texto;
-// }
-
+/* 
 void interfaz_fs_create(char* filename) {
     // Busca un bloque libre en el bitmap
     int block_index = -1;
@@ -192,9 +145,10 @@ void interfaz_fs_create(char* filename) {
 
     if (block_index == -1) {
         printf("No hay bloques libres disponibles.\n");
-        /* Ver si tendria que fijarme si hay lugar pero no puedo guardarlo por fragmentacion externa (en ese caso deberia hacer compactacion) */
         return;
     }
+
+    msync(bitmap_data, bitarray->size, MS_SYNC);
 
     // Creo el archivo de metadata
     FILE* metadata_file = fopen(filename, "w");
@@ -202,10 +156,13 @@ void interfaz_fs_create(char* filename) {
         perror("Error al crear el archivo de metadata");
         return;
     }
-    fprintf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=0\n", block_index);
+    // USAR CONFIG_SET_VALUE 
+    fprintf(metadata_file, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
     fclose(metadata_file);
 }
+ */
 
+/*
 void interfaz_fs_delete(char* filename) {
     // Abro el archivo de metadata
     FILE* metadata_file = fopen(filename, "r");
@@ -216,38 +173,84 @@ void interfaz_fs_delete(char* filename) {
 
     // Lee el bloque inicial del archivo
     int block_index;
+    // USAR CONFIG_GET_VALUE 
     fscanf(metadata_file, "BLOQUE_INICIAL=%d\n", &block_index);
     fclose(metadata_file);
 
-    // Libera el bloque en el bitmap
+    // Libera el bloque en el bitarray
     bitarray_clean_bit(bitarray, block_index);
+
+    // Sincronizar los cambios en el bitarray con el archivo bitmap
+    msync(bitmap_data, bitarray->size, MS_SYNC);
 
     // Elimina el archivo de metadata
     if (remove(filename) != 0) {
         perror("Error al eliminar el archivo de metadata");
     }
 }
+/* 
 
-/* void IO_FS_TRUNCATE(char* filename, int new_size) {
-    // Abre el archivo de metadata
+void IO_FS_TRUNCATE(char* filename, int new_size) {
+    // Abrir el archivo de metadata
     FILE* metadata_file = fopen(filename, "r+");
     if (metadata_file == NULL) {
         perror("Error al abrir el archivo de metadata");
         return;
     }
 
-    // Lee el bloque inicial y el tamaño actual del archivo
     int block_index, current_size;
     fscanf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
 
-    // Actualiza el tamaño del archivo en el archivo de metadata
+    int current_blocks = (current_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Número actual de bloques
+    int new_blocks = (new_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Nuevos bloques necesarios
+
+    if (new_blocks == current_blocks) {
+        // No se requiere cambio de tamaño
+        fclose(metadata_file);
+        return;
+    } else if (new_blocks < current_blocks) {
+        // Reducción del tamaño del archivo
+        for (int i = current_blocks - 1; i >= new_blocks; i--) {
+            bitarray_clean_bit(bitarray, block_index + i);
+        }
+
+        // Sincronizar cambios en el bitarray con el archivo bitmap
+        msync(bitmap_data, bitarray->size, MS_SYNC);
+    } else {
+        // Ampliación del tamaño del archivo
+        int additional_blocks_needed = new_blocks - current_blocks;
+        int can_expand = 1;
+
+        // Verificar si hay bloques contiguos disponibles
+        for (int i = 0; i < additional_blocks_needed; i++) {
+            if (bitarray_test_bit(bitarray, block_index + current_blocks + i)) {
+                can_expand = 0;
+                break;
+            }
+        }
+
+        if (!can_expand) {
+            // Realizar compactación
+            compactar_fs();
+            // Recalcular el bloque inicial ya que pudo haber cambiado después de la compactación
+            block_index = recalcular_bloque_inicial(filename);
+        }
+
+        // Asignar nuevos bloques después de la compactación o si ya estaban contiguos
+        for (int i = 0; i < additional_blocks_needed; i++) {
+            bitarray_set_bit(bitarray, block_index + current_blocks + i);
+        }
+
+        // Sincronizar cambios en el bitarray con el archivo bitmap
+        msync(bitmap_data, bitarray->size, MS_SYNC);
+    }
+
+    // Actualizar el tamaño del archivo en el archivo de metadata
     fseek(metadata_file, 0, SEEK_SET);
     fprintf(metadata_file, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, new_size);
     fclose(metadata_file);
-
-    // Maneja la lógica de asignación y liberación de bloques según el nuevo tamaño
-    // Aquí podrías necesitar agregar lógica para asignar o liberar bloques adicionales
-} */
+}
+ */
 
 /* void IO_FS_WRITE(char* filename, int offset, char* data, int size) {
     // Abre el archivo de metadata

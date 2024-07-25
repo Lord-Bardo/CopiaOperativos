@@ -23,8 +23,9 @@ void inicializar_fs(){
     char BITMAP_PATH[512];
 
     /* Armo la ruta de ambos archivos */
-    sprintf(BLOQUES_PATH, "%sbloques.dat", PATH_BASE_DIALFS);
-    sprintf(BITMAP_PATH, "%sbitmap.dat", PATH_BASE_DIALFS);
+    mkdir("../fs", 0777);
+    sprintf(BLOQUES_PATH, "%s/fs/bloques.dat", PATH_BASE_DIALFS);
+    sprintf(BITMAP_PATH, "%s/fs/bitmap.dat", PATH_BASE_DIALFS);
 
     FILE* bloques_file = fopen(BLOQUES_PATH, "r");
     if (bloques_file == NULL) {
@@ -46,12 +47,12 @@ void inicializar_fs(){
     // Me permite mapear el archivo de bitmap directamente en la memoria
     // Una vez mapeado el archivo se puede acceder al contenido como si fuera una porción de memoria, lo que puede hacer que las operaciones de lectura y escritura sean más rápidas y eficientes
     
-    // Puntero que va a apuntar al área de memoria donde el archivo del bitmap va a ser mapeado
-    void* bitmap_data = NULL;
-    // File descriptor que se va a usar para manejar el archivo bitmap.dat
-    int bitmap_fd = -1;
+    // -----
     
-    // open se usa para abrir bitmap.dat con permisos de lectura y escritura (O_RDWR) , o crear el archivo si no existe (O_CREAT). Los permisos de usuario se establecen en lectura y escritura (S_IRUSR | S_IWUSR).
+    /* POR QUE USO OPEN Y NO FILE - ANOTAR */
+    /* mmap requiere un file descriptor (FD), que se obtiene usando open. fopen devuelve un puntero a FILE, no un file descriptor. */
+    
+    // open en este caso se usa para abrir bitmap.dat con permisos de lectura y escritura (O_RDWR) , o crear el archivo si no existe (O_CREAT). Los permisos de usuario se establecen en lectura y escritura (S_IRUSR | S_IWUSR).
     bitmap_fd = open(BITMAP_PATH, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     if (bitmap_fd == -1) {
         perror("Error al abrir bitmap.dat");
@@ -84,6 +85,7 @@ void inicializar_fs(){
     //   - MAP_SHARED: Los cambios en el mapeo se reflejan en el archivo 
     //   - bitmap_fd: Descriptor de archivo del bitmap
     //   - 0: Desplazamiento desde el inicio del archivo
+    /* mmap se usa para mapear el archivo en memoria, lo que permite un acceso más eficiente a los datos del bitmap. Necesitas un file descriptor para esta operación, y open es la forma estándar de obtenerlo. */
     bitmap_data = mmap(NULL, bitmap_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
     if (bitmap_data == MAP_FAILED) {
         perror("Error al mapear el archivo del bitmap");
@@ -118,9 +120,9 @@ void inicializar_fs(){
 
         // msync se usa para asegurarse de que los cambios realizados en la región de memoria mapeada se escriban en el archivo en disco
         //  - bitmap_data es el puntero a la región de memoria mapeada
-        //  - bitmap_size es el tamaño de la región de memoria a sincronizar
+        //  - bitmap_size es el tamaño de la región de memoria a sincronizar /* LE PUSE BITARRAY SIZE AHORA */
         //  - MS_SYNC es una bandera que indica que la función debe bloquearse hasta que los cambios estén escritos en el disco
-        msync(bitmap_data, bitmap_size, MS_SYNC);
+        msync(bitmap_data, bitarray->size, MS_SYNC);
     }
 
     close(bitmap_fd);

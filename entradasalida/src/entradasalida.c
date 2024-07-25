@@ -1,6 +1,9 @@
 #include "../include/entradasalida.h"
+void* bitmap_data = NULL;
+int	bitmap_fd = -1;
 
 int main(int argc, char* argv[]) {
+	
     // Inicializar estructuras de entradasalida (loggers y config)
 	// inicializar_entradasalida();
 	if (argc != 3) {
