@@ -6,7 +6,7 @@ REcordemos prioridad de interrpts:
 	-CLock
 	-IO
 	-New
-*/
+*/ 
 nodo_t *lista_interrupciones=NULL; 
  
 void atender_cpu_kernel_interrupt(){

@@ -30,6 +30,6 @@ bool hayEspacioInmediato(int bloque_inicial, int cant_bloques_a_aumentar);
 FILE* abrirArchivoBloques();
 bool hayEspacioSuficiente(int cant_bloques_totales);
 void guardarContenidoArchivo(void *contenido_archivo, int bloque_inicial, int tamanio_archivo);
-void compactar(int *ultimo_bloque_ocupado, int tamanio_archivo, int pid);
+void compactar(int *ultimo_bloque_ocupado,  int pid);
 
 #endif

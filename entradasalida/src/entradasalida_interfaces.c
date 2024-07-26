@@ -337,7 +337,7 @@ void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, in
 // }
 
 void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde){
-    leerBloque(archivo_bloques,contenido, bytes_desde, BLOCK_SIZE);
+    leerBloque(archivo_bloques,contenido, bytes_desde, BLOCK_SIZE-1);
 }
 
 void leerBloque(FILE* archivo_bloques, void* contenido, int bytes_desde, int bytes_hasta){
@@ -390,10 +390,10 @@ bool hayEspacioSuficiente(int cant_bloques_totales){
     return false;
 }
 
-void compactar(int *ultimo_bloque_ocupado, int tamanio_archivo, int pid){
+void compactar(int *ultimo_bloque_ocupado, int pid){
     log_info(entradasalida_logger_min_y_obl, "DialFS - Inicio Compactación: PID: %d - Inicio Compactación.", pid);
     
-    usleep(RETRASO_COMPACTACION * 1000);
+    usleep(RETRASO_COMPACTACION * 1000);//es mas tiempo
 
     FILE* archivo_bloques = abrirArchivoBloques();
 
@@ -407,7 +407,6 @@ void compactar(int *ultimo_bloque_ocupado, int tamanio_archivo, int pid){
             leerBloqueCompleto(archivo_bloques, contenido_bloques, i * BLOCK_SIZE);
             bitarray_clean_bit(bitmap, i);
         }
-        i++;
     }
     msync(bitmap_data, bitmap->size, MS_SYNC);
 
@@ -457,15 +456,17 @@ bool aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, 
     // Hay espacio suficiente en todo mi archivo de bloques
     else if (hayEspacioSuficiente(cant_bloques_tam_archivo + cant_bloques_a_aumentar)) {
         // Nos guardamos el contenido de los bloques del archivo a truncar
-        void *contenido_archivo = malloc(tamanio_archivo);
+        void *contenido_archivo = malloc(tamanio_archivo); //fijarse
         if( contenido_archivo == NULL ){
             log_error(entradasalida_logger, "Error al asignar memoria para el CONTENIDO_ARCHIVO!");
         }
         guardarContenidoArchivo(contenido_archivo, bloque_inicial, tamanio_archivo);
         // Compactamos los bloques para poder tener el espacio contiguo
         int ultimo_bloque_ocupado;
-        compactar(&ultimo_bloque_ocupado, tamanio_archivo, pid);
+        compactar(&ultimo_bloque_ocupado, pid);
         // Movemos el contenido guardado al final
+        config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(ultimo_bloque_ocupado+1));
+        config_save(metadata_file_config);
         FILE* archivo_bloques = abrirArchivoBloques();
         escribirArchivo(archivo_bloques, contenido_archivo, tamanio_archivo, ultimo_bloque_ocupado + 1);
         ocuparBloques(ultimo_bloque_ocupado + 1, cant_bloques_tam_archivo);

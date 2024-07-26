@@ -38,7 +38,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
                 execute(instr);
                 if(!(instr->instr_code == JNZ || ( instr->instr_code == SET && strcmp(list_get(instr->argumentos, 0),"PC") == 0 ))){
                     pcb.pc++;
-                }
+                } 
                 mostrarPCB(pcb);
                 
             }
