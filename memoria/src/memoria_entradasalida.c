@@ -7,7 +7,6 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 	while(1){
 		t_codigo_operacion cod_op;
 		t_buffer *buffer = crear_buffer();
-		recibir_paquete(fd_entradasalida, &cod_op, buffer);
 
 		if (recibir_paquete(fd_entradasalida, &cod_op, buffer) > 0){
 			switch(cod_op){ 

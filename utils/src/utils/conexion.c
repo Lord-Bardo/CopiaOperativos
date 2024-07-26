@@ -207,9 +207,12 @@ void recibir_buffer(int socket, t_buffer *buffer){
     }
 }
 
-void recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer *buffer){
-    recibir_codigo_operacion(socket, codigo_operacion);
-    recibir_buffer(socket, buffer);
+int recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer *buffer){
+    int ret = recibir_codigo_operacion(socket, codigo_operacion);
+	if(ret > 0){
+		recibir_buffer(socket, buffer);
+	}
+    return ret;
 }
 
 // Desempaquetar Buffer

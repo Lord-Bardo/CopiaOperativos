@@ -118,11 +118,11 @@ void agregar_uint32_a_paquete(t_paquete *paquete, uint32_t n);
 void agregar_string_a_paquete(t_paquete *paquete, char *string);
 void *serializar_paquete(t_paquete *paquete, int bytes);
 int enviar_paquete(int socket, t_paquete* paquete);
-void enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion);
+int enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion);
 // Recibir
 int recibir_codigo_operacion(int socket, t_codigo_operacion *codigo_operacion);
 void recibir_buffer(int socket, t_buffer *buffer);
-void recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer *buffer);
+int recibir_paquete(int socket, t_codigo_operacion *codigo_operacion, t_buffer *buffer);
 // Desempaquetar Buffer
 void buffer_actualizar_size(t_buffer *buffer, int bytes);
 void buffer_actualizar_stream(t_buffer *buffer, int bytes);
