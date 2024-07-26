@@ -10,5 +10,6 @@ void iniciar_config(char* nombre_interfaz, char* archivo_configuracion);
 void crear_directorio_fs();
 void crear_archivo_bloques();
 void crear_bitmap();
+void hayEspacioSuficiente();
 
 #endif

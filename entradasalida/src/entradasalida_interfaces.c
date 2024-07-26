@@ -48,7 +48,7 @@ void interfaz_stdin(t_list *lista_direcciones, int pid){
         // Considerando el caso donde bytesLeidos es 10 y bytesTexto es 16:
         // bytesTexto - bytesLeidos = 6 bytes restantes.
         // Si el próximo bytes_a_enviar es 8, se ajusta a 6 para no exceder los bytes restantes
-        /* REVISAR ESTO !! */
+        /* REVISAR ESTO !!!!!!!!!!!!!!!!!!!! */
 
         // Creo el texto a enviar
         void *textoCortado = malloc(bytes_a_enviar);
@@ -185,7 +185,6 @@ void interfaz_fs_create(char* filename, int pid) {
         fclose(metadata_file);
         return;
     }
-    
 }
 
 void interfaz_fs_delete(char* filename, int pid) {
@@ -219,68 +218,223 @@ void interfaz_fs_delete(char* filename, int pid) {
     config_destroy(metadata_file_config);    
 }
 
-/*
-void IO_FS_TRUNCATE(char* filename, int new_size) {
-    // Abrir el archivo de metadata
-    FILE* metadata_file_config = fopen(filename, "r+");
-    if (metadata_file_config == NULL) {
-        perror("Error al abrir el archivo de metadata");
-        return;
+int cantidadBloques(int tamanio_bytes){
+    return (int) ceil((double)tamanio_bytes / (double)BLOCK_SIZE);
+}
+
+// 3 // 1 // 2
+void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int cant_bloques_tam_archivo){
+    int i = 0;
+    while (i < cant_bloques_a_reducir)
+    {
+        // 5 
+        int bloque_a_limpiar = bloque_inicial + cant_bloques_tam_archivo - i;
+        bitarray_clean_bit(bitmap, bloque_a_limpiar);
+        i++;
+        log_info(entradasalida_logger, "Reduciendo el tamaño del archivo, bloque limpiado: %d", bloque_a_limpiar);
     }
+    msync(bitmap_data, bitmap->size, MS_SYNC);
 
-    int block_index, current_size;
-    fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+}
 
-    int current_blocks = (current_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Número actual de bloques
-    int new_blocks = (new_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Nuevos bloques necesarios
-
-    if (new_blocks == current_blocks) {
-        // No se requiere cambio de tamaño
-        fclose(metadata_file_config);
-        return;
-    } else if (new_blocks < current_blocks) {
-        // Reducción del tamaño del archivo
-        for (int i = current_blocks - 1; i >= new_blocks; i--) {
-            bitarray_clean_bit(bitarray, block_index + i);
+bool hayEspacioInmediato(int bloque_inicial, int cant_bloques_a_aumentar){
+    while(bloque_inicial < bloque_inicial + cant_bloques_a_aumentar){
+        bool bit = bitarray_test_bit(bitmap, bloque_inicial); // Si está vacio - false
+        if( bit == true ){
+            log_info(entradasalida_logger, "El bloque %d estaba ocupado, no hay espacio inmediato", bloque_inicial);
+            return false;  
         }
+        bloque_inicial++;
+    }
+    log_info(entradasalida_logger, "Hay espacio inmediato - Se asignan los %d bloques sin compactar", cant_bloques_a_aumentar);
+    return true;
+}
 
-        // Sincronizar cambios en el bitarray con el archivo bitmap
-        msync(bitmap_data, bitarray->size, MS_SYNC);
-    } else {
-        // Ampliación del tamaño del archivo
-        int additional_blocks_needed = new_blocks - current_blocks;
-        int can_expand = 1;
+void ocuparBloques(int ocupar_desde, int cant_bloques_a_aumentar){
+    int bloque_hasta = ocupar_desde + cant_bloques_a_aumentar;
 
-        // Verificar si hay bloques contiguos disponibles
-        for (int i = 0; i < additional_blocks_needed; i++) {
-            if (bitarray_test_bit(bitarray, block_index + current_blocks + i)) {
-                can_expand = 0;
-                break;
+    for (int i = ocupar_desde; i < bloque_hasta; i++)
+    {
+        bitarray_set_bit(bitmap,i);
+        log_info(entradasalida_logger, "Asignando bloques - Bloque asignado: %d", i);
+    }
+    msync(bitmap_data, bitmap->size, MS_SYNC);
+}
+
+bool hayEspacioContiguo(int* bloque_inicial, int cant_bloques_totales){
+    int i = 0;
+    int cont_bloques_contiguos = 0;
+
+    while(cont_bloques_contiguos < cant_bloques_totales && i < BLOCK_COUNT){
+        bool bit = bitarray_test_bit(bitmap, i);
+        if( bit == false ){
+            cont_bloques_contiguos++;
+            if (cont_bloques_contiguos == cant_bloques_totales) {
+                *bloque_inicial = i;
+                log_info(entradasalida_logger, "Se encontro espacio contiguo en el bloque %d", i);
+                return true;
             }
         }
-
-        if (!can_expand) {
-            // Realizar compactación
-            compactar_fs();
-            // Recalcular el bloque inicial ya que pudo haber cambiado después de la compactación
-            block_index = recalcular_bloque_inicial(filename);
+        else {
+            cont_bloques_contiguos = 0;
         }
+        i++;
+    }
+    return false;
+}
 
-        // Asignar nuevos bloques después de la compactación o si ya estaban contiguos
-        for (int i = 0; i < additional_blocks_needed; i++) {
-            bitarray_set_bit(bitarray, block_index + current_blocks + i);
-        }
+void liberarBloques(int bloque_inicial, int cant_bloques_tam_archivo){
+    for (int i = bloque_inicial; i < bloque_inicial + cant_bloques_tam_archivo ; i++)
+    {
+        bitarray_clean_bit(bitmap,i);
+    }
+    log_info(entradasalida_logger, "Libere los bloques desde %d hasta %d", bloque_inicial, bloque_inicial + cant_bloques_tam_archivo);
+    msync(bitmap_data, bitmap->size, MS_SYNC);
+}
 
-        // Sincronizar cambios en el bitarray con el archivo bitmap
-        msync(bitmap_data, bitarray->size, MS_SYNC);
+void moverContenidoBloques(int bloque_inicial, int bloque_inicial_aux, int tamanio_archivo, int cant_bloques_tam_archivo){
+    void* contenido = malloc(tamanio_archivo);
+    leerArchivo(contenido, tamanio_archivo, bloque_inicial);
+}
+
+void leerArchivo(void* contenido, int tamanio_archivo, int bloque_inicial){
+    int cant_bloques_completos = tamanio_archivo / BLOCK_SIZE; // 150 / 64 = 2 (Redondea el int)
+    int bytes_restantes = tamanio_archivo - (cant_bloques_completos * BLOCK_SIZE); // 150 - (2 * 64) = 22 bytes
+    int bytes_desde = bloque_inicial * BLOCK_SIZE;
+    for (int i = 0; i < cant_bloques_completos; i++)
+    {
+        leerBloqueCompleto(contenido, bytes_desde);
+        bytes_desde += BLOCK_SIZE;
+    }
+    leerBloque(contenido, bytes_desde, bytes_restantes);
+}
+
+void leerBloqueCompleto(void* contenido, int bytes_desde){
+    leerBloque(contenido, bytes_desde, BLOCK_SIZE);
+}
+
+void leerBloque(void* contenido, int byteDesde, int byteHasta){
+
+}
+
+void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar){
+    int bloque_inicial_aux;
+
+    // Liberar mi propio bloque
+    bitarray_clean_bit(bitmap,bloque_inicial);
+
+    // Hay espacio libre a la derecha del bloque en el que está mi archivo
+    // Pongo bloque_inicial + 1 debido a que quiero chequear desde los bloques despues del mio porque el mio esta en 0
+    if(hayEspacioInmediato(bloque_inicial + 1, cant_bloques_a_aumentar)){
+        bitarray_set_bit(bitmap,bloque_inicial);
+        int ocupar_desde = bloque_inicial + cant_bloques_tam_archivo;
+        ocuparBloques(ocupar_desde, cant_bloques_a_aumentar);
+    }
+    // Hay espacio libre contiguo en algun lugar de todo mi archivo de bloques
+    else if (hayEspacioContiguo(&bloque_inicial_aux, cant_bloques_tam_archivo + cant_bloques_a_aumentar)){
+        config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(bloque_inicial_aux));
+        int ocupar_desde = bloque_inicial_aux + cant_bloques_tam_archivo;
+        ocuparBloques(ocupar_desde, cant_bloques_a_aumentar);
+
+        // Mover la información de los bloques del archivo a los bloques a ocupar
+        moverContenidoBloques(bloque_inicial, bloque_inicial_aux, tamanio_archivo, cant_bloques_tam_archivo);
+        // Despues de mover los bloques habría que liberar los bloques anteriores que ocupaba el archivo
+        liberarBloques(bloque_inicial, cant_bloques_tam_archivo);
+    }
+    // Hay espacio suficiente en todo mi archivo de bloques
+    else if (hayEspacioSuficiente()) {
+
+        // Compactar
+    }
+    else {
+        bitarray_set_bit(bitmap,bloque_inicial);
+        log_info(entradasalida_logger, "No hay espacio disponible para aumentar el tamanio del archivo a %d bloques", cant_bloques_tam_archivo + cant_bloques_a_aumentar);
+    }
+}
+
+void hayEspacioSuficiente(){
+    
+}
+
+void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid) {
+    log_info(entradasalida_logger_min_y_obl, "DialFS - Truncar Archivo: PID: %d - Truncar Archivo: %s - Tamaño: %d", pid, filename, nuevo_tamanio);
+    
+    t_config* metadata_file_config = dictionary_get(metadata_dictionary_files,filename);
+    int bloque_inicial = config_get_int_value(metadata_file_config, "BLOQUE_INICIAL");
+    int tamanio_archivo = config_get_int_value(metadata_file_config, "TAMANIO_ARCHIVO");
+
+    config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", string_itoa(nuevo_tamanio));
+    
+    // tamanio_archivo = 100 // nuevo_tamanio = 60 // // bloque_inicial = 3 // 
+    int cant_bloques_tam_archivo = cantidadBloques(tamanio_archivo); // 2
+    int cant_bloques_nuevo_tam = cantidadBloques(nuevo_tamanio); // 1
+
+    if (cant_bloques_nuevo_tam == cant_bloques_tam_archivo){
+        return;
+    }
+    else if (cant_bloques_tam_archivo < cant_bloques_nuevo_tam){
+        // Aumentar tamaño archivo
+        int cant_bloques_a_aumentar = cant_bloques_nuevo_tam - cant_bloques_tam_archivo;
+        aumentarTamanioArchivo(metadata_file_config, bloque_inicial, tamanio_archivo, cant_bloques_tam_archivo, cant_bloques_a_aumentar);
+    }
+    else {
+        // Reducir tamaño de archivo
+        int cant_bloques_a_reducir = cant_bloques_tam_archivo - cant_bloques_nuevo_tam; // 1
+        reducirTamanioArchivo(bloque_inicial, cant_bloques_a_reducir, cant_bloques_tam_archivo); // 3 // 1 // 2 
     }
 
-    // Actualizar el tamaño del archivo en el archivo de metadata
-    fseek(metadata_file_config, 0, SEEK_SET);
-    fprintf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, new_size);
-    fclose(metadata_file_config);
+    // int block_index, current_size;
+    // // fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\n TAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
+
+    // int current_blocks = (current_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Número actual de bloques
+    // int new_blocks = (nuevo_tamaño + BLOCK_SIZE - 1) / BLOCK_SIZE; // Nuevos bloques necesarios
+
+    // if (new_blocks == current_blocks) {
+    //     // No se requiere cambio de tamaño
+    //     fclose(metadata_file_config);
+    //     return;
+    // } else if (new_blocks < current_blocks) {
+    //     // Reducción del tamaño del archivo
+    //     for (int i = current_blocks - 1; i >= new_blocks; i--) {
+    //         bitarray_clean_bit(bitmap, block_index + i);
+    //     }
+
+    //     // Sincronizar cambios en el bitarray con el archivo bitmap
+    //     msync(bitmap_data, bitarray->size, MS_SYNC);
+    // } else {
+    //     // Ampliación del tamaño del archivo
+    //     int additional_blocks_needed = new_blocks - current_blocks;
+    //     int can_expand = 1;
+
+    //     // Verificar si hay bloques contiguos disponibles
+    //     for (int i = 0; i < additional_blocks_needed; i++) {
+    //         if (bitarray_test_bit(bitmap, block_index + current_blocks + i)) {
+    //             can_expand = 0;
+    //             break;
+    //         }
+    //     }
+
+    //     if (!can_expand) {
+    //         // Realizar compactación
+    //         compactar_fs();
+    //         // Recalcular el bloque inicial ya que pudo haber cambiado después de la compactación
+    //         block_index = recalcular_bloque_inicial(filename);
+    //     }
+
+    //     // Asignar nuevos bloques después de la compactación o si ya estaban contiguos
+    //     for (int i = 0; i < additional_blocks_needed; i++) {
+    //         bitarray_set_bit(bitmap, block_index + current_blocks + i);
+    //     }
+
+    //     // Sincronizar cambios en el bitarray con el archivo bitmap
+    //     msync(bitmap_data, bitmap->size, MS_SYNC);
+    // }
+
+    // // Actualizar el tamaño del archivo en el archivo de metadata
+    // fseek(metadata_file_config, 0, SEEK_SET);
+    // fprintf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, bitmap);
+    // fclose(metadata_file_config);
 }
- */
 
 /* void IO_FS_WRITE(char* filename, int offset, char* data, int size) {
     // Abre el archivo de metadata

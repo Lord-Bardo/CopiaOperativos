@@ -192,7 +192,6 @@ void crear_bitmap(){
         exit(1);
     }
 
-    // Vamos seteando en
     int i = 0;
     bool bit = false;
     while( bit == false && i < BLOCK_COUNT ){

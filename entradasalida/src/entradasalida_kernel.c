@@ -90,7 +90,15 @@ void atender_entradasalida_kernel(){
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
             case COP_IO_FS_TRUNCATE:
+            {
+                // IO_FS_TRUNCATE Int4 notas.txt ECX
+                char* filename = buffer_desempaquetar_string(buffer);
+                int nuevo_tamanio;
+                buffer_desempaquetar(buffer, &nuevo_tamanio);
+
+                interfaz_fs_truncate(filename, nuevo_tamanio ,pid_proceso);
                 break;
+            }
             case COP_IO_FS_WRITE:
                 break;
             case COP_IO_FS_READ:
