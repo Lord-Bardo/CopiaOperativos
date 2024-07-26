@@ -337,15 +337,17 @@ void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, in
 // }
 
 void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde){
-    leerBloque(archivo_bloques,contenido, bytes_desde, BLOCK_SIZE-1);
+    leerBloque(archivo_bloques,contenido, bytes_desde, BLOCK_SIZE);
 }
 
-void leerBloque(FILE* archivo_bloques, void* contenido, int bytes_desde, int bytes_hasta){
+void leerBloque(FILE* archivo_bloques, void* contenido, int bytes_desde, int cantidad_bytes){
     fseek(archivo_bloques, bytes_desde, SEEK_SET);
-    int bytes_a_leer = bytes_hasta-bytes_desde;
-    size_t bytes_leidos = fread(contenido, 1, bytes_a_leer,archivo_bloques);
-    if (bytes_leidos != bytes_a_leer) {
-        log_error(entradasalida_logger, "Hubo un error al leer los bytes del archivo de bloques");
+    int bytes_leidos = fread(contenido, 1, cantidad_bytes,archivo_bloques);
+    log_info(entradasalida_logger, "bytes_desde: %d", bytes_desde);
+    log_info(entradasalida_logger, "bytes_hasta: %d", cantidad_bytes);
+    log_info(entradasalida_logger, "bytes_leidos: %d", bytes_leidos);
+    if (bytes_leidos != cantidad_bytes) {
+        log_error(entradasalida_logger, "Hubo un error al leer los bytes del archivo de bloques en leer bloque");
         exit(1);
     }
 }
@@ -403,7 +405,12 @@ void compactar(int *ultimo_bloque_ocupado, int pid){
         bool bit = bitarray_test_bit(bitmap, i);
         if( bit == true ){
             tamanio_contenido_bloques += BLOCK_SIZE;
+            log_info(entradasalida_logger, "Tamanio_contenido_bloques: %d", tamanio_contenido_bloques);
             contenido_bloques = realloc(contenido_bloques, tamanio_contenido_bloques);
+            if (contenido_bloques == NULL){
+                log_error(entradasalida_logger, "Falló el realloc, es NULL");
+                exit(1);
+            }
             leerBloqueCompleto(archivo_bloques, contenido_bloques, i * BLOCK_SIZE);
             bitarray_clean_bit(bitmap, i);
         }

@@ -18,7 +18,7 @@ void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid);
 int cantidadBloques(int tamanio_bytes);
 bool aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar, int pid);
 void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int cant_bloques_tam_archivo);
-void leerBloque(FILE* archivo_bloques, void* contenido, int byteDesde, int byteHasta);
+void leerBloque(FILE* archivo_bloques, void* contenido, int bytes_desde, int cantidad_bytes);
 void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde);
 void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial);
 void escribirArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial);
