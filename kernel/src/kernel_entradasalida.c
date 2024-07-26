@@ -58,6 +58,8 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                     diccionario_interfaces_eliminar_interfaz(diccionario_interfaces, nombre_interfaz);
                     // el post del semaforo no lo hago porq para este momento la interfaz ya no existe y,en consecuencia, el semaforo tmp
                     pthread_mutex_unlock(&mutex_diccionario_interfaces);
+
+                    break;
                 }
             }
             else{
@@ -78,6 +80,8 @@ void atender_kernel_interfaz(void *nombre_interfaz){
                 diccionario_interfaces_eliminar_interfaz(diccionario_interfaces, nombre_interfaz);
                 // el post del semaforo no lo hago porq para este momento la interfaz ya no existe y,en consecuencia, el semaforo tmp
                 pthread_mutex_unlock(&mutex_diccionario_interfaces);
+
+                break;
             }
         }
         else{
