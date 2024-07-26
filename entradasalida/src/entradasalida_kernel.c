@@ -74,7 +74,7 @@ void atender_entradasalida_kernel(){
                 // IO_FS_CREATE Int4 notas.txt
                 char* filename = buffer_desempaquetar_string(buffer);
 
-                interfaz_fs_create(filename);
+                interfaz_fs_create(filename, pid_proceso);
 
                 free(filename);
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
@@ -84,7 +84,7 @@ void atender_entradasalida_kernel(){
                 // IO_FS_DELETE Int4 notas.txt
                 char* filename = buffer_desempaquetar_string(buffer);
 
-                interfaz_fs_delete(filename);
+                interfaz_fs_delete(filename, pid_proceso);
 
                 free(filename);
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);

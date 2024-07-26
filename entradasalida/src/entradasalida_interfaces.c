@@ -132,68 +132,89 @@ void interfaz_stdout(t_list* lista_direcciones, int cant_direcciones, int pid){
     
 }
 
-void interfaz_fs_create(char* filename) {
-    // Busca un bloque libre en el bitmap
-    int block_index = -1;
-    for (int i = 0; i < BLOCK_COUNT; i++) {
-        if (!bitarray_test_bit(bitmap, i)) {
-            block_index = i;
-            bitarray_set_bit(bitmap, i);
-            break;
-        }
-    }
-
-    if (block_index == -1) {
-        printf("No hay bloques libres disponibles.\n");
-        return;
-    }
-
-    msync(bitmap_data, bitmap->size, MS_SYNC);
-
+void interfaz_fs_create(char* filename, int pid) {
     // Creo el archivo de metadata
     char *path_archivo_metadata = string_duplicate(PATH_BASE_DIALFS);
     string_append(&path_archivo_metadata, "/");
     string_append(&path_archivo_metadata, filename);
 
-    FILE* metadata_file = fopen(path_archivo_metadata, "w");
+    FILE* metadata_file = fopen(path_archivo_metadata, "r");
     if(metadata_file == NULL){
-        log_error(entradasalida_logger, "Error al abrir el archivo de metadata");
-        return;
-    }
+        FILE* metadata_file = fopen(path_archivo_metadata, "w");
+        if (metadata_file == NULL) {
+            log_error(entradasalida_logger, "Error al crear el archivo de metadata");
+            return;
+        }
 
-    t_config* metadata_file_config = config_create(path_archivo_metadata);
-    if (metadata_file_config == NULL) {
-        log_error(entradasalida_logger, "Error al crear el config de metadata");
+        t_config* metadata_file_config = config_create(path_archivo_metadata);
+        if (metadata_file_config == NULL) {
+            log_error(entradasalida_logger, "Error al crear el config de metadata");
+            fclose(metadata_file);
+            return;
+        }
+        
+        // Busca un bloque libre en el bitmap
+        int block_index = -1;
+        for (int i = 0; i < BLOCK_COUNT; i++) {
+            if (!bitarray_test_bit(bitmap, i)) {
+                block_index = i;
+                bitarray_set_bit(bitmap, i);
+                break;
+            }
+        }
+
+        if (block_index == -1) {
+            printf("No hay bloques libres disponibles.\n");
+            return;
+        }
+
+        msync(bitmap_data, bitmap->size, MS_SYNC);
+
+        // fprintf(metadata_file_config, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
+        config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(block_index));
+        config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", "0");
+        
+        config_save(metadata_file_config); // Ver de manejar error
+
+        dictionary_put(metadata_dictionary_files, filename, metadata_file_config);
+        fclose(metadata_file);
+        log_info(entradasalida_logger_min_y_obl, "DialFS - Crear Archivo: PID: %d - Crear Archivo: %s", pid, filename);
+    }
+    else {
+        log_info(entradasalida_logger, "El archivo ya existe, no lo creo");
+        fclose(metadata_file);
         return;
     }
-    // fprintf(metadata_file_config, "BLOQUE_INICIAL=%d \n TAMANIO_ARCHIVO=0 \n", block_index);
-    config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(block_index));
-    config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", "0");
     
-    config_save(metadata_file_config); // Ver de manejar error
-
-    dictionary_put(metadata_dictionary_files, filename, metadata_file_config);
 }
 
-
-void interfaz_fs_delete(char* filename) {
+void interfaz_fs_delete(char* filename, int pid) {
+ 
     t_config* metadata_file_config = dictionary_remove(metadata_dictionary_files, filename);
+
+    if (metadata_file_config == NULL){
+        log_info(entradasalida_logger, "El archivo no existe, no lo borro");
+        return;
+    }
 
     // Lee el bloque inicial del archivo
     int block_index = config_get_int_value(metadata_file_config, "BLOQUE_INICIAL");
 
     // Libera el bloque en el bitarray
-    bitarray_clean_bit(bitarray, block_index);
+    bitarray_clean_bit(bitmap, block_index);
 
     // Sincronizar los cambios en el bitarray con el archivo bitmap
-    msync(bitmap_data, bitarray->size, MS_SYNC);
+    msync(bitmap_data, bitmap->size, MS_SYNC);
     
     char *path_archivo_metadata = string_duplicate(metadata_file_config->path);
 
     // Elimina el archivo de metadata
     if (remove(path_archivo_metadata) != 0) {
         log_error(entradasalida_logger, "Error al eliminar el archivo de metadata");
+        exit(1);
     }
+
+    log_info(entradasalida_logger_min_y_obl, "DialFS - Eliminar Archivo: PID: %d - Eliminar Archivo: %s", pid, filename);
 
     config_destroy(metadata_file_config);    
 }

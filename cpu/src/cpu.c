@@ -121,7 +121,7 @@ void terminar_programa(){
 		config_destroy(cpu_config);
 	}
 
-	liberar_conexion(fd_cpu_dispatch);
+	liberar_conexion(fd_cpu_dispatch); 
 	liberar_conexion(fd_cpu_interrupt);
 	liberar_conexion(fd_kernel_dispatch);
 	liberar_conexion(fd_kernel_interrupt);

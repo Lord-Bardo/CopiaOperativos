@@ -117,6 +117,7 @@ void crear_archivo_bloques(){
         bloques_file = fopen(path_archivo_bloques, "wb");
         if( bloques_file == NULL ){
             perror("Error al crear bloques.dat");
+            // fclose(bloques_file); - creo que si es null no lo abrio
             exit(1);
         }
         // Con ftruncate establezco el tamaño del archivo recién creado a BLOCK_SIZE * BLOCK_COUNT
@@ -169,7 +170,7 @@ void crear_bitmap(){
     //   - bitmap_fd: Descriptor de archivo del bitmap
     //   - 0: Desplazamiento desde el inicio del archivo
     /* mmap se usa para mapear el archivo en memoria, lo que permite un acceso más eficiente a los datos del bitmap. Necesitas un file descriptor para esta operación, y open es la forma estándar de obtenerlo. */ 
-    void *bitmap_data = mmap(NULL, bitmap_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
+    bitmap_data = mmap(NULL, bitmap_size, PROT_READ | PROT_WRITE, MAP_SHARED, bitmap_fd, 0);
     if( bitmap_data == MAP_FAILED ){
         log_info(entradasalida_logger, "Error al mapear el archivo del bitmap");
         close(bitmap_fd);
@@ -190,7 +191,7 @@ void crear_bitmap(){
         close(bitmap_fd);
         exit(1);
     }
-        
+
     // Vamos seteando en
     int i = 0;
     bool bit = false;
@@ -201,22 +202,11 @@ void crear_bitmap(){
         }
         i++;
     }
-    msync(bitmap_data, bitmap->size, MS_SYNC);
 
-    /* Se repite el if, ver si puedo hacerlo de otra manera */
-    if (st.st_size == 0) {
-        // memset se usa para establecer todos los bits del bitarray a 0, marca todos los bloques del sistema de archivos como libres
-        //  - bitarray->bitarray es el puntero a la región de memoria que representa el bitarray
-        //  - 0 es el valor con el que se inicializa cada byte (todos los bits en 0)
-        //  - bitmap_size es el tamaño total de la región de memoria a inicializar
-        memset(bitmap->bitarray, 0, bitmap_size);
-
-        // msync se usa para asegurarse de que los cambios realizados en la región de memoria mapeada se escriban en el archivo en disco
+    // msync se usa para asegurarse de que los cambios realizados en la región de memoria mapeada se escriban en el archivo en disco
         //  - bitmap_data es el puntero a la región de memoria mapeada
         //  - bitmap_size es el tamaño de la región de memoria a sincronizar /* LE PUSE BITARRAY SIZE AHORA */
         //  - MS_SYNC es una bandera que indica que la función debe bloquearse hasta que los cambios estén escritos en el disco
-        msync(bitmap_data, bitmap->size, MS_SYNC);
-    }
-
+    msync(bitmap_data, bitmap->size, MS_SYNC);
     close(bitmap_fd);
 }

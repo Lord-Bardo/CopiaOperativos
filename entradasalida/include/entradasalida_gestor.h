@@ -44,7 +44,7 @@ extern int fd_entradasalida;
 
 extern t_bitarray* bitmap; 
 extern void* bitmap_data;
-extern int bitmap_fd;
+// extern int bitmap_fd;
 
 extern t_dictionary* metadata_dictionary_files;
 
