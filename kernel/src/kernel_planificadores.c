@@ -718,7 +718,29 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                                 break;
                             }
                             case COP_IO_FS_TRUNCATE:
+                            {
+                                // Creo el paquete con la operacion a realizar y agrego el pid del proceso
+                                t_paquete *paquete_solicitud_io = crear_paquete(operacion);
+                                agregar_pid_a_paquete(paquete_solicitud_io, pcb_get_pid(pcb));
+                                
+                                // Desempaqueto los parametros de la operacion y los agrego al paquete
+                                char *nombre_archivo = buffer_desempaquetar_string(buffer);
+                                agregar_string_a_paquete(paquete_solicitud_io, nombre_archivo);
+
+                                int tamanio;
+                                buffer_desempaquetar(buffer, &tamanio);
+                                agregar_int_a_paquete(paquete_solicitud_io, tamanio);
+                                
+                                // Creo la solicitud de entrada salida
+                                t_solicitud_io *solicitud_io = crear_solicitud_io(pcb, paquete_solicitud_io);
+                                
+                                // Bloqueo al proceso
+                                proceso_a_blocked(pcb, nombre_interfaz);
+                                
+                                // Encolo la solicitud
+                                interfaz_encolar_solicitud_io(interfaz, solicitud_io);
                                 break;
+                            }
                             case COP_IO_FS_WRITE:
                             {
                                 // Creo el paquete con la operacion a realizar y agrego el pid del proceso

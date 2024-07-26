@@ -97,6 +97,9 @@ void atender_entradasalida_kernel(){
                 buffer_desempaquetar(buffer, &nuevo_tamanio);
 
                 interfaz_fs_truncate(filename, nuevo_tamanio ,pid_proceso);
+                
+                free(filename);
+                enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
             }
             case COP_IO_FS_WRITE:

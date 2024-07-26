@@ -222,12 +222,10 @@ int cantidadBloques(int tamanio_bytes){
     return (int) ceil((double)tamanio_bytes / (double)BLOCK_SIZE);
 }
 
-// 3 // 1 // 2
 void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int cant_bloques_tam_archivo){
-    int i = 0;
+    int i = 1;
     while (i < cant_bloques_a_reducir)
     {
-        // 5 
         int bloque_a_limpiar = bloque_inicial + cant_bloques_tam_archivo - i;
         bitarray_clean_bit(bitmap, bloque_a_limpiar);
         i++;
@@ -237,23 +235,27 @@ void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int c
 
 }
 
+// 2 - 6
 bool hayEspacioInmediato(int bloque_inicial, int cant_bloques_a_aumentar){
-    while(bloque_inicial < bloque_inicial + cant_bloques_a_aumentar){
-        bool bit = bitarray_test_bit(bitmap, bloque_inicial); // Si está vacio - false
+    // 2
+    int cant_bloques_contiguos = bloque_inicial;
+    // 3 < 8
+    while(cant_bloques_contiguos < bloque_inicial + cant_bloques_a_aumentar){
+        bool bit = bitarray_test_bit(bitmap, cant_bloques_contiguos); // Si está vacio - false
         if( bit == true ){
-            log_info(entradasalida_logger, "El bloque %d estaba ocupado, no hay espacio inmediato", bloque_inicial);
+            log_info(entradasalida_logger, "El bloque %d estaba ocupado, no hay espacio inmediato", cant_bloques_contiguos);
             return false;  
         }
-        bloque_inicial++;
+        cant_bloques_contiguos++;
     }
     log_info(entradasalida_logger, "Hay espacio inmediato - Se asignan los %d bloques sin compactar", cant_bloques_a_aumentar);
     return true;
 }
 
 void ocuparBloques(int ocupar_desde, int cant_bloques_a_aumentar){
-    int bloque_hasta = ocupar_desde + cant_bloques_a_aumentar;
+    int bloque_hasta = ocupar_desde + cant_bloques_a_aumentar - 1;
 
-    for (int i = ocupar_desde; i < bloque_hasta; i++)
+    for (int i = ocupar_desde; i <= bloque_hasta; i++)
     {
         bitarray_set_bit(bitmap,i);
         log_info(entradasalida_logger, "Asignando bloques - Bloque asignado: %d", i);
@@ -419,7 +421,7 @@ void guardarContenidoArchivo(void *contenido_archivo, int bloque_inicial, int ta
 
 void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar, int pid){
     int bloque_inicial_nuevo;
-    int bloque_final_actual = bloque_inicial + cant_bloques_tam_archivo;
+    int bloque_final_actual = bloque_inicial + cant_bloques_tam_archivo - 1;
 
     // Liberar mi propio bloque
     liberarBloques(bloque_inicial, cant_bloques_tam_archivo);
@@ -474,8 +476,8 @@ void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid) {
     config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", string_itoa(nuevo_tamanio));
     
     // tamanio_archivo = 100 // nuevo_tamanio = 60 // // bloque_inicial = 3 // 
-    int cant_bloques_tam_archivo = cantidadBloques(tamanio_archivo); // 2
-    int cant_bloques_nuevo_tam = cantidadBloques(nuevo_tamanio); // 1
+    int cant_bloques_tam_archivo = cantidadBloques(tamanio_archivo); // 1
+    int cant_bloques_nuevo_tam = cantidadBloques(nuevo_tamanio); // 7
 
     if (cant_bloques_nuevo_tam == cant_bloques_tam_archivo){
         return;
@@ -490,58 +492,6 @@ void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid) {
         int cant_bloques_a_reducir = cant_bloques_tam_archivo - cant_bloques_nuevo_tam; // 1
         reducirTamanioArchivo(bloque_inicial, cant_bloques_a_reducir, cant_bloques_tam_archivo); // 3 // 1 // 2 
     }
-
-    // int block_index, current_size;
-    // // fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\n TAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
-
-    // int current_blocks = (current_size + BLOCK_SIZE - 1) / BLOCK_SIZE; // Número actual de bloques
-    // int new_blocks = (nuevo_tamaño + BLOCK_SIZE - 1) / BLOCK_SIZE; // Nuevos bloques necesarios
-
-    // if (new_blocks == current_blocks) {
-    //     // No se requiere cambio de tamaño
-    //     fclose(metadata_file_config);
-    //     return;
-    // } else if (new_blocks < current_blocks) {
-    //     // Reducción del tamaño del archivo
-    //     for (int i = current_blocks - 1; i >= new_blocks; i--) {
-    //         bitarray_clean_bit(bitmap, block_index + i);
-    //     }
-
-    //     // Sincronizar cambios en el bitarray con el archivo bitmap
-    //     msync(bitmap_data, bitarray->size, MS_SYNC);
-    // } else {
-    //     // Ampliación del tamaño del archivo
-    //     int additional_blocks_needed = new_blocks - current_blocks;
-    //     int can_expand = 1;
-
-    //     // Verificar si hay bloques contiguos disponibles
-    //     for (int i = 0; i < additional_blocks_needed; i++) {
-    //         if (bitarray_test_bit(bitmap, block_index + current_blocks + i)) {
-    //             can_expand = 0;
-    //             break;
-    //         }
-    //     }
-
-    //     if (!can_expand) {
-    //         // Realizar compactación
-    //         compactar_fs();
-    //         // Recalcular el bloque inicial ya que pudo haber cambiado después de la compactación
-    //         block_index = recalcular_bloque_inicial(filename);
-    //     }
-
-    //     // Asignar nuevos bloques después de la compactación o si ya estaban contiguos
-    //     for (int i = 0; i < additional_blocks_needed; i++) {
-    //         bitarray_set_bit(bitmap, block_index + current_blocks + i);
-    //     }
-
-    //     // Sincronizar cambios en el bitarray con el archivo bitmap
-    //     msync(bitmap_data, bitmap->size, MS_SYNC);
-    // }
-
-    // // Actualizar el tamaño del archivo en el archivo de metadata
-    // fseek(metadata_file_config, 0, SEEK_SET);
-    // fprintf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, bitmap);
-    // fclose(metadata_file_config);
 }
 
 /* void IO_FS_WRITE(char* filename, int offset, char* data, int size) {

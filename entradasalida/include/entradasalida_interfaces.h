@@ -18,8 +18,8 @@ void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid);
 int cantidadBloques(int tamanio_bytes);
 void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar, int pid);
 void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int cant_bloques_tam_archivo);
-// void leerBloque(FILE* archivo_bloques, void* contenido, int byteDesde, int byteHasta);
-// void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde);
+void leerBloque(FILE* archivo_bloques, void* contenido, int byteDesde, int byteHasta);
+void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde);
 void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial);
 void escribirArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial);
 void moverContenidoBloques(int bloque_inicial, int bloque_inicial_nuevo, int tamanio_archivo);
@@ -30,6 +30,6 @@ bool hayEspacioInmediato(int bloque_inicial, int cant_bloques_a_aumentar);
 FILE* abrirArchivoBloques();
 bool hayEspacioSuficiente(int cant_bloques_totales);
 void guardarContenidoArchivo(void *contenido_archivo, int bloque_inicial, int tamanio_archivo);
-void compactar(int *ultimo_bloque_ocupado, int tamanio_archivo);
+void compactar(int *ultimo_bloque_ocupado, int tamanio_archivo, int pid);
 
 #endif

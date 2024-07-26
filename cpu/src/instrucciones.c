@@ -446,7 +446,7 @@ void ejecutarIOFsCreate(char * interfaz, char * archivo){
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
 	
-	salir_ciclo_instruccion = 1;
+	salir_ciclo_instruccion = 1; 
 	motivo_desalojo = IO;
 }
 
@@ -470,7 +470,7 @@ void ejecutarIOFsDelete(char * interfaz, char * archivo){
 
 void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_tamanio){
 	//INTERFAZ,ARCHIVO,VALOR_REGISTRO
-	t_codigo_operacion cop=IO_FS_TRUNCATE;
+	t_codigo_operacion cop=COP_IO_FS_TRUNCATE;
 	t_paquete * paquete = crear_paquete(IO);
 	pcb.pc++;
 	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
@@ -479,12 +479,12 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 	agregar_string_a_paquete(paquete,archivo);
 
 	if(es_reg_chico(registro_tamanio)){
-		uint8_t valor_registro = get_reg_chico(registro_tamanio);//puede generar un problema para lucho si esempaqueta un string
-		agregar_uint8_a_paquete(paquete,valor_registro);
+		int valor_registro = (int)get_reg_chico(registro_tamanio);//puede generar un problema para lucho si esempaqueta un string
+		agregar_int_a_paquete(paquete,valor_registro);
 	}
 	else{
-		uint32_t valor_registro = get_reg_grande(registro_tamanio);
-		agregar_uint32_a_paquete(paquete,valor_registro);
+		int valor_registro = (int)get_reg_grande(registro_tamanio);
+		agregar_int_a_paquete(paquete,valor_registro);
 	}	
 	enviar_paquete(fd_kernel_dispatch,paquete);
 	eliminar_paquete(paquete);
@@ -494,7 +494,7 @@ void ejecutarIOFsTruncate(char * interfaz, char * archivo, char * registro_taman
 }
 void ejecutarIOFsRead(char * interfaz, char * archivo,char* registro_direccion, char * registro_tamanio, char * registro_puntero){
 //(Interfaz, Nombre Archivo, Registro Dirección, Registro Tamaño, Registro Puntero Archivo)
-	t_codigo_operacion cop=IO_FS_READ;
+	t_codigo_operacion cop=COP_IO_FS_READ;
 	t_paquete * paquete = crear_paquete(IO);
 	pcb.pc++;
 	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
@@ -548,7 +548,7 @@ void ejecutarIOFsRead(char * interfaz, char * archivo,char* registro_direccion, 
 }
 void ejecutarIOFsWrite(char * interfaz, char * archivo,char* registro_direccion, char * registro_tamanio, char * registro_puntero){
 //Interfaz, Nombre Archivo, Registro Dirección, Registro Tamaño, Registro Puntero Archivo
-	t_codigo_operacion cop=IO_FS_WRITE;
+	t_codigo_operacion cop=COP_IO_FS_WRITE;
 	t_paquete * paquete = crear_paquete(IO);
 	pcb.pc++;
 	agregar_contexto_ejecucion_a_paquete(paquete, &pcb);
