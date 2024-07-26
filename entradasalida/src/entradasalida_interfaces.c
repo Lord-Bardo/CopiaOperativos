@@ -392,6 +392,11 @@ bool hayEspacioSuficiente(int cant_bloques_totales){
     return false;
 }
 
+t_config* obtener_config_indice(int i){
+    t_config *config;
+    
+}
+
 void compactar(int *ultimo_bloque_ocupado, int pid){
     log_info(entradasalida_logger_min_y_obl, "DialFS - Inicio Compactación: PID: %d - Inicio Compactación.", pid);
     
@@ -401,18 +406,30 @@ void compactar(int *ultimo_bloque_ocupado, int pid){
 
     void *contenido_bloques = NULL;
     int tamanio_contenido_bloques = 0;
+    int tamanio_bloques_archivo=0;
+    int cantidad_bloques_archivo=0;
     for(int i = 0; i < BLOCK_COUNT; i++){
         bool bit = bitarray_test_bit(bitmap, i);
         if( bit == true ){
-            tamanio_contenido_bloques += BLOCK_SIZE;
+            t_config *config_archivo = obtener_config_indice(i);
+            cantidad_bloques_archivo= cantidadBloques(config_get_int_value(config_archivo,"TAMANIO_ARCHIVO"));
+            tamanio_bloques_archivo = cantidad_bloques_archivo * BLOCK_SIZE;
+            tamanio_contenido_bloques += tamanio_bloques_archivo;
             log_info(entradasalida_logger, "Tamanio_contenido_bloques: %d", tamanio_contenido_bloques);
+
             contenido_bloques = realloc(contenido_bloques, tamanio_contenido_bloques);
             if (contenido_bloques == NULL){
                 log_error(entradasalida_logger, "Falló el realloc, es NULL");
                 exit(1);
             }
-            leerBloqueCompleto(archivo_bloques, contenido_bloques, i * BLOCK_SIZE);
-            bitarray_clean_bit(bitmap, i);
+            leerArchivo(archivo_bloques,contenido_bloques,tamanio_bloques_archivo,i);
+            liberarBloques(i,cantidad_bloques_archivo);
+            config_set_value(config_archivo, "BLOQUE_INICIAL", string_itoa(i));
+            config_save(config_archivo);
+            i = i+cantidad_bloques_archivo-1;
+
+            //leerBloqueCompleto(archivo_bloques, contenido_bloques, i * BLOCK_SIZE);
+            //bitarray_clean_bit(bitmap, i);
         }
     }
     msync(bitmap_data, bitmap->size, MS_SYNC);
