@@ -173,7 +173,7 @@ int enviar_paquete(int socket, t_paquete *paquete){
 }
 
 int enviar_codigo_operacion(int socket, t_codigo_operacion codigo_operacion){
-	return send(socket, &codigo_operacion, sizeof(t_codigo_operacion), 0);
+	return send(socket, &codigo_operacion, sizeof(t_codigo_operacion), MSG_NOSIGNAL);
 }
 
 // Recibir
