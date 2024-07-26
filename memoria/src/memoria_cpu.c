@@ -3,9 +3,7 @@
 int pid_cpu;
 
 void atender_memoria_cpu(){
-    int continuar = 1;
-	
-	while(continuar){
+	while(1){
 		t_codigo_operacion cod_op;
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_cpu, &cod_op, buffer);
@@ -153,6 +151,7 @@ void atender_memoria_cpu(){
 
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de CPU");
+				break;
 		}
 	}
 }

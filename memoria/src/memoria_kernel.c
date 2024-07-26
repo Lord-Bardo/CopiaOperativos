@@ -11,8 +11,7 @@ pthread_mutex_t mutex_espacio_usuario; // USAR EN LEER Y ESCRIBIR
 pthread_mutex_t mutex_procesos; // USAR EN LEER Y ESCRIBIR
 
 void atender_memoria_kernel(){
-    int continuar = 1;
-	while( continuar ){
+	while(1){
 		t_codigo_operacion cod_op;
 		t_buffer *buffer = crear_buffer();
 		recibir_paquete(fd_kernel, &cod_op, buffer);
@@ -58,6 +57,7 @@ void atender_memoria_kernel(){
 
 			default:
 				log_warning(memoria_logger, "MEMORIA: Operacion desconocida recibida de KERNEL");
+                break;
 		}
 	}
 }
