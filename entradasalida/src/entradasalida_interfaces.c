@@ -292,25 +292,38 @@ void liberarBloques(int bloque_inicial, int cant_bloques_tam_archivo){
     msync(bitmap_data, bitmap->size, MS_SYNC);
 }
 
-void moverContenidoBloques(int bloque_inicial, int bloque_inicial_aux, int tamanio_archivo, int cant_bloques_tam_archivo){
+void moverContenidoBloques(int bloque_inicial, int bloque_inicial_nuevo, int tamanio_archivo){
     void* contenido = malloc(tamanio_archivo);
+    if( contenido == NULL ){
+        log_error(entradasalida_logger, "Error al asignar memoria para el CONTENIDO!");
+    }
     FILE* archivo_bloques = abrirArchivoBloques();
     leerArchivo(archivo_bloques, contenido, tamanio_archivo, bloque_inicial);
-    // escribirArchivo();
+    escribirArchivo(archivo_bloques, contenido, tamanio_archivo, bloque_inicial_nuevo);
+    free(contenido);
     fclose(archivo_bloques);
 }
 
 void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial){
-    int cant_bloques_completos = tamanio_archivo / BLOCK_SIZE; // 150 / 64 = 2 (Redondea el int)
-    int bytes_restantes = tamanio_archivo - (cant_bloques_completos * BLOCK_SIZE); // 150 - (2 * 64) = 22 bytes
-    int bytes_desde = bloque_inicial * BLOCK_SIZE;
-    for (int i = 0; i < cant_bloques_completos; i++)
-    {
-        leerBloqueCompleto(archivo_bloques, contenido, bytes_desde);
-        bytes_desde += BLOCK_SIZE;
+    fseek(archivo_bloques, bloque_inicial, SEEK_SET);
+    size_t bytes_leidos = fread(contenido, 1, tamanio_archivo, archivo_bloques);
+    if (bytes_leidos != tamanio_archivo) {
+        log_error(entradasalida_logger, "Hubo un error al leer los bytes del archivo de bloques");
+        exit(1);
     }
-    leerBloque(archivo_bloques, contenido, bytes_desde, bytes_restantes);
 }
+
+// void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial){
+//     int cant_bloques_completos = tamanio_archivo / BLOCK_SIZE; // 150 / 64 = 2 (Redondea el int)
+//     int bytes_restantes = tamanio_archivo - (cant_bloques_completos * BLOCK_SIZE); // 150 - (2 * 64) = 22 bytes
+//     int bytes_desde = bloque_inicial * BLOCK_SIZE;
+//     for (int i = 0; i < cant_bloques_completos; i++)
+//     {
+//         leerBloqueCompleto(archivo_bloques, contenido, bytes_desde);
+//         bytes_desde += BLOCK_SIZE;
+//     }
+//     leerBloque(archivo_bloques, contenido, bytes_desde, bytes_restantes);
+// }
 
 void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde){
     leerBloque(archivo_bloques,contenido, bytes_desde, BLOCK_SIZE);
@@ -322,6 +335,15 @@ void leerBloque(FILE* archivo_bloques, void* contenido, int bytes_desde, int byt
     size_t bytes_leidos = fread(contenido, 1, bytes_a_leer,archivo_bloques);
     if (bytes_leidos != bytes_a_leer) {
         log_error(entradasalida_logger, "Hubo un error al leer los bytes del archivo de bloques");
+        exit(1);
+    }
+}
+
+void escribirArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial){
+    fseek(archivo_bloques, bloque_inicial, SEEK_SET);
+    size_t bytes_leidos = fwrite(contenido, 1, tamanio_archivo, archivo_bloques);
+    if (bytes_leidos != tamanio_archivo) {
+        log_error(entradasalida_logger, "Hubo un error al escribir los bytes en el archivo de bloques");
         exit(1);
     }
 }
@@ -339,43 +361,107 @@ FILE* abrirArchivoBloques(){
     return bloques_file;
 }
 
-void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar){
-    int bloque_inicial_aux;
+bool hayEspacioSuficiente(int cant_bloques_totales){
+    int i = 0;
+    int cont_bloques = 0;
+
+    while(cont_bloques < cant_bloques_totales && i < BLOCK_COUNT){
+        bool bit = bitarray_test_bit(bitmap, i);
+        if( bit == false ){
+            cont_bloques++;
+            if (cont_bloques == cant_bloques_totales) {
+                log_info(entradasalida_logger, "Hay espacio suficiente para el archivo!");
+                return true;
+            }
+        }
+        i++;
+    }
+    return false;
+}
+
+void compactar(int *ultimo_bloque_ocupado, int tamanio_archivo, int pid){
+    log_info(entradasalida_logger_min_y_obl, "DialFS - Inicio Compactación: PID: %d - Inicio Compactación.", pid);
+    
+    usleep(RETRASO_COMPACTACION * 1000);
+
+    FILE* archivo_bloques = abrirArchivoBloques();
+
+    void *contenido_bloques = NULL;
+    int tamanio_contenido_bloques = 0;
+    for(int i = 0; i < BLOCK_COUNT; i++){
+        bool bit = bitarray_test_bit(bitmap, i);
+        if( bit == true ){
+            tamanio_contenido_bloques += BLOCK_SIZE;
+            contenido_bloques = realloc(contenido_bloques, tamanio_contenido_bloques);
+            leerBloqueCompleto(archivo_bloques, contenido_bloques, i * BLOCK_SIZE);
+            bitarray_clean_bit(bitmap, i);
+        }
+        i++;
+    }
+    msync(bitmap_data, bitmap->size, MS_SYNC);
+
+    *ultimo_bloque_ocupado = tamanio_contenido_bloques / BLOCK_SIZE;
+
+    escribirArchivo(archivo_bloques, contenido_bloques, tamanio_contenido_bloques, 0);
+    ocuparBloques(0, *ultimo_bloque_ocupado);
+
+    free(contenido_bloques);
+    fclose(archivo_bloques);
+
+    log_info(entradasalida_logger_min_y_obl, "DialFS - Fin Compactación: PID: %d - Fin Compactación.", pid);
+}
+
+void guardarContenidoArchivo(void *contenido_archivo, int bloque_inicial, int tamanio_archivo){
+    FILE* archivo_bloques = abrirArchivoBloques();
+    leerArchivo(archivo_bloques, contenido_archivo, tamanio_archivo, bloque_inicial);
+    fclose(archivo_bloques);
+}
+
+void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar, int pid){
+    int bloque_inicial_nuevo;
+    int bloque_final_actual = bloque_inicial + cant_bloques_tam_archivo;
 
     // Liberar mi propio bloque
-    bitarray_clean_bit(bitmap,bloque_inicial);
+    liberarBloques(bloque_inicial, cant_bloques_tam_archivo);
 
     // Hay espacio libre a la derecha del bloque en el que está mi archivo
     // Pongo bloque_inicial + 1 debido a que quiero chequear desde los bloques despues del mio porque el mio esta en 0
-    if(hayEspacioInmediato(bloque_inicial + 1, cant_bloques_a_aumentar)){
-        bitarray_set_bit(bitmap,bloque_inicial);
+    if(hayEspacioInmediato(bloque_final_actual + 1, cant_bloques_a_aumentar)){
+        ocuparBloques(bloque_inicial, cant_bloques_tam_archivo);
         int ocupar_desde = bloque_inicial + cant_bloques_tam_archivo;
         ocuparBloques(ocupar_desde, cant_bloques_a_aumentar);
     }
     // Hay espacio libre contiguo en algun lugar de todo mi archivo de bloques
-    else if (hayEspacioContiguo(&bloque_inicial_aux, cant_bloques_tam_archivo + cant_bloques_a_aumentar)){
-        config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(bloque_inicial_aux));
-        int ocupar_desde = bloque_inicial_aux + cant_bloques_tam_archivo;
-        ocuparBloques(ocupar_desde, cant_bloques_a_aumentar);
-
+    else if (hayEspacioContiguo(&bloque_inicial_nuevo, cant_bloques_tam_archivo + cant_bloques_a_aumentar)){
+        config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(bloque_inicial_nuevo));
+        // Ocupamos los nuevos bloques contiguos
+        ocuparBloques(bloque_inicial_nuevo, cant_bloques_tam_archivo + cant_bloques_a_aumentar);
         // Mover la información de los bloques del archivo a los bloques a ocupar
-        moverContenidoBloques(bloque_inicial, bloque_inicial_aux, tamanio_archivo, cant_bloques_tam_archivo);
-        // Despues de mover los bloques habría que liberar los bloques anteriores que ocupaba el archivo
-        liberarBloques(bloque_inicial, cant_bloques_tam_archivo);
+        moverContenidoBloques(bloque_inicial, bloque_inicial_nuevo, tamanio_archivo);
+        // No liberamos los bloques anteriores despues de moverlos porque ya los liberamos al principio de la funcion 
     }
     // Hay espacio suficiente en todo mi archivo de bloques
-    else if (hayEspacioSuficiente()) {
-
-        // Compactar
+    else if (hayEspacioSuficiente(cant_bloques_tam_archivo + cant_bloques_a_aumentar)) {
+        // Nos guardamos el contenido de los bloques del archivo a truncar
+        void *contenido_archivo = malloc(tamanio_archivo);
+        if( contenido_archivo == NULL ){
+            log_error(entradasalida_logger, "Error al asignar memoria para el CONTENIDO_ARCHIVO!");
+        }
+        guardarContenidoArchivo(contenido_archivo, bloque_inicial, tamanio_archivo);
+        // Compactamos los bloques para poder tener el espacio contiguo
+        int ultimo_bloque_ocupado;
+        compactar(&ultimo_bloque_ocupado, tamanio_archivo, pid);
+        // Movemos el contenido guardado al final
+        FILE* archivo_bloques = abrirArchivoBloques();
+        escribirArchivo(archivo_bloques, contenido_archivo, tamanio_archivo, ultimo_bloque_ocupado + 1);
+        ocuparBloques(ultimo_bloque_ocupado + 1, cant_bloques_tam_archivo);
+        free(contenido_archivo);
+        fclose(archivo_bloques);
     }
     else {
-        bitarray_set_bit(bitmap,bloque_inicial);
+        ocuparBloques(bloque_inicial, cant_bloques_tam_archivo);
         log_info(entradasalida_logger, "No hay espacio disponible para aumentar el tamanio del archivo a %d bloques", cant_bloques_tam_archivo + cant_bloques_a_aumentar);
     }
-}
-
-void hayEspacioSuficiente(){
-
 }
 
 void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid) {
@@ -397,7 +483,7 @@ void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid) {
     else if (cant_bloques_tam_archivo < cant_bloques_nuevo_tam){
         // Aumentar tamaño archivo
         int cant_bloques_a_aumentar = cant_bloques_nuevo_tam - cant_bloques_tam_archivo;
-        aumentarTamanioArchivo(metadata_file_config, bloque_inicial, tamanio_archivo, cant_bloques_tam_archivo, cant_bloques_a_aumentar);
+        aumentarTamanioArchivo(metadata_file_config, bloque_inicial, tamanio_archivo, cant_bloques_tam_archivo, cant_bloques_a_aumentar, pid);
     }
     else {
         // Reducir tamaño de archivo
