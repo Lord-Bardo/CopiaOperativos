@@ -18,13 +18,14 @@ void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid);
 int cantidadBloques(int tamanio_bytes);
 void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar);
 void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int cant_bloques_tam_archivo);
-void leerBloque(void* contenido, int byteDesde, int byteHasta);
-void leerBloqueCompleto(void* contenido, int bytes_desde);
-void leerArchivo(void* contenido, int tamanio_archivo, int bloque_inicial);
+void leerBloque(FILE* archivo_bloques, void* contenido, int byteDesde, int byteHasta);
+void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde);
+void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial);
 void moverContenidoBloques(int bloque_inicial, int bloque_inicial_aux, int tamanio_archivo, int cant_bloques_tam_archivo);
 void liberarBloques(int bloque_inicial, int cant_bloques_tam_archivo);
 bool hayEspacioContiguo(int* bloque_inicial, int cant_bloques_totales);
 void ocuparBloques(int ocupar_desde, int cant_bloques_a_aumentar);
 bool hayEspacioInmediato(int bloque_inicial, int cant_bloques_a_aumentar);
+FILE* abrirArchivoBloques();
 
 #endif

@@ -294,27 +294,49 @@ void liberarBloques(int bloque_inicial, int cant_bloques_tam_archivo){
 
 void moverContenidoBloques(int bloque_inicial, int bloque_inicial_aux, int tamanio_archivo, int cant_bloques_tam_archivo){
     void* contenido = malloc(tamanio_archivo);
-    leerArchivo(contenido, tamanio_archivo, bloque_inicial);
+    FILE* archivo_bloques = abrirArchivoBloques();
+    leerArchivo(archivo_bloques, contenido, tamanio_archivo, bloque_inicial);
+    // escribirArchivo();
+    fclose(archivo_bloques);
 }
 
-void leerArchivo(void* contenido, int tamanio_archivo, int bloque_inicial){
+void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial){
     int cant_bloques_completos = tamanio_archivo / BLOCK_SIZE; // 150 / 64 = 2 (Redondea el int)
     int bytes_restantes = tamanio_archivo - (cant_bloques_completos * BLOCK_SIZE); // 150 - (2 * 64) = 22 bytes
     int bytes_desde = bloque_inicial * BLOCK_SIZE;
     for (int i = 0; i < cant_bloques_completos; i++)
     {
-        leerBloqueCompleto(contenido, bytes_desde);
+        leerBloqueCompleto(archivo_bloques, contenido, bytes_desde);
         bytes_desde += BLOCK_SIZE;
     }
-    leerBloque(contenido, bytes_desde, bytes_restantes);
+    leerBloque(archivo_bloques, contenido, bytes_desde, bytes_restantes);
 }
 
-void leerBloqueCompleto(void* contenido, int bytes_desde){
-    leerBloque(contenido, bytes_desde, BLOCK_SIZE);
+void leerBloqueCompleto(FILE* archivo_bloques, void* contenido, int bytes_desde){
+    leerBloque(archivo_bloques,contenido, bytes_desde, BLOCK_SIZE);
 }
 
-void leerBloque(void* contenido, int byteDesde, int byteHasta){
+void leerBloque(FILE* archivo_bloques, void* contenido, int bytes_desde, int bytes_hasta){
+    fseek(archivo_bloques, bytes_desde, SEEK_SET);
+    int bytes_a_leer = bytes_hasta-bytes_desde;
+    size_t bytes_leidos = fread(contenido, 1, bytes_a_leer,archivo_bloques);
+    if (bytes_leidos != bytes_a_leer) {
+        log_error(entradasalida_logger, "Hubo un error al leer los bytes del archivo de bloques");
+        exit(1);
+    }
+}
 
+FILE* abrirArchivoBloques(){
+    char *path_archivo_bloques = string_duplicate(PATH_BASE_DIALFS);
+    string_append(&path_archivo_bloques, "/bloques.dat");
+
+    FILE *bloques_file = fopen(path_archivo_bloques, "r+");
+    if( bloques_file == NULL ){
+        fclose(bloques_file);
+        log_error(entradasalida_logger, "Error al abrir el archivo bloques.dat");
+        exit(1);
+    }
+    return bloques_file;
 }
 
 void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar){
@@ -353,7 +375,7 @@ void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, 
 }
 
 void hayEspacioSuficiente(){
-    
+
 }
 
 void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid) {
