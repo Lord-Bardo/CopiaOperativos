@@ -1,7 +1,7 @@
 #include "../include/cpu_memoria.h"
 
 void atender_cpu_memoria(){
-    int continuar = 1;
+    int continuar = 1;  
 	while(continuar){
 		t_codigo_operacion cod_op;
 		t_buffer * buffer = crear_buffer();

@@ -197,13 +197,12 @@ void interfaz_fs_delete(char* filename, int pid) {
     }
 
     // Lee el bloque inicial del archivo
-    int block_index = config_get_int_value(metadata_file_config, "BLOQUE_INICIAL");
+    int bloque_inicial = config_get_int_value(metadata_file_config, "BLOQUE_INICIAL");
+    int tamanio_archivo = config_get_int_value(metadata_file_config,"TAMANIO_ARCHIVO");
+    
+    // Libera los bloques del archivo a borrar y sincroniza
+    liberarBloques(bloque_inicial,cantidadBloques(tamanio_archivo));
 
-    // Libera el bloque en el bitarray
-    bitarray_clean_bit(bitmap, block_index);
-
-    // Sincronizar los cambios en el bitarray con el archivo bitmap
-    msync(bitmap_data, bitmap->size, MS_SYNC);
     
     char *path_archivo_metadata = string_duplicate(metadata_file_config->path);
 
@@ -219,12 +218,15 @@ void interfaz_fs_delete(char* filename, int pid) {
 }
 
 int cantidadBloques(int tamanio_bytes){
+    if(tamanio_bytes ==0){
+        return 1;
+    }
     return (int) ceil((double)tamanio_bytes / (double)BLOCK_SIZE);
 }
 
 void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int cant_bloques_tam_archivo){
     int i = 1;
-    while (i < cant_bloques_a_reducir)
+    while (i <= cant_bloques_a_reducir)
     {
         int bloque_a_limpiar = bloque_inicial + cant_bloques_tam_archivo - i;
         bitarray_clean_bit(bitmap, bloque_a_limpiar);
@@ -235,21 +237,28 @@ void reducirTamanioArchivo(int bloque_inicial, int cant_bloques_a_reducir, int c
 
 }
 
-// 2 - 6
+
 bool hayEspacioInmediato(int bloque_inicial, int cant_bloques_a_aumentar){
-    // 2
-    int cant_bloques_contiguos = bloque_inicial;
-    // 3 < 8
-    while(cant_bloques_contiguos < bloque_inicial + cant_bloques_a_aumentar){
-        bool bit = bitarray_test_bit(bitmap, cant_bloques_contiguos); // Si está vacio - false
+    int cont_bloques_contiguos = 0;
+    int bloque_actual = bloque_inicial;
+    while(cont_bloques_contiguos<cant_bloques_a_aumentar && bloque_actual < BLOCK_COUNT){
+        bool bit = bitarray_test_bit(bitmap, bloque_actual); // Si está vacio - false
         if( bit == true ){
-            log_info(entradasalida_logger, "El bloque %d estaba ocupado, no hay espacio inmediato", cant_bloques_contiguos);
+            log_info(entradasalida_logger, "El bloque %d estaba ocupado, no hay espacio inmediato", bloque_actual);
             return false;  
         }
-        cant_bloques_contiguos++;
+        
+        cont_bloques_contiguos++;
+        bloque_actual++;
+
     }
+    if(bloque_actual ==BLOCK_COUNT && cont_bloques_contiguos != cant_bloques_a_aumentar){
+            log_info(entradasalida_logger, "No hay mas bloques para asignar, no hay espacio inmediato");
+            return false;
+        }
     log_info(entradasalida_logger, "Hay espacio inmediato - Se asignan los %d bloques sin compactar", cant_bloques_a_aumentar);
     return true;
+
 }
 
 void ocuparBloques(int ocupar_desde, int cant_bloques_a_aumentar){
@@ -264,23 +273,23 @@ void ocuparBloques(int ocupar_desde, int cant_bloques_a_aumentar){
 }
 
 bool hayEspacioContiguo(int* bloque_inicial, int cant_bloques_totales){
-    int i = 0;
+    int bloque_actual = 0;
     int cont_bloques_contiguos = 0;
-
-    while(cont_bloques_contiguos < cant_bloques_totales && i < BLOCK_COUNT){
-        bool bit = bitarray_test_bit(bitmap, i);
+    //cant bloques totales 4 // i=5  //cont bloques 4
+    while(bloque_actual < BLOCK_COUNT){
+        bool bit = bitarray_test_bit(bitmap, bloque_actual); //
         if( bit == false ){
             cont_bloques_contiguos++;
             if (cont_bloques_contiguos == cant_bloques_totales) {
-                *bloque_inicial = i;
-                log_info(entradasalida_logger, "Se encontro espacio contiguo en el bloque %d", i);
+                *bloque_inicial = bloque_actual - cont_bloques_contiguos +1;
+                log_info(entradasalida_logger, "Se encontro espacio contiguo en el bloque %d", *bloque_inicial);
                 return true;
             }
         }
         else {
             cont_bloques_contiguos = 0;
         }
-        i++;
+        bloque_actual++;
     }
     return false;
 }
@@ -290,7 +299,7 @@ void liberarBloques(int bloque_inicial, int cant_bloques_tam_archivo){
     {
         bitarray_clean_bit(bitmap,i);
     }
-    log_info(entradasalida_logger, "Libere los bloques desde %d hasta %d", bloque_inicial, bloque_inicial + cant_bloques_tam_archivo);
+    log_info(entradasalida_logger, "Libere los bloques desde %d hasta %d", bloque_inicial, bloque_inicial + cant_bloques_tam_archivo-1);
     msync(bitmap_data, bitmap->size, MS_SYNC);
 }
 
@@ -419,15 +428,17 @@ void guardarContenidoArchivo(void *contenido_archivo, int bloque_inicial, int ta
     fclose(archivo_bloques);
 }
 
-void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar, int pid){
+bool aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar, int pid){
+    // tamanio_archivo = 100 // bloque inicial 1 // 100 //cant bloques nuevo tamanio 1 // cantidad bloques aumentar 6
     int bloque_inicial_nuevo;
     int bloque_final_actual = bloque_inicial + cant_bloques_tam_archivo - 1;
-
+    log_info(entradasalida_logger,"Valor bloque final actual: %d  |  bloque inicial: %d  |  cantidad bloques tamanio archivo: %d",bloque_final_actual,bloque_inicial,cant_bloques_tam_archivo);
     // Liberar mi propio bloque
-    liberarBloques(bloque_inicial, cant_bloques_tam_archivo);
+    liberarBloques(bloque_inicial, cant_bloques_tam_archivo); //check
 
     // Hay espacio libre a la derecha del bloque en el que está mi archivo
     // Pongo bloque_inicial + 1 debido a que quiero chequear desde los bloques despues del mio porque el mio esta en 0
+    // 1 +1 //6
     if(hayEspacioInmediato(bloque_final_actual + 1, cant_bloques_a_aumentar)){
         ocuparBloques(bloque_inicial, cant_bloques_tam_archivo);
         int ocupar_desde = bloque_inicial + cant_bloques_tam_archivo;
@@ -436,6 +447,7 @@ void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, 
     // Hay espacio libre contiguo en algun lugar de todo mi archivo de bloques
     else if (hayEspacioContiguo(&bloque_inicial_nuevo, cant_bloques_tam_archivo + cant_bloques_a_aumentar)){
         config_set_value(metadata_file_config, "BLOQUE_INICIAL", string_itoa(bloque_inicial_nuevo));
+        config_save(metadata_file_config);
         // Ocupamos los nuevos bloques contiguos
         ocuparBloques(bloque_inicial_nuevo, cant_bloques_tam_archivo + cant_bloques_a_aumentar);
         // Mover la información de los bloques del archivo a los bloques a ocupar
@@ -463,34 +475,49 @@ void aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, 
     else {
         ocuparBloques(bloque_inicial, cant_bloques_tam_archivo);
         log_info(entradasalida_logger, "No hay espacio disponible para aumentar el tamanio del archivo a %d bloques", cant_bloques_tam_archivo + cant_bloques_a_aumentar);
+        return false;
     }
+    return true;
 }
 
 void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid) {
     log_info(entradasalida_logger_min_y_obl, "DialFS - Truncar Archivo: PID: %d - Truncar Archivo: %s - Tamaño: %d", pid, filename, nuevo_tamanio);
     
     t_config* metadata_file_config = dictionary_get(metadata_dictionary_files,filename);
+    if(metadata_file_config ==NULL){
+        log_error(entradasalida_logger,"No encontro el archivo de config");
+        exit(1);
+    }
     int bloque_inicial = config_get_int_value(metadata_file_config, "BLOQUE_INICIAL");
     int tamanio_archivo = config_get_int_value(metadata_file_config, "TAMANIO_ARCHIVO");
 
-    config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", string_itoa(nuevo_tamanio));
     
-    // tamanio_archivo = 100 // nuevo_tamanio = 60 // // bloque_inicial = 3 // 
+    
+    // nuevo_tamanio = 3 // archivo pepe
+    //bloque inicial 1 //tamanio_Archivo=100
     int cant_bloques_tam_archivo = cantidadBloques(tamanio_archivo); // 1
     int cant_bloques_nuevo_tam = cantidadBloques(nuevo_tamanio); // 7
-
+    
     if (cant_bloques_nuevo_tam == cant_bloques_tam_archivo){
+        log_info(entradasalida_logger,"El archivo: %s ya tiene tamanio: %d",filename,tamanio_archivo);
         return;
     }
     else if (cant_bloques_tam_archivo < cant_bloques_nuevo_tam){
         // Aumentar tamaño archivo
         int cant_bloques_a_aumentar = cant_bloques_nuevo_tam - cant_bloques_tam_archivo;
-        aumentarTamanioArchivo(metadata_file_config, bloque_inicial, tamanio_archivo, cant_bloques_tam_archivo, cant_bloques_a_aumentar, pid);
+        bool respuesta =aumentarTamanioArchivo(metadata_file_config, bloque_inicial, tamanio_archivo, cant_bloques_tam_archivo, cant_bloques_a_aumentar, pid);
+        if(respuesta){
+            config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", string_itoa(nuevo_tamanio));
+            config_save(metadata_file_config);
+        }
     }
     else {
+        //bloque inicial 1 // cant_bloques_Tam_archivo 7 // cant bloques nuevo 1/ cant bloques reducir 6
         // Reducir tamaño de archivo
         int cant_bloques_a_reducir = cant_bloques_tam_archivo - cant_bloques_nuevo_tam; // 1
         reducirTamanioArchivo(bloque_inicial, cant_bloques_a_reducir, cant_bloques_tam_archivo); // 3 // 1 // 2 
+        config_set_value(metadata_file_config, "TAMANIO_ARCHIVO", string_itoa(nuevo_tamanio));
+        config_save(metadata_file_config);
     }
 }
 

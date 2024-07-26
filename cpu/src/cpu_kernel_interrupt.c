@@ -8,7 +8,7 @@ REcordemos prioridad de interrpts:
 	-New
 */
 nodo_t *lista_interrupciones=NULL; 
-
+ 
 void atender_cpu_kernel_interrupt(){
     int continuar = 1;
 	while(continuar){

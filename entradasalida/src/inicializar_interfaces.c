@@ -82,19 +82,51 @@ DialFS - Fin Compactación: "PID: <PID> - Fin Compactación."
  */
 
 void inicializar_fs(){
-    metadata_dictionary_files = dictionary_create();
     crear_directorio_fs();
     crear_archivo_bloques();
     crear_bitmap();
     log_info(entradasalida_logger, "Filesystem inicializado correctamente");
 }
 
+
 void crear_directorio_fs(){
     // Creo la carpeta/directorio donde se van a almacenar los archivos del FS
+    metadata_dictionary_files = dictionary_create();
     if( mkdir(PATH_BASE_DIALFS, 0777) == -1 ){
         // Si mkdir falla, verifico si el error es porque el directorio ya existe o si es porque fallo la creacion
         if( errno == EEXIST ){
+            DIR *dir;
+            struct dirent* entry;
+
+            if ((dir = opendir(PATH_BASE_DIALFS)) == NULL) {
+                log_error(entradasalida_logger,"El directorio ya existe pero no se pudo abrir");
+                exit(1);
+            }
+
+            while ((entry = readdir(dir)) != NULL) {
+                // Filtrar archivos que no tienen la extensión .dat
+                char *nombre_archivo = entry->d_name;
+                if (strstr(nombre_archivo, ".dat") == NULL && (nombre_archivo[0]!='.') ) {
+                    log_info(entradasalida_logger,"El nombre del archivo es: %s",entry->d_name);
+
+                    char *path_archivo_metadata = string_duplicate(PATH_BASE_DIALFS);
+                    string_append(&path_archivo_metadata, "/");
+                    string_append(&path_archivo_metadata, nombre_archivo);
+
+                    t_config* metadata_file_config = config_create(path_archivo_metadata);
+
+                    if (metadata_file_config == NULL) {
+                        log_error(entradasalida_logger, "Error al crear el config de metadata");
+                        return;
+                    }
+
+                    dictionary_put(metadata_dictionary_files,nombre_archivo,metadata_file_config);
+                }
+            }
+
+            closedir(dir);
             log_info(entradasalida_logger, "El directorio '%s' ya existe, salteo la creacion", PATH_BASE_DIALFS);
+            //buscar en la carpeta si ya hay archivos
         }
         else{
             log_error(entradasalida_logger, "Fallo la creacion del directorio '%s'", PATH_BASE_DIALFS);
@@ -102,6 +134,7 @@ void crear_directorio_fs(){
         }
     }
     else{
+        
         log_info(entradasalida_logger, "El directorio '%s' fue creado correctamente!", PATH_BASE_DIALFS);
     }
 }

@@ -1,8 +1,8 @@
 
 #include "../include/cpu_utils.h"
 
-/*
-
+/* 
+ 
 typedef struct {
 	t_instr_code instr_code;
 	char* argumentos[5];
