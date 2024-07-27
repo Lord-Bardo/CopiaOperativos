@@ -432,13 +432,15 @@ void compactar(int *ultimo_bloque_ocupado, int pid){
 
     void *contenido_bloques = NULL;
     int tamanio_contenido_bloques = 0;
-    int tamanio_bloques_archivo=0;
-    int cantidad_bloques_archivo=0;
+    int tamanio_bloques_archivo = 0;
+    int cantidad_bloques_archivo = 0;
+    int nuevo_bloque_inicial = 0;
     for(int i = 0; i < BLOCK_COUNT; i++){
         bool bit = bitarray_test_bit(bitmap, i);
         if( bit == true ){
             t_config *config_archivo = obtener_config_indice(i);
-            cantidad_bloques_archivo= cantidadBloques(config_get_int_value(config_archivo,"TAMANIO_ARCHIVO"));
+            log_info(entradasalida_logger, "Indice: %d | Bloque inicial: %d", i, config_get_int_value(config_archivo, "BLOQUE_INICIAL"));
+            cantidad_bloques_archivo = cantidadBloques(config_get_int_value(config_archivo,"TAMANIO_ARCHIVO"));
             tamanio_bloques_archivo = cantidad_bloques_archivo * BLOCK_SIZE;
             tamanio_contenido_bloques += tamanio_bloques_archivo;
             log_info(entradasalida_logger, "Tamanio_contenido_bloques: %d", tamanio_contenido_bloques);
@@ -448,22 +450,23 @@ void compactar(int *ultimo_bloque_ocupado, int pid){
                 log_error(entradasalida_logger, "Falló el realloc, es NULL");
                 exit(1);
             }
-            leerArchivo(archivo_bloques,contenido_bloques,tamanio_bloques_archivo,i);
-            liberarBloques(i,cantidad_bloques_archivo);
-            config_set_value(config_archivo, "BLOQUE_INICIAL", string_itoa(i));
-            config_save(config_archivo);
-            i = i+cantidad_bloques_archivo-1;
 
-            //leerBloqueCompleto(archivo_bloques, contenido_bloques, i * BLOCK_SIZE);
-            //bitarray_clean_bit(bitmap, i);
+            leerArchivo(archivo_bloques, contenido_bloques, tamanio_bloques_archivo, i);
+            liberarBloques(i, cantidad_bloques_archivo);
+
+            config_set_value(config_archivo, "BLOQUE_INICIAL", string_itoa(nuevo_bloque_inicial));
+            config_save(config_archivo);
+            nuevo_bloque_inicial += cantidad_bloques_archivo;
+
+            i = i + cantidad_bloques_archivo - 1;
         }
     }
     msync(bitmap_data, bitmap->size, MS_SYNC);
 
-    *ultimo_bloque_ocupado = tamanio_contenido_bloques / BLOCK_SIZE;
+    *ultimo_bloque_ocupado = (tamanio_contenido_bloques / BLOCK_SIZE) - 1;
 
     escribirArchivo(archivo_bloques, contenido_bloques, tamanio_contenido_bloques, 0);
-    ocuparBloques(0, *ultimo_bloque_ocupado);
+    ocuparBloques(0, *ultimo_bloque_ocupado + 1);
 
     free(contenido_bloques);
     fclose(archivo_bloques);
@@ -519,7 +522,7 @@ bool aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, 
         config_save(metadata_file_config);
         FILE* archivo_bloques = abrirArchivoBloques();
         escribirArchivo(archivo_bloques, contenido_archivo, tamanio_archivo, ultimo_bloque_ocupado + 1);
-        ocuparBloques(ultimo_bloque_ocupado + 1, cant_bloques_tam_archivo);
+        ocuparBloques(ultimo_bloque_ocupado + 1, cant_bloques_tam_archivo + cant_bloques_a_aumentar);
         free(contenido_archivo);
         fclose(archivo_bloques);
     }
