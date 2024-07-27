@@ -1,8 +1,8 @@
 #include "../include/inicializar_kernel.h"
 
-void inicializar_kernel(){
+void inicializar_kernel(char* archivo_configuracion){
     inicializar_logger();
-    inicializar_config();
+    inicializar_config(archivo_configuracion);
 }
 
 void inicializar_logger(){
@@ -21,9 +21,12 @@ void inicializar_logger(){
 	}
 }
 
-void inicializar_config(){
+void inicializar_config(char* archivo_configuracion){
     // Creo el kernel_config
-	kernel_config = config_create("/home/utnso/tp-2024-1c-GSN/kernel/kernel_fs.config");
+    char* config_path = string_duplicate("/home/utnso/tp-2024-1c-GSN/kernel/");
+    string_append(&config_path,archivo_configuracion);
+
+	kernel_config = config_create(config_path);
 	if(kernel_config == NULL){
 		perror("No se pudo crear el config.");
 		exit(2);

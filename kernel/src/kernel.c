@@ -1,12 +1,15 @@
 #include "../include/kernel.h"
 
-volatile sig_atomic_t continuar = 1;
+int main(int argc, char* argv[]) {		
 
-int main(int argc, char* argv[]) {	
-	// signal(SIGINT, signal_handler); 
-	
+	if (argc != 2) {
+		perror("Cantidad de argumentos para kernel erronea");
+        return 1;
+    }
+
+	char* archivo_configuracion = argv[1];
 	// Inicializar estructuras de KERNEL (loggers y config)
-	inicializar_kernel();
+	inicializar_kernel(archivo_configuracion);
 	
 	// Iniciar planificacion (largo y corto plazo)
 	iniciar_planificadores();
@@ -38,10 +41,6 @@ int main(int argc, char* argv[]) {
 	terminar_programa();
 
 	return 0; 
-}
-
-void signal_handler(int signum){
-    continuar = 0;
 }
 
 void conectar_a_memoria(){

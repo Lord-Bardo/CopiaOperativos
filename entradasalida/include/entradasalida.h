@@ -30,14 +30,11 @@ int fd_entradasalida;
 t_bitarray* bitmap; 
 // // Puntero que va a apuntar al área de memoria donde el archivo del bitmap va a ser mapeado
 void* bitmap_data;
-// // File descriptor que se va a usar para manejar el archivo bitmap.dat
-// int bitmap_fd;
 // Lista de archivos metadata
 t_dictionary* metadata_dictionary_files;
 
 //FUNCIONES
 void conectar_a_kernel(char* nombre_interfaz);
-// void agregar_string_a_paquete(t_paquete *paquete, char *string);
 void conectar_a_memoria();
 void terminar_programa();
 

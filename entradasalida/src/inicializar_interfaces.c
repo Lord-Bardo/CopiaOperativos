@@ -6,7 +6,6 @@ void inicializar_interfaz(char* nombre_interfaz, char* archivo_configuracion){
 
     if (strcmp(TIPO_INTERFAZ, "DIALFS") == 0) {
         inicializar_fs();
-        // dialfs_inicializado = true;
     }
 
     /* Chequear si hubo previamente creación de archivos */
@@ -20,21 +19,6 @@ void inicializar_interfaz(char* nombre_interfaz, char* archivo_configuracion){
 /* El de soporte me dijo que conviene tener un solo logger pero algo me dijo de los logs distintos - ver grabacion */
 /* Capaz también me conviene poner un parametro como en el config */
 void iniciar_logger(char* nombre_interfaz){
-
-   /*  if (strcmp(nombre_interfaz, "generica") == 0) {
-        generica_logger = log_create("generica.log", "INTERFAZ GENERICA", 1, LOG_LEVEL_INFO);
-        // Ver de validar en cada uno que si no se pudo crear el log que tire un error
-    } else if (strcmp(nombre_interfaz, "stdin") == 0) {
-        stdin_logger = log_create("stdin.log", "INTERFAZ STDIN", 1, LOG_LEVEL_INFO);
-    } else if (strcmp(nombre_interfaz, "stdout") == 0) {
-        stdout_logger = log_create("stdout.log", "INTERFAZ STDOUT", 1, LOG_LEVEL_INFO);
-    } else if (strcmp(nombre_interfaz, "dialfs") == 0) {
-        dialfs_logger = log_create("dialfs.log", "INTERFAZ DIALFS", 1, LOG_LEVEL_INFO);
-    } else {
-        perror("Tipo de interfaz desconocida: %s\n", nombre_interfaz);
-        exit(1);
-    } */
-
     entradasalida_logger = log_create("entradasalida_logger.log", "ENTRADASALIDA", 1, LOG_LEVEL_INFO);
 	if(entradasalida_logger == NULL){
 		perror("No se pudo crear el logger.");
@@ -49,12 +33,12 @@ void iniciar_logger(char* nombre_interfaz){
 }
 
 void iniciar_config(char* nombre_interfaz, char* archivo_configuracion){
-    char config_path[256]; // Le pongo ese tamaño para asegurarme que es lo suficientemente grande como para guardar la ruta del archivo
-    sprintf(config_path, "/home/utnso/tp-2024-1c-GSN/entradasalida/%s", archivo_configuracion);
+    char* config_path = string_duplicate("/home/utnso/tp-2024-1c-GSN/entradasalida/");
+    string_append(&config_path,archivo_configuracion);
+
     entradasalida_config = config_create(config_path);
 	if(entradasalida_config == NULL){
 		perror("No se pudo crear el config.");
-        perror(config_path);
 		exit(2); // El exit(2) se utiliza para indicar que el programa terminó debido a un error relacionado con la creación del archivo de configuración (ver de ponerlo en los otros módulos también)
 	}
 
@@ -69,17 +53,6 @@ void iniciar_config(char* nombre_interfaz, char* archivo_configuracion){
     BLOCK_COUNT = config_get_int_value(entradasalida_config, "BLOCK_COUNT");
     RETRASO_COMPACTACION = config_get_int_value(entradasalida_config, "RETRASO_COMPACTACION");
 }
-
-// Logs obligatorios
-/* Todos - Operación: "PID: <PID> - Operacion: <OPERACION_A_REALIZAR>"
-DialFS - Crear Archivo: "PID: <PID> - Crear Archivo: <NOMBRE_ARCHIVO>"
-DialFS - Eliminar Archivo: "PID: <PID> - Eliminar Archivo: <NOMBRE_ARCHIVO>"
-DialFS - Truncar Archivo: "PID: <PID> - Truncar Archivo: <NOMBRE_ARCHIVO> - Tamaño: <TAMAÑO>"
-DialFS - Leer Archivo: "PID: <PID> - Leer Archivo: <NOMBRE_ARCHIVO> - Tamaño a Leer: <TAMAÑO> - Puntero Archivo: <PUNTERO_ARCHIVO>"
-DialFS - Escribir Archivo: "PID: <PID> - Escribir Archivo: <NOMBRE_ARCHIVO> - Tamaño a Escribir: <TAMAÑO> - Puntero Archivo: <PUNTERO_ARCHIVO>"
-DialFS - Inicio Compactación: "PID: <PID> - Inicio Compactación."
-DialFS - Fin Compactación: "PID: <PID> - Fin Compactación."
- */
 
 void inicializar_fs(){
     crear_directorio_fs();

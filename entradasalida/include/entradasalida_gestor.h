@@ -20,10 +20,6 @@
 #include <utils/conexion.h>
 
 // VARIABLES GLOBALES
-/* extern t_log *generica_logger;
-extern t_log *stdin_logger;
-extern t_log *stdout_logger;
-extern t_log *dialfs_logger; */
 extern t_log* entradasalida_logger;
 extern t_log* entradasalida_logger_min_y_obl;
 extern t_config* entradasalida_config;
@@ -46,7 +42,6 @@ extern int fd_entradasalida;
 
 extern t_bitarray* bitmap; 
 extern void* bitmap_data;
-// extern int bitmap_fd;
 
 extern t_dictionary* metadata_dictionary_files;
 

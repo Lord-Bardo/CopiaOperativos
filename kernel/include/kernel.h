@@ -30,7 +30,6 @@ int fd_cpu_dispatch;
 int fd_cpu_interrupt;
 
 // FUNCIONES
-void signal_handler(int signum);
 void conectar_a_memoria(void);
 void conectar_a_cpu_dispatch(void);
 void conectar_a_cpu_interrupt(void);
