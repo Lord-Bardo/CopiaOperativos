@@ -4,8 +4,14 @@ int tamanio_pagina;
 
 int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
+	if (argc != 2) {
+		perror("Cantidad de argumentos para kernel erronea");
+        return 1;
+    }
 
-	inicializar_cpu();
+	char* archivo_configuracion = argv[1];
+
+	inicializar_cpu(archivo_configuracion);
 
 	conectar_a_memoria();
 	//Conexion con MEMORIA 

@@ -1,8 +1,8 @@
 #include "../include/inicializar_cpu.h"
 
-void inicializar_cpu(){
+void inicializar_cpu(char *archivo_configuracion){
     iniciar_logger();
-    iniciar_config();
+    iniciar_config(archivo_configuracion);
 	tlb.entradas = list_create();
 	tlb.reemplazar_fifo =0;
 	tlb.tiempo_actual=0;
@@ -26,9 +26,13 @@ void iniciar_logger(){
     // ...
 }
 
-void iniciar_config(){
+void iniciar_config(char *archivo_configuracion){
     // Creo el cpu_config
-    cpu_config = config_create("/home/utnso/tp-2024-1c-GSN/cpu/cpu_fs.config");
+	char* config_path = string_duplicate("/home/utnso/tp-2024-1c-GSN/cpu/");
+    string_append(&config_path,archivo_configuracion);
+    
+	cpu_config = config_create(config_path);
+	
 	if(cpu_config == NULL){
 		perror("No se pudo crear el config.");
 		exit(2);
