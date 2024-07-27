@@ -69,7 +69,6 @@ void aumentar_proceso(t_pcb_memoria* proceso, int size)
         log_info(memoria_logger, "Proceso excede el tamanio maximo de la memoria! PID: %d - Tamaño a Ampliar: %d - Tamaño Máximo: %d\n", proceso->pid, size, TAM_MEMORIA/TAM_PAGINA);
         enviar_codigo_operacion(fd_cpu, OUT_OF_MEMORY);
     }
-
 }
 
 void reducir_proceso(t_pcb_memoria* proceso, int size)
@@ -155,11 +154,12 @@ void escribir(int direc_fisica, int bytes, void* dato)
 
     // Escribo en el espacio de usuaro en la posición indicada.
     pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
-	memmove((char*)espacio_usuario + direc_fisica, dato, bytes);
+	memmove(espacio_usuario + direc_fisica, dato, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);
 
+    //Imprimo lo escrito.
     uint8_t dato_escrito;
-    memcpy(&dato_escrito, (char*)espacio_usuario + direc_fisica, sizeof(uint8_t));
+    memcpy(&dato_escrito, espacio_usuario + direc_fisica, sizeof(uint8_t));
     printf("Valor escrito en el espacio de usuario: %d\n", dato_escrito);
 }
 
@@ -177,6 +177,7 @@ void leer(int direc_fisica, int bytes, void* dato)
     memmove(dato, (char*)espacio_usuario + direc_fisica, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);    
 
+    // Imprimo lo leído.
     printf("Valor leído del espacio de usuario: %d\n", *(uint8_t*)dato);
 }
 

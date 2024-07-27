@@ -82,9 +82,7 @@ void crear_proceso(t_pcb_memoria *proceso)
         perror("Error al abrir el archivo");
         fclose(archivo);
         free(ruta_completa);
-        pthread_mutex_lock(&mutex_procesos);
-        list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
-        pthread_mutex_unlock(&mutex_procesos);
+        destruir_proceso(proceso);
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     }
@@ -109,9 +107,7 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Instrucción inválida en el archivo");
             fclose(archivo);
             free(ruta_completa);
-            pthread_mutex_lock(&mutex_procesos);
-            list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
-            pthread_mutex_unlock(&mutex_procesos);
+            destruir_proceso(proceso);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
@@ -122,19 +118,13 @@ void crear_proceso(t_pcb_memoria *proceso)
             perror("Error al duplicar la instrucción");
             fclose(archivo);
             free(ruta_completa);
-            pthread_mutex_lock(&mutex_procesos);
-            list_remove_and_destroy_by_condition(procesos, comparar_pid_kernel, destruir_proceso);
-            pthread_mutex_unlock(&mutex_procesos);
+            destruir_proceso(proceso);
             enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
             exit(EXIT_FAILURE);
         }
 
         // Almacenar la instrucción en memoria_de_instrucciones
-        pthread_mutex_lock(&mutex_procesos);
         list_add(proceso->memoria_de_instrucciones, instruccion);
-        pthread_mutex_unlock(&mutex_procesos);
-        
-        num_instruccion++;
     }
 
     pthread_mutex_lock(&mutex_procesos);
