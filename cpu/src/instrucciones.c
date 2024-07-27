@@ -511,6 +511,15 @@ void ejecutarIOFsRead(char * interfaz, char * archivo,char* registro_direccion, 
 		agregar_uint32_a_paquete(paquete,puntero);
 	}
 
+	if(es_reg_chico(registro_tamanio)){
+		uint8_t tamanio_a_leer =get_reg_chico(registro_tamanio);	
+		agregar_uint8_a_paquete(paquete,tamanio_a_leer); 
+	}
+	else{
+		uint32_t tamanio_a_leer = get_reg_grande(registro_tamanio);
+		agregar_uint32_a_paquete(paquete,tamanio_a_leer);
+	}
+
 	int cantidad_dirs;
 	if(es_reg_chico(registro_tamanio)){
 		uint8_t tamanio = get_reg_chico(registro_tamanio);
@@ -543,8 +552,11 @@ void ejecutarIOFsRead(char * interfaz, char * archivo,char* registro_direccion, 
 		}
 		
 	}
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
 
-
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 void ejecutarIOFsWrite(char * interfaz, char * archivo,char* registro_direccion, char * registro_tamanio, char * registro_puntero){
 //Interfaz, Nombre Archivo, Registro Dirección, Registro Tamaño, Registro Puntero Archivo
@@ -564,6 +576,15 @@ void ejecutarIOFsWrite(char * interfaz, char * archivo,char* registro_direccion,
 		uint32_t puntero = get_reg_grande(registro_puntero);
 		agregar_uint32_a_paquete(paquete,puntero);
 	}
+	
+	if(es_reg_chico(registro_tamanio)){
+		uint8_t tamanio_a_escribir =get_reg_chico(registro_tamanio);	
+		agregar_uint8_a_paquete(paquete,tamanio_a_escribir); 
+	}
+	else{
+		uint32_t tamanio_a_escribir = get_reg_grande(registro_tamanio);
+		agregar_uint32_a_paquete(paquete,tamanio_a_escribir);
+	}
 
 	int cantidad_dirs;
 	if(es_reg_chico(registro_tamanio)){
@@ -597,6 +618,11 @@ void ejecutarIOFsWrite(char * interfaz, char * archivo,char* registro_direccion,
 		}
 		
 	}
+	enviar_paquete(fd_kernel_dispatch,paquete);
+	eliminar_paquete(paquete);
+
+	salir_ciclo_instruccion =1;
+	motivo_desalojo = IO;
 }
 
 

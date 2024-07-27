@@ -755,6 +755,10 @@ void manejar_motivo_desalojo(t_pcb *pcb, t_codigo_operacion motivo_desalojo, t_b
                                 buffer_desempaquetar(buffer, &puntero_archivo);
                                 agregar_int_a_paquete(paquete_solicitud_io, puntero_archivo);
 
+                                int tamanio_a_escribir;
+                                buffer_desempaquetar(buffer, &tamanio_a_escribir);
+                                agregar_int_a_paquete(paquete_solicitud_io, tamanio_a_escribir);
+
                                 int cantidad_direcciones;
                                 buffer_desempaquetar(buffer, &cantidad_direcciones);
                                 agregar_int_a_paquete(paquete_solicitud_io, cantidad_direcciones);

@@ -81,6 +81,7 @@ void atender_entradasalida_kernel(){
                 break;
             }
             case COP_IO_FS_DELETE:
+            {
                 // IO_FS_DELETE Int4 notas.txt
                 char* filename = buffer_desempaquetar_string(buffer);
 
@@ -89,6 +90,7 @@ void atender_entradasalida_kernel(){
                 free(filename);
                 enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
+            }
             case COP_IO_FS_TRUNCATE:
             {
                 // IO_FS_TRUNCATE Int4 notas.txt ECX
@@ -103,9 +105,48 @@ void atender_entradasalida_kernel(){
                 break;
             }
             case COP_IO_FS_WRITE:
+            {
+                // IO_FS_WRITE Int4 notas.txt AX ECX EDX
+                char* filename = buffer_desempaquetar_string(buffer);
+                
+                int indice_archivo;
+                buffer_desempaquetar(buffer, &indice_archivo);
+
+                int tamanio_a_escribir;
+                buffer_desempaquetar(buffer, &tamanio_a_escribir);
+
+                int cant_direcciones;
+                buffer_desempaquetar(buffer, &cant_direcciones);
+
+                t_list *lista_direcciones = list_create();
+                
+                for (int i = 0; i < cant_direcciones; i++)
+                {
+                    t_direccion *direccion = malloc(sizeof(t_direccion));
+                    buffer_desempaquetar(buffer, &(direccion->direccion_fisica));
+                    buffer_desempaquetar(buffer, &(direccion->bytes));
+                    list_add(lista_direcciones, direccion);
+                }
+
+                interfaz_fs_write(filename, indice_archivo, tamanio_a_escribir, cant_direcciones, lista_direcciones, pid_proceso);
+                
+                free(filename);
+                enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
+            }
             case COP_IO_FS_READ:
+            {
+                // IO_FS_READ Int4 notas.txt BX ECX EDX
+                char* filename = buffer_desempaquetar_string(buffer);
+                int nuevo_tamanio;
+                buffer_desempaquetar(buffer, &nuevo_tamanio);
+
+                interfaz_fs_truncate(filename, nuevo_tamanio ,pid_proceso);
+                
+                free(filename);
+                enviar_codigo_operacion(fd_kernel, IO_FIN_OPERACION);
                 break;
+            }
             default:
                 log_info(entradasalida_logger, "Instruccion desconocida");
                 enviar_codigo_operacion(fd_kernel, IO_OPERACION_INVALIDA); // Preguntarle a mati que le parece            

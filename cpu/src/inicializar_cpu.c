@@ -23,7 +23,7 @@ void iniciar_logger(){
 
 void iniciar_config(){
     // Creo el cpu_config
-    cpu_config = config_create("/home/utnso/tp-2024-1c-GSN/cpu/cpu.config");
+    cpu_config = config_create("/home/utnso/tp-2024-1c-GSN/cpu/cpu_fs.config");
 	if(cpu_config == NULL){
 		perror("No se pudo crear el config.");
 		exit(2);
