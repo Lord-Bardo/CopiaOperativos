@@ -33,7 +33,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 	        //aca deberiamos mandarle a memoria un pc y pid para que nos devuelva una instruccion.
 
 	        if (instr != NULL) {
-                mostrarInstruccion(*instr);
+                //mostrarInstruccion(*instr);
                 log_n_parametros(list_size(instr->argumentos),instr); //PID: <PID> - Ejecutando: <INSTRUCCION> - <PARAMETROS>
                 execute(instr);
                 if(!(instr->instr_code == JNZ || ( instr->instr_code == SET && strcmp(list_get(instr->argumentos, 0),"PC") == 0 ))){
