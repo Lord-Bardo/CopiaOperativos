@@ -15,6 +15,7 @@ void interfaz_fs_create(char* filename, int pid);
 void interfaz_fs_delete(char* filename, int pid);
 void interfaz_fs_truncate(char* filename, int nuevo_tamanio, int pid);
 void interfaz_fs_write(char* filename, int indice_archivo, int tamanio_a_escribir, int cant_direcciones, t_list* lista_direcciones, int pid);
+void interfaz_fs_read(char* filename, int indice_archivo, int tamanio_a_leer, int cant_direcciones, t_list* lista_direcciones, int pid);
 
 int cantidadBloques(int tamanio_bytes);
 bool aumentarTamanioArchivo(t_config* metadata_file_config, int bloque_inicial, int tamanio_archivo, int cant_bloques_tam_archivo, int cant_bloques_a_aumentar, int pid);

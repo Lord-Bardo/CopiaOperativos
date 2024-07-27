@@ -309,16 +309,16 @@ void moverContenidoBloques(int bloque_inicial, int bloque_inicial_nuevo, int tam
         log_error(entradasalida_logger, "Error al asignar memoria para el CONTENIDO!");
     }
     FILE* archivo_bloques = abrirArchivoBloques();
-    leerArchivo(archivo_bloques, contenido, tamanio_archivo, bloque_inicial);
+    leerArchivo(archivo_bloques, contenido, tamanio_archivo, bloque_inicial * BLOCK_SIZE);
     escribirArchivo(archivo_bloques, contenido, tamanio_archivo, bloque_inicial_nuevo * BLOCK_SIZE);
     free(contenido);
     fclose(archivo_bloques);
 }
 
-void leerArchivo(FILE* archivo_bloques, void* contenido, int tamanio_archivo, int bloque_inicial){
-    fseek(archivo_bloques, bloque_inicial, SEEK_SET);
-    size_t bytes_leidos = fread(contenido, 1, tamanio_archivo, archivo_bloques);
-    if (bytes_leidos != tamanio_archivo) {
+void leerArchivo(FILE* archivo_bloques, void* contenido, int cant_bytes_a_leer, int byte_inicial){
+    fseek(archivo_bloques, byte_inicial, SEEK_SET);
+    size_t bytes_leidos = fread(contenido, 1, cant_bytes_a_leer, archivo_bloques);
+    if (bytes_leidos != cant_bytes_a_leer) {
         log_error(entradasalida_logger, "Hubo un error al leer los bytes del archivo de bloques");
         exit(1);
     }
@@ -354,6 +354,7 @@ void leerBloque(FILE* archivo_bloques, void* contenido, int bytes_desde, int can
 
 // Para escribir bloques en byte_inicial debe ser bloque_inicial * BLOCK_SIZE
 void escribirArchivo(FILE* archivo_bloques, void* contenido, int cant_bytes_a_escribir, int byte_inicial){
+    log_info(entradasalida_logger,"Voy a escribir desde %d byte, esta cantidad de bytes : %d",byte_inicial,cant_bytes_a_escribir);
     fseek(archivo_bloques, byte_inicial, SEEK_SET);
     size_t bytes_escritos = fwrite(contenido, 1, cant_bytes_a_escribir, archivo_bloques);
     if (bytes_escritos != cant_bytes_a_escribir) {
@@ -452,16 +453,27 @@ void compactar(int *ultimo_bloque_ocupado, int pid){
                 exit(1);
             }
 
-            leerArchivo(archivo_bloques, contenido_bloques, tamanio_bloques_archivo, i);
+            leerArchivo(archivo_bloques, contenido_bloques+ tamanio_contenido_bloques-tamanio_bloques_archivo, tamanio_bloques_archivo, i *BLOCK_SIZE);
             liberarBloques(i, cantidad_bloques_archivo);
 
+            char *contenido_aux = malloc(tamanio_contenido_bloques+1);
+            memcpy(contenido_aux, contenido_bloques, tamanio_contenido_bloques);
+            contenido_aux[tamanio_contenido_bloques] = '\0';
+            log_info(entradasalida_logger, "Contenido actual, bloque inicial: %d ,guardado en el contenedor: %s", i,contenido_aux);
+            free(contenido_aux);
+
+            
             config_set_value(config_archivo, "BLOQUE_INICIAL", string_itoa(nuevo_bloque_inicial));
             config_save(config_archivo);
             nuevo_bloque_inicial += cantidad_bloques_archivo;
 
             i = i + cantidad_bloques_archivo - 1;
         }
+
+        
     }
+    
+    
     msync(bitmap_data, bitmap->size, MS_SYNC);
 
     *ultimo_bloque_ocupado = (tamanio_contenido_bloques / BLOCK_SIZE) - 1;
@@ -477,7 +489,7 @@ void compactar(int *ultimo_bloque_ocupado, int pid){
 
 void guardarContenidoArchivo(void *contenido_archivo, int bloque_inicial, int tamanio_archivo){
     FILE* archivo_bloques = abrirArchivoBloques();
-    leerArchivo(archivo_bloques, contenido_archivo, tamanio_archivo, bloque_inicial);
+    leerArchivo(archivo_bloques, contenido_archivo, tamanio_archivo, bloque_inicial*BLOCK_SIZE);
     fclose(archivo_bloques);
 }
 
@@ -576,9 +588,8 @@ void interfaz_fs_write(char* filename, int indice_archivo, int tamanio_a_escribi
     log_info(entradasalida_logger_min_y_obl, "DialFS - Escribir Archivo: PID: %d - Escribir Archivo: %s- Tamaño a Escribir: %d - Puntero Archivo: %d", pid, filename, tamanio_a_escribir, indice_archivo);
     
     // Leemos el contenido de memoria
-    void *contenido_a_escribir = NULL;
+    void *contenido_a_escribir = malloc(tamanio_a_escribir);
     int bytes_leidos = 0;
-    int bytes_aux = 0;
     for(int i = 0; i < cant_direcciones; i++){
         // Solicitud lectura
         t_paquete* paquete = crear_paquete(SOLICITUD_LECTURA);
@@ -601,17 +612,9 @@ void interfaz_fs_write(char* filename, int indice_archivo, int tamanio_a_escribi
         if( op_code != DATO){
             log_error(entradasalida_logger,"NO SE RECIBE DATO");
             break;
-        }
-        bytes_aux = bytes_leidos;
+        } 
+        buffer_desempaquetar(buffer, contenido_a_escribir + bytes_leidos);
         bytes_leidos += bytes_a_enviar;
-        contenido_a_escribir = realloc(contenido_a_escribir, bytes_leidos);
-        buffer_desempaquetar(buffer, contenido_a_escribir + bytes_aux);
-
-        char *contenido_aux = malloc(bytes_leidos+1);
-        memcpy(contenido_aux, contenido_a_escribir, bytes_leidos);
-        contenido_aux[bytes_leidos] = '\0';
-        log_info(entradasalida_logger, "Contenido actual a escribir: %s", contenido_aux);
-        free(contenido_aux);
     }
     
     // Escribimos el contenido leido en el archivo
@@ -621,95 +624,56 @@ void interfaz_fs_write(char* filename, int indice_archivo, int tamanio_a_escribi
     int bloque_inicial = config_get_int_value(config_archivo, "BLOQUE_INICIAL");
 
     escribirArchivo(archivo_bloques, contenido_a_escribir, bytes_leidos, (bloque_inicial * BLOCK_SIZE) + indice_archivo);
-    
+    free(contenido_a_escribir);
     fclose(archivo_bloques);
 
-    
-    
-    
-    // Abre el archivo de metadata
-    // FILE* metadata_file_config = fopen(filename, "r");
-    // if (metadata_file_config == NULL) {
-    //     perror("Error al abrir el archivo de metadata");
-    //     return;
-    // }
 
-    // // Lee el bloque inicial y el tamaño actual del archivo
-    // int block_index, current_size;
-    // fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
-    // fclose(metadata_file_config);
-
-    // // Abre el archivo de bloques
-    // FILE* bloques_file = fopen(BLOQUES_PATH, "rb+");
-    // if (bloques_file == NULL) {
-    //     perror("Error al abrir bloques.dat");
-    //     return;
-    // }
-
-    // // Escribe los datos en el archivo de bloques en la posición adecuada
-    // fseek(bloques_file, block_index * BLOCK_SIZE + offset, SEEK_SET);
-    // fwrite(data, 1, size, bloques_file);
-    // fclose(bloques_file);
-
-    // // Actualiza el tamaño del archivo en el archivo de metadata si es necesario
-    // if (offset + size > current_size) {
-    //     metadata_file_config = fopen(filename, "r+");
-    //     if (metadata_file_config == NULL) {
-    //         perror("Error al abrir el archivo de metadata");
-    //         return;
-    //     }
-    //     fseek(metadata_file_config, 0, SEEK_SET);
-    //     fprintf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", block_index, offset + size);
-    //     fclose(metadata_file_config);
-    // }
 }
 
 
-/* void IO_FS_READ(char* filename, int offset, char* buffer, int size) {
+void interfaz_fs_read(char* filename, int indice_archivo, int tamanio_a_leer, int cant_direcciones, t_list* lista_direcciones, int pid){
     // Abre el archivo de metadata
-    FILE* metadata_file_config = fopen(filename, "r");
-    if (metadata_file_config == NULL) {
-        perror("Error al abrir el archivo de metadata");
-        return;
-    }
+    // Escribimos el contenido leido en el archivo
+    log_info(entradasalida_logger_min_y_obl, "DialFS - Leer Archivo: PID: %d - Leer Archivo: %s- Tamaño a Leer: %d - Puntero Archivo: %d", pid, filename, tamanio_a_leer, indice_archivo);
 
-    // Lee el bloque inicial y el tamaño actual del archivo
-    int block_index, current_size;
-    fscanf(metadata_file_config, "BLOQUE_INICIAL=%d\nTAMANIO_ARCHIVO=%d\n", &block_index, &current_size);
-    fclose(metadata_file_config);
+    FILE* archivo_bloques = abrirArchivoBloques();
+    void * contenido_a_leer =malloc(tamanio_a_leer);
+    t_config* config_archivo = dictionary_get(metadata_dictionary_files, filename);
+    int bloque_inicial = config_get_int_value(config_archivo, "BLOQUE_INICIAL");
 
-    // Asegúrate de no leer más allá del final del archivo
-    if (offset + size > current_size) {
-        size = current_size - offset;
-    }
+    leerArchivo(archivo_bloques, contenido_a_leer, tamanio_a_leer, (bloque_inicial * BLOCK_SIZE) + indice_archivo);
+    
+    fclose(archivo_bloques);
+    
+    int bytes_escritos = 0;
+    for(int i = 0; i < cant_direcciones; i++){
+        // Solicitud lectura
+        t_paquete* paquete = crear_paquete(SOLICITUD_ESCRITURA); //nos tiene que devolver un ok
+        agregar_int_a_paquete(paquete, pid);
+        
+        t_direccion* t_direccion = list_get(lista_direcciones, i);
+        int df_a_enviar  = t_direccion->direccion_fisica;
+        int bytes_a_enviar = t_direccion->bytes;
 
-    // Abre el archivo de bloques
-    FILE* bloques_file = fopen(BLOQUES_PATH, "rb");
-    if (bloques_file == NULL) {
-        perror("Error al abrir bloques.dat");
-        return;
-    }
+        agregar_int_a_paquete(paquete, df_a_enviar);
+        agregar_int_a_paquete(paquete, bytes_a_enviar);
 
-    // Lee los datos del archivo de bloques en la posición adecuada
-    fseek(bloques_file, block_index * BLOCK_SIZE + offset, SEEK_SET);
-    fread(buffer, 1, size, bloques_file);
-    fclose(bloques_file);
-}
- */
-
-
-/* int asignar_bloque() {
-    for (int i = 0; i < BLOCK_COUNT; i++) {
-        if (!bitarray_test_bit(bitarray, i)) {
-            bitarray_set_bit(bitarray, i);
-            return i;
+        void * parte_escribir =malloc(bytes_a_enviar);
+        memcpy(parte_escribir,contenido_a_leer + bytes_escritos,bytes_a_enviar);
+        agregar_a_paquete(paquete,parte_escribir,bytes_a_enviar);
+        bytes_escritos += bytes_a_enviar;
+        enviar_paquete(fd_memoria, paquete);
+        eliminar_paquete(paquete);
+        
+        free(parte_escribir);
+        // Recepcion contenido
+        t_codigo_operacion op_code;
+        recibir_codigo_operacion(fd_memoria, &op_code);
+        if( op_code != CONFIRMACION_ESCRITURA){
+            log_error(entradasalida_logger,"NO SE RECIBE CONFIRMACION DE ESCRITURA DE MEMORIA");
+            break;
         }
+        
     }
-    return -1; // No hay bloques disponibles
+    free(contenido_a_leer);
 }
-
-void liberar_bloque(int block_index) {
-    if (block_index >= 0 && block_index < BLOCK_COUNT) {
-        bitarray_clean_bit(bitarray, block_index);
-    }
-} */
