@@ -392,15 +392,41 @@ bool hayEspacioSuficiente(int cant_bloques_totales){
     return false;
 }
 
-t_config* obtener_config_indice(int i){
-    t_config *config;
-    
+// t_config *config_encontrado;
+// int bloque_inicial_busqueda;
+
+// void buscarEnDiccionario(char *key, void *value) {
+//     t_config *config = (t_config *)value;
+//     if (config_has_property(config, "BLOQUE_INICIAL")) {
+//         int bloque_inicial_value = config_get_int_value(config, "BLOQUE_INICIAL");
+//         if (bloque_inicial_value == bloque_inicial_busqueda) {
+//             config_encontrado = config;  // Almacena el puntero al t_config encontrado
+//         }
+//     }
+// }
+
+t_config* obtener_config_indice(int i) {
+    // bloque_inicial_busqueda = i;
+    // config_encontrado = NULL;
+
+    // dictionary_iterator(metadata_dictionary_files, buscarEnDiccionario);
+
+    // return config_encontrado;
+    t_list* lista_configs = dictionary_elements(metadata_dictionary_files);
+
+    bool comparar_bloque_inicial(void* config_void){
+        t_config *config = (t_config *) config_void;
+        return config_get_int_value(config,"BLOQUE_INICIAL") == i;
+    }; // Si no funciona sacar este ;
+
+    t_config* config_encontrado = list_find(lista_configs, comparar_bloque_inicial);
+    return config_encontrado;
 }
 
 void compactar(int *ultimo_bloque_ocupado, int pid){
     log_info(entradasalida_logger_min_y_obl, "DialFS - Inicio Compactación: PID: %d - Inicio Compactación.", pid);
     
-    usleep(RETRASO_COMPACTACION * 1000);//es mas tiempo
+    usleep(RETRASO_COMPACTACION * 1000); //es mas tiempo
 
     FILE* archivo_bloques = abrirArchivoBloques();
 
