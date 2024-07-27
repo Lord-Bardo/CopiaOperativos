@@ -6,7 +6,7 @@
 
 
 void iniciar_ciclo_instruccion(t_pcb);
-
+char * mostrar_instr_code(t_instr_code ic);
 
 
 #endif

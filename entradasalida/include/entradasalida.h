@@ -3,7 +3,6 @@
 
 #include "./entradasalida_gestor.h"
 #include "./inicializar_interfaces.h"
-#include "./entradasalida_memoria.h"
 #include "./entradasalida_kernel.h"
 
 // VARIABLES GLOBALES

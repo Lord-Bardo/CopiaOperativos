@@ -90,6 +90,7 @@ typedef struct {
 
 // VARIABLES GLOBALES
 extern t_log* cpu_logger;
+extern t_log* cpu_logger_obligatorio;
 extern t_config* cpu_config;
 extern t_pcb pcb;
 extern int salir_ciclo_instruccion;

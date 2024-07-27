@@ -4,7 +4,7 @@ int tamanio_pagina;
 
 int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)
-	printf("ARRANQUE CPU");
+
 	inicializar_cpu();
 
 	conectar_a_memoria();
@@ -71,46 +71,6 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-void leer_consola(t_log *logger){ //lo comenté porque ya fue definido en memoria.c
-	char *leido;
-
-	// Leo la primer linea
-	leido = readline("> ");
-
-	// El resto, las voy leyendo y logueando hasta recibir un string vacío
-	while (leido[0] != '\0')
-	{
-		log_info(logger, "%s", leido);
-		leido = readline("> ");
-	}
-
-	// Libero las lineas
-	free(leido);
-}
-
-void paquete(int conexion) //esta definido en memoria.h, en cpu.h y kernel.h
-{
-	char *leido;
-	t_paquete *paquete;
-
-	// Creo el paquete
-	paquete = crear_paquete(PAQUETE);
-
-	// Leo y agrego las lineas al paquete
-	leido = readline("> ");
-	while (leido[0] != '\0')
-	{ 
-		agregar_a_paquete(paquete, leido, strlen(leido) + 1);
-		leido = readline("> ");
-	}
-
-	// Envio el paquete
-	enviar_paquete(conexion,paquete);
-
-	// Libero las lineas y el paquete
-	free(leido);
-	eliminar_paquete(paquete);
-}
 
 void terminar_programa(){
 	if (cpu_logger != NULL){

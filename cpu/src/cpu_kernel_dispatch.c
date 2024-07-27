@@ -15,7 +15,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
 
 
 	    recibir_paquete(fd_kernel_dispatch,&cod_op,buffer);
-        printf("RECIBI PAQUETE");
+       
         mostrarPCB(pcb);
 		buffer_desempaquetar_pcb(buffer,pcb_recibido);
         salir_ciclo_instruccion=0;
@@ -29,7 +29,7 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
           
             recibir_instruccion(instr);
             log_info(cpu_logger,"PID: %d FETCH - Program Counter: %d",pcb.pid,pcb.pc);
-           
+            log_info(cpu_logger_obligatorio,"PID: %d FETCH - Program Counter: %d",pcb.pid,pcb.pc);
 	        //aca deberiamos mandarle a memoria un pc y pid para que nos devuelva una instruccion.
 
 	        if (instr != NULL) {
@@ -57,6 +57,71 @@ void iniciar_ciclo_instruccion(t_pcb pcb_recibido){
        // log_info(cpu_logger,"Cambio de proceso");
         
     }
+}
+
+char * mostrar_instr_code(t_instr_code ic){
+    switch (ic){
+	case EXIT:
+		return "EXIT";
+		break;
+	case SET:
+		return "SET";
+		break;
+	case SUM:
+		return "SUM";
+		break;
+	case SUB:
+		return "SUB";
+		break;
+	case JNZ:
+		return "JNZ";
+		break;
+	case MOV_IN:
+		return "MOV_IN";
+		break;
+	case MOV_OUT:
+		return "MOV_OUT";
+		break;
+	case RESIZE:
+		return "RESIZE";
+		break;
+	case COPY_STRING:
+		return "COPY_STRING";
+		break;
+	case WAIT:
+		return "WAIT";
+		break;
+	case SIGNAL:
+		return "SIGNAL";
+		break;
+	case IO_GEN_SLEEP:
+		return "IO_GEN_SLEEP";
+		break;
+	case IO_STDIN_READ:
+        return "IO_STDIN_READ";
+		break;
+	case IO_STDOUT_WRITE:
+        return "IO_STDOUT_WRITE";
+		break;		
+	case IO_FS_CREATE:
+        return "IO_FS_CREATE";
+		break;
+	case IO_FS_DELETE:
+		return "IO_FS_DELETE";
+		break;
+	case IO_FS_TRUNCATE:
+        return "IO_FS_TRUNCATE";
+		break;
+	case IO_FS_WRITE:
+        return "IO_FS_WRITE";
+		break;
+	case IO_FS_READ:
+        return "IO_FS_READ";
+		break;
+	default:
+        log_info(cpu_logger,"CODIGO DE INSTRUCCION DESCONOCIDO");
+		break;
+	}
 }
 
 /*

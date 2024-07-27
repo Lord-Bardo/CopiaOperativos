@@ -17,13 +17,13 @@ int consultar_tlb(int pid,int pagina){
     t_entrada_tlb *entrada=list_find(tlb.entradas,esta_la_pagina);
     
     if(entrada!=NULL){
-        log_info(cpu_logger,"PID: %d- TLB HIT - Pagina: %d",pid,pagina);
+        log_info(cpu_logger_obligatorio,"PID: %d- TLB HIT - Pagina: %d",pid,pagina);
         entrada->tiempo=tlb.tiempo_actual;
         tlb.tiempo_actual++;
         return entrada->frame;
     }
     else{
-        log_info(cpu_logger,"PID: %d- TLB MISS - Pagina: %d",pid,pagina);
+        log_info(cpu_logger_obligatorio,"PID: %d- TLB MISS - Pagina: %d",pid,pagina);
         return -1;
     }
 
@@ -111,7 +111,7 @@ int obtener_frame(int pagina){
             }
             else{
                 buffer_desempaquetar(buffer,&frame);
-                log_info(cpu_logger,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
+                log_info(cpu_logger_obligatorio,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
                 agregar_entrada_tlb(pcb.pid,pagina,frame);
             }
             eliminar_buffer(buffer);
@@ -131,7 +131,7 @@ int obtener_frame(int pagina){
         }
         else{
             buffer_desempaquetar(buffer,&frame);
-            log_info(cpu_logger,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
+            log_info(cpu_logger_obligatorio,"PID: %d - OBTENER MARCO - Página: %d - Marco: %d",pcb.pid,pagina,frame);
         }
         eliminar_buffer(buffer);
     }
@@ -227,15 +227,6 @@ void mmu_escribir_copy_string(int dl,int tamanio,void * cadena){
         df = obtener_df(dl);
         void *textoCortado = malloc(bytes_usar);
         memmove(textoCortado, cadena + copiar_desde, bytes_usar);
-
-        //ESTO LO HAGO PARA VER QUE ESCRIBE NADA MAS
-        char *cadena_a_enviar = malloc(bytes_usar+1);
-        memcpy(cadena_a_enviar, textoCortado, bytes_usar);
-        cadena_a_enviar[bytes_usar] = '\0';
-        log_info(cpu_logger, "VOY A ENVIAR LA CADENA: %s", cadena_a_enviar);
-        free(cadena_a_enviar);
-        //PODES BORRAR HASTA ACA
-
         escribir_un_frame(df,bytes_usar,textoCortado);
         tamanio-=bytes_usar;
         dl+=bytes_usar;
@@ -277,7 +268,7 @@ void leer_un_frame(int df, int bytes, void * dato){
         char * aux=malloc(bytes+1);
         memcpy(aux,dato,bytes);
         aux[bytes]='\0';
-        log_info(cpu_logger,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %s", pcb.pid,df,aux);
+        log_info(cpu_logger_obligatorio,"PID: %d - Acción: LEER - Dirección Física: %d - Valor: %d", pcb.pid,df,(int)aux);
     }
     eliminar_buffer(buffer);
 }
@@ -319,7 +310,7 @@ void mmu_escribir(int dl,int bytes, void *valor){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
     int df = obtener_df(dl);
-    log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,(uint8_t)valor);
+
     if(bytes==1){
         escribir_un_byte(df,valor);
     }
@@ -363,7 +354,7 @@ void escribir_un_frame(int df, int bytes, void *valor){
         log_info(cpu_logger,"ERROR NO SE PUDO ESCRIBIR EN MEMORIA");
     }
     else{
-        log_info(cpu_logger,"PID: %d - Acción: ESCRIBIR - Dirección Física: %d - Valor: %d", pcb.pid,df,(uint8_t)valor);
+        log_info(cpu_logger_obligatorio,"PID: %d - Acción: ESCRIBIR - Dirección Física: %d - Valor: %d", pcb.pid,df,(int)valor);
     }
 }
 

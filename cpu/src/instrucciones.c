@@ -32,12 +32,12 @@ t_instruccion* crear_instruccion() {
     return nueva_instruccion;
 }
 void mostrarInstruccion(t_instruccion instr) {
-    printf("Op Code mostrar INstruccion: %d\n", instr.instr_code);
+    printf("Op Code mostrar Instruccion: %d\n", instr.instr_code);
     list_iterate(instr.argumentos,print_element);
 
 }
 void print_element(void *data) {
-    printf("%s\n", (char *)data);
+    printf("\t Parametro: %s\t", (char *)data);
 }
 
 void execute(t_instruccion *instruccion){
@@ -295,12 +295,13 @@ void ejecutarMovOut(char* registro_direccion,char* registro_datos){
 	/*(Registro Dirección, Registro Datos): Lee el valor del Registro Datos y lo escribe en la dirección física de memoria obtenida
 	 a partir de la Dirección Lógica almacenada en el Registro Dirección.
 	*/
-	printf("ENTRE MOV OUT");
+	
 	if(es_reg_chico(registro_datos)){
 		uint8_t regd = get_reg_chico(registro_datos);
 		if(es_reg_chico(registro_direccion)){
 			uint8_t dl = get_reg_chico(registro_direccion);
 			mmu_escribir(dl,1,&regd);
+			
 		}
 		else{
 			uint32_t dl = get_reg_grande(registro_direccion);

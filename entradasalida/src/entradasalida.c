@@ -18,9 +18,6 @@ int main(int argc, char* argv[]) {
 	// Conexion con MEMORIA
 	conectar_a_memoria();
 
-	// Atender los mensajes de Memoria
-	pthread_t hilo_memoria;
-	pthread_create(&hilo_memoria, NULL, (void*)atender_entradasalida_memoria, NULL);
 
 	// Atender los mensajes de Kernel
 	pthread_t hilo_kernel;
@@ -28,7 +25,7 @@ int main(int argc, char* argv[]) {
 
 	// Espera a que los hilos finalicen su ejecución
 	pthread_join(hilo_kernel, NULL);
-	pthread_join(hilo_memoria, NULL);
+	
 	
     // Finalizar ENTRADASALIDA (liberar memoria usada)
 	terminar_programa();
