@@ -33,7 +33,7 @@ void iniciar_logger(char* nombre_interfaz){
 }
 
 void iniciar_config(char* nombre_interfaz, char* archivo_configuracion){
-    char* config_path = string_duplicate("/home/utnso/tp-2024-1c-GSN/entradasalida/");
+    char* config_path = string_duplicate("../");
     string_append(&config_path,archivo_configuracion);
 
     entradasalida_config = config_create(config_path);

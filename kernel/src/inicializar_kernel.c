@@ -23,7 +23,7 @@ void inicializar_logger(){
 
 void inicializar_config(char* archivo_configuracion){
     // Creo el kernel_config
-    char* config_path = string_duplicate("/home/utnso/tp-2024-1c-GSN/kernel/");
+    char* config_path = string_duplicate("../");
     string_append(&config_path,archivo_configuracion);
 
 	kernel_config = config_create(config_path);

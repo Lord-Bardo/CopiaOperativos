@@ -24,11 +24,10 @@ void iniciar_logger(void)
 
 void iniciar_config(char* archivo_configuracion)
 {
-	char config_path[256]; 
-    sprintf(config_path, "/home/utnso/tp-2024-1c-GSN/memoria/%s", archivo_configuracion);
+ 	char* config_path = string_duplicate("../");
+    string_append(&config_path,archivo_configuracion);
 
 	memoria_config = config_create(config_path);
-
 	if(memoria_config == NULL){
 		perror("No se pudo crear el config.");
 		perror(config_path);

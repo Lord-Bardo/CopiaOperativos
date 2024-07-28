@@ -65,13 +65,14 @@ void atender_memoria_kernel(){
 void crear_proceso(t_pcb_memoria *proceso)
 {
     // Inicializo la cadena de ruta completa.
-    char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + strlen(proceso->path) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
-    if (ruta_completa == NULL) {
-        perror("Error al asignar memoria");
-        enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
-        exit(EXIT_FAILURE);
-    } 
-    strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo. Si genera segment fault intentar con: memcpy(ruta_completa, PATH_INSTRUCCIONES, strlen(PATH_INSTRUCCIONES) + 1)
+    // char* ruta_completa = malloc(strlen(PATH_INSTRUCCIONES) + strlen(proceso->path) + 1); // Ruta completa empieza vacía. Intentar usar string_new en vez de malloc si genera segment fault.
+    char* ruta_completa = string_duplicate(PATH_INSTRUCCIONES);
+    // if (ruta_completa == NULL) {
+    //     perror("Error al asignar memoria");
+    //     enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
+    //     exit(EXIT_FAILURE);
+    // } 
+    // strcpy(ruta_completa, PATH_INSTRUCCIONES); // Lleno ruta completa con ruta a carpeta de archivos pseudocodigo. Si genera segment fault intentar con: memcpy(ruta_completa, PATH_INSTRUCCIONES, strlen(PATH_INSTRUCCIONES) + 1)
 
     // Concateno la ruta al archivo con la ruta completa usando string_append.
     string_append(&ruta_completa, proceso->path); 

@@ -28,7 +28,7 @@ void iniciar_logger(){
 
 void iniciar_config(char *archivo_configuracion){
     // Creo el cpu_config
-	char* config_path = string_duplicate("/home/utnso/tp-2024-1c-GSN/cpu/");
+	char* config_path = string_duplicate("../");
     string_append(&config_path,archivo_configuracion);
     
 	cpu_config = config_create(config_path);

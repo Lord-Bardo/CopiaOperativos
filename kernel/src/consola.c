@@ -75,7 +75,7 @@ void atender_comando(char *leido){
 
 // EJECUTAR SCRIPT
 void ejecutar_script(char *path){
-    char *path_base = string_duplicate("/home/utnso/scripts-pruebas");
+    char *path_base = string_duplicate("../../../c-comenta-pruebas");
 	string_append(&path_base, path);
 	FILE *archivo = fopen(path_base, "r");
     if (archivo == NULL) {
