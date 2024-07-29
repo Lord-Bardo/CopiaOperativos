@@ -57,5 +57,6 @@ extern int pid_cpu;
 
 extern pthread_mutex_t mutex_espacio_usuario;
 extern pthread_mutex_t mutex_procesos;
+extern pthread_mutex_t mutex_bitmap;
 
 #endif

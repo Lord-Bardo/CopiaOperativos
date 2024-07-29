@@ -82,7 +82,9 @@ void reducir_proceso(t_pcb_memoria* proceso, int size)
     
     for(int i = tam_original - 1; i >= size; i--){
         obtener_frame(i, &frame);
+        pthread_mutex_lock(&mutex_bitmap);
         bitarray_clean_bit(frames_libres, frame);
+        pthread_mutex_unlock(&mutex_bitmap);
         list_remove_and_destroy_element(proceso->tabla_paginas, i, free);
     }
     enviar_codigo_operacion(fd_cpu, CONFIRMACION_RESIZE);
@@ -132,8 +134,10 @@ bool instruccion_valida(char* instruccion) // Nos dice si la instruccion leida d
 int obtener_primer_frame_libre()
 {
     int num_frame = 0;
+    pthread_mutex_lock(&mutex_bitmap);
     while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
         num_frame++;
+    pthread_mutex_lock(&mutex_bitmap);
     return num_frame;
 }
 
@@ -202,8 +206,9 @@ t_pagina *crear_pagina()
 int asignar_frame_libre()
 {
     int frame = obtener_primer_frame_libre();
+    pthread_mutex_lock(&mutex_bitmap);
     bitarray_set_bit(frames_libres, frame);
-
+    pthread_mutex_unlock(&mutex_bitmap);
     return frame;
 }
 

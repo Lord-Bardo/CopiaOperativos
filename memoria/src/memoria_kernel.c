@@ -9,6 +9,7 @@ int pid_kernel;
 // Mutex
 pthread_mutex_t mutex_espacio_usuario; // USAR EN LEER Y ESCRIBIR
 pthread_mutex_t mutex_procesos; // USAR EN LEER Y ESCRIBIR
+pthread_mutex_t mutex_bitmap;
 
 void atender_memoria_kernel(){
 	while(1){
