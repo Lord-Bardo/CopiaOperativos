@@ -159,7 +159,9 @@ void escribir(int direc_fisica, int bytes, void* dato)
 
     //Imprimo lo escrito.
     uint8_t dato_escrito;
+    pthread_mutex_lock(&mutex_espacio_usuario);
     memcpy(&dato_escrito, espacio_usuario + direc_fisica, sizeof(uint8_t));
+    pthread_mutex_unlock(&mutex_espacio_usuario);
     printf("Valor escrito en el espacio de usuario: %d\n", dato_escrito);
 }
 

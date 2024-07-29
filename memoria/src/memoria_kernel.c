@@ -87,12 +87,13 @@ void crear_proceso(t_pcb_memoria *proceso)
         enviar_codigo_operacion(fd_kernel, ERROR_CREACION_PROCESO); 
         exit(EXIT_FAILURE);
     }
-
+	
 	// Leer el archivo instruccion por instruccion.
     while (1) 
     {
         // Definir un búfer de tamaño adecuado
         char buffer[256];
+	//char *buffer = string_new();
 
         // Leer una línea del archivo
         if (fgets(buffer, sizeof(buffer), archivo) == NULL) {
@@ -126,6 +127,7 @@ void crear_proceso(t_pcb_memoria *proceso)
 
         // Almacenar la instrucción en memoria_de_instrucciones
         list_add(proceso->memoria_de_instrucciones, instruccion);
+	//free(buffer);
     }
 
     pthread_mutex_lock(&mutex_procesos);

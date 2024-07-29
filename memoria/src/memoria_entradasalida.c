@@ -43,7 +43,7 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 
 					// Libero memoria.
 					eliminar_buffer(buffer);
-
+					free(dato_write);
 					break;
 
 				case SOLICITUD_LECTURA:
@@ -80,7 +80,7 @@ void atender_memoria_entradasalida(void *fd_entradasalida_void){
 					// Libero memoria.
 					eliminar_buffer(buffer);
 					eliminar_paquete(paquete_read);
-
+					free(dato_read);
 					break;
 
 				default:
