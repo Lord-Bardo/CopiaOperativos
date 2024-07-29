@@ -853,8 +853,8 @@ void iniciar_proceso(char *path){
     int pid = generar_pid();
     t_pcb *pcb = crear_pcb(pid, path);
     estado_encolar_pcb(estado_new, pcb);
-    sem_post(estado_get_sem(estado_new));
     log_creacion_proceso(pcb);
+    sem_post(estado_get_sem(estado_new));
 }
 
 void finalizar_proceso(int pid){
@@ -1127,15 +1127,15 @@ void ejecutar_instruccion_wait(t_pcb *pcb, char *nombre_recurso){
 void proceso_a_ready(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY);
 	estado_encolar_pcb(estado_ready, pcb);
-    sem_post(estado_get_sem(estado_ready));
     log_ingreso_ready(estado_ready);
+    sem_post(estado_get_sem(estado_ready));
 }
 
 void proceso_a_ready_plus(t_pcb *pcb){
 	pcb_cambiar_estado_a(pcb, READY_PLUS);
 	estado_encolar_pcb(estado_ready_plus, pcb);
-    sem_post(estado_get_sem(estado_ready_plus));
     log_ingreso_ready(estado_ready_plus);
+    sem_post(estado_get_sem(estado_ready_plus));
 }
 
 void proceso_a_exec(t_pcb *pcb){
@@ -1147,13 +1147,13 @@ void proceso_a_exec(t_pcb *pcb){
 void proceso_a_blocked(t_pcb *pcb, char *motivo_bloqueo){
     pcb_cambiar_estado_a(pcb, BLOCKED);
     estado_encolar_pcb(estado_blocked, pcb);
-    sem_post(estado_get_sem(estado_blocked));
     log_motivo_bloqueo(pcb, motivo_bloqueo);
+    sem_post(estado_get_sem(estado_blocked));
 }
 
 void proceso_a_exit(t_pcb *pcb, char *motivo_finalizacion){
     pcb_cambiar_estado_a(pcb, EXIT);
     estado_encolar_pcb(estado_exit, pcb);
-    sem_post(estado_get_sem(estado_exit));
     log_fin_proceso(pcb, motivo_finalizacion);
+    sem_post(estado_get_sem(estado_exit));
 }
