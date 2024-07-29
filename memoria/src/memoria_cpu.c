@@ -15,7 +15,7 @@ void atender_memoria_cpu(){
 
 				// Creo estructuras necesarias.
 				int pc;
-				char* instruccion ; //malloc(sizeof(char) * 40);
+				char* instruccion = NULL; //malloc(sizeof(char) * 40);
 				
 				
 				// if (instruccion == NULL) {
