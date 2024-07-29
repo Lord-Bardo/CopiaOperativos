@@ -15,12 +15,14 @@ void atender_memoria_cpu(){
 
 				// Creo estructuras necesarias.
 				int pc;
-				char* instruccion = malloc(sizeof(char) * 40);
-				if (instruccion == NULL) {
-					perror("Error al asignar memoria");
-					enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
-					exit(EXIT_FAILURE);
-				} 
+				char* instruccion ; //malloc(sizeof(char) * 40);
+				
+				
+				// if (instruccion == NULL) {
+				// 	perror("Error al asignar memoria");
+				// 	enviar_codigo_operacion(fd_cpu, FETCH_ERROR); 
+				// 	exit(EXIT_FAILURE);
+				// } 
 
 				// Desempaqueto el buffer y almaceno info recibida.
 				buffer_desempaquetar(buffer, &pid_cpu);
@@ -164,7 +166,9 @@ void obtener_instruccion(int pc, char* instruccion)
 	pthread_mutex_unlock(&mutex_procesos);
 
 	// Obtengo la instrucción.
-	strcpy(instruccion, list_get(proceso->memoria_de_instrucciones, pc));
+	//strcpy(instruccion, (char *)list_get(proceso->memoria_de_instrucciones, pc));
+	instruccion= (char *)list_get(proceso->memoria_de_instrucciones);
+
 }
 
 void resize(int size)
