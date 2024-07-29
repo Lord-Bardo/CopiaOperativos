@@ -15,7 +15,7 @@ void atender_memoria_cpu(){
 
 				// Creo estructuras necesarias.
 				int pc;
-				char* instruccion = NULL; //malloc(sizeof(char) * 40);
+				char* instruccion = malloc(sizeof(char) * 41);
 				
 				
 				// if (instruccion == NULL) {
@@ -166,8 +166,8 @@ void obtener_instruccion(int pc, char* instruccion)
 	pthread_mutex_unlock(&mutex_procesos);
 
 	// Obtengo la instrucción.
-	//strcpy(instruccion, (char *)list_get(proceso->memoria_de_instrucciones, pc));
-	instruccion= (char *)list_get(proceso->memoria_de_instrucciones, pc);
+	strcpy(instruccion, (char *)list_get(proceso->memoria_de_instrucciones, pc));
+	//instruccion= (char *)list_get(proceso->memoria_de_instrucciones, pc);
 }
 
 void resize(int size)
