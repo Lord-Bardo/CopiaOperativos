@@ -166,7 +166,7 @@ void escribir(int direc_fisica, int bytes, void* dato)
     pthread_mutex_lock(&mutex_espacio_usuario);
     memcpy(&dato_escrito, espacio_usuario + direc_fisica, sizeof(uint8_t));
     pthread_mutex_unlock(&mutex_espacio_usuario);
-    printf("Valor escrito en el espacio de usuario: %d\n", dato_escrito);
+    //printf("Valor escrito en el espacio de usuario: %d\n", dato_escrito);
 }
 
 void leer(int direc_fisica, int bytes, void* dato)
@@ -180,11 +180,11 @@ void leer(int direc_fisica, int bytes, void* dato)
 
     // Leo el espacio de memoria y almaceno el dato leído.
     pthread_mutex_lock(&mutex_espacio_usuario); //protejo con semáfotos mutex el espacio de usuario
-    memmove(dato, (char*)espacio_usuario + direc_fisica, bytes);
+    memmove(dato, espacio_usuario + direc_fisica, bytes);
     pthread_mutex_unlock(&mutex_espacio_usuario);    
 
     // Imprimo lo leído.
-    printf("Valor leído del espacio de usuario: %d\n", *(uint8_t*)dato);
+    //printf("Valor leído del espacio de usuario: %d\n", *(uint8_t*)dato);
 }
 
 bool comparar_pid_kernel(void *pid){return pid_kernel == *(int*) pid;}

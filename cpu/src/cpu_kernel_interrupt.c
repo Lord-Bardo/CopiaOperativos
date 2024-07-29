@@ -11,7 +11,7 @@ REcordemos prioridad de interrpts:
 t_dictionary *diccionario_interrpuciones;
 
 void atender_cpu_kernel_interrupt(){
-	diccionario_interrpuciones = dictionary_create();
+	
     int continuar = 1;
 	while(continuar){
 		t_codigo_operacion cod_op;

@@ -60,7 +60,7 @@ void reemplazar_entrada(t_entrada_tlb *nuevo){
 
 } 
 void reemplazar_fifo(t_entrada_tlb * nuevo){
-    log_info(cpu_logger,"Entrada a reemplazar: %d \n",tlb.reemplazar_fifo);
+    //log_info(cpu_logger,"Entrada a reemplazar: %d \n",tlb.reemplazar_fifo);
     list_replace_and_destroy_element(tlb.entradas,tlb.reemplazar_fifo,nuevo,free);
     tlb.reemplazar_fifo++;
     if(tlb.reemplazar_fifo == CANTIDAD_ENTRADAS_TLB){
@@ -69,7 +69,7 @@ void reemplazar_fifo(t_entrada_tlb * nuevo){
 }
 void reemplazar_lru(t_entrada_tlb * nuevo){
     t_entrada_tlb *reemplazar = list_get_minimum(tlb.entradas,comparar_tiempo);
-    log_info(cpu_logger,"Entrada a reemplazar (pagina): %d | Tiempo: %d \n", reemplazar->pagina, reemplazar->tiempo);
+    //log_info(cpu_logger,"Entrada a reemplazar (pagina): %d | Tiempo: %d \n", reemplazar->pagina, reemplazar->tiempo);
     list_remove_element(tlb.entradas,reemplazar);
     free(reemplazar);
     list_add(tlb.entradas,nuevo);
@@ -127,7 +127,7 @@ int obtener_frame(int pagina){
         t_codigo_operacion cop;
         recibir_paquete(fd_memoria,&cop,buffer);
         if(cop!=FRAME){
-            log_info(cpu_logger,"ERROR AL RECIBIR EL FRAME DE MEMORIA");
+            //log_info(cpu_logger,"ERROR AL RECIBIR EL FRAME DE MEMORIA");
         }
         else{
             buffer_desempaquetar(buffer,&frame);
@@ -186,7 +186,7 @@ void mmu_leer_copy_string(int dl,int tamanio,void *cadena){
         //SE PUEDE BORRAR
         memmove(aux+desplazamiento,dato_partido,bytes_leidos);
         aux[desplazamiento+bytes_leidos]='\0';
-        log_info(cpu_logger,"Estado cadena : %s",aux);
+        //log_info(cpu_logger,"Estado cadena : %s",aux);
         //HASTA ACA
         
         free(dato_partido);
@@ -261,7 +261,7 @@ void leer_un_frame(int df, int bytes, void * dato){
     recibir_paquete(fd_memoria,&cop,buffer);
 
     if(cop!= DATO){
-        log_info(cpu_logger,"ERROR NO SE PUDO LEER EN MEMORIA, me llego un op_code distinto de DATO");
+        //log_info(cpu_logger,"ERROR NO SE PUDO LEER EN MEMORIA, me llego un op_code distinto de DATO");
     }
     else{
         buffer_desempaquetar(buffer,dato);
@@ -278,7 +278,7 @@ void mmu_leer(int dl, int bytes, void * valor){
     int pagina = obtener_pagina(dl);
     int offset = obtener_offset(dl,pagina);
     int df = obtener_df(dl);
-    log_info(cpu_logger,"PID: %d - Acción: LEER -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,(uint8_t)valor);    
+    //log_info(cpu_logger,"PID: %d - Acción: LEER -Pagina : %d Offset: %d  Bytes: %d Dirección Física: %d - Valor: %d", pcb.pid,pagina,offset,bytes,df,(uint8_t)valor);    
     if(bytes==1){
         leer_un_byte(df,valor);
     }
@@ -351,7 +351,7 @@ void escribir_un_frame(int df, int bytes, void *valor){
     recibir_codigo_operacion(fd_memoria,&cop);
 
     if(cop!= CONFIRMACION_ESCRITURA){
-        log_info(cpu_logger,"ERROR NO SE PUDO ESCRIBIR EN MEMORIA");
+        //log_info(cpu_logger,"ERROR NO SE PUDO ESCRIBIR EN MEMORIA");
     }
     else{
         log_info(cpu_logger_obligatorio,"PID: %d - Acción: ESCRIBIR - Dirección Física: %d - Valor: %d", pcb.pid,df,(int)valor);

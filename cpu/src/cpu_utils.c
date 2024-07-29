@@ -91,7 +91,7 @@ void recibir_instruccion(t_instruccion * instruccion){
 	recibir_paquete(fd_memoria,&op_code,buffer);
 
 	if(op_code!= INSTRUCCION){
-		log_info(cpu_logger,"ERROR AL RECIBIR LA INSTRUCCION DE MEMORIA, el codigo de operacion no es INSTRUCCION");
+		//log_info(cpu_logger,"ERROR AL RECIBIR LA INSTRUCCION DE MEMORIA, el codigo de operacion no es INSTRUCCION");
 		return;
 	}
 	
@@ -142,7 +142,7 @@ void convertir_string_a_instruccion(char* cadena, t_instruccion* instruccion) {
 
 void buffer_desempaquetar_instruccion(t_buffer *buffer, t_instruccion * instruccion){
 	char * instruccion_string =buffer_desempaquetar_string(buffer);
-    log_info(cpu_logger,"LA CADENA ENTERA DE LA INSTRUCCION ES: %s",instruccion_string);
+    //log_info(cpu_logger,"LA CADENA ENTERA DE LA INSTRUCCION ES: %s",instruccion_string);
    
     convertir_string_a_instruccion(instruccion_string,instruccion);
     mostrarInstruccion(*instruccion);
@@ -168,11 +168,11 @@ void recibir_frame(int *frame){
     recibir_paquete(fd_memoria,&op_code,buffer);
 
     if(op_code != FRAME){
-        log_info(cpu_logger,"CODIGO DE OPERACION RECIBIDO NO ES FRAME, REICBI %d",op_code);
+        //log_info(cpu_logger,"CODIGO DE OPERACION RECIBIDO NO ES FRAME, REICBI %d",op_code);
         return;
     }
     buffer_desempaquetar(buffer,frame);
-    log_info(cpu_logger,"FRAME RECIBIDO: %d", *frame);
+    //log_info(cpu_logger,"FRAME RECIBIDO: %d", *frame);
 
 }
 
@@ -246,7 +246,7 @@ void check_interrupt(){
         //quitar_lista_interrupciones(pcb.pid);
         pthread_mutex_lock(&mutex_diccionario);
         dictionary_remove_and_destroy(diccionario_interrpuciones,string_itoa(pcb.pid),free);
-        log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
+        //log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
         pthread_mutex_unlock(&mutex_diccionario);
         //enviar_pcb_kernel(motivo_desalojo);
     }
@@ -257,7 +257,7 @@ void check_interrupt(){
             
             motivo_desalojo = *(t_codigo_operacion *)dictionary_remove(diccionario_interrpuciones,string_itoa(pcb.pid));
             //quitar_lista_interrupciones(pcb.pid);
-            log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
+            //log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
             enviar_pcb_kernel(motivo_desalojo);
         }
         pthread_mutex_unlock(&mutex_diccionario);

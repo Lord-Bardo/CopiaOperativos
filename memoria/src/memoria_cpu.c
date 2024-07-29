@@ -29,7 +29,7 @@ void atender_memoria_cpu(){
 
 				// Busco y obtengo la instrucción solicitada
 				obtener_instruccion(pc, instruccion);
-				printf("La instruccion solicitada fue: %s\n", instruccion); 
+				//printf("La instruccion solicitada fue: %s\n", instruccion); 
 
 				// Empaqueto la instrucción con el opcode correspondiente y lo envío a CPU.
 				t_paquete* paquete_fetch = crear_paquete(INSTRUCCION);

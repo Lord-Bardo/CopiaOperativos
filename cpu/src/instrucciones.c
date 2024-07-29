@@ -43,7 +43,7 @@ void print_element(void *data) {
 void execute(t_instruccion *instruccion){
 	switch (instruccion->instr_code){
 	case EXIT:
-		log_info(cpu_logger,"ENTRE AL EXIT");
+		//log_info(cpu_logger,"ENTRE AL EXIT");
 		salir_ciclo_instruccion=1;
 		motivo_desalojo = SUCCESS;
 		enviar_pcb_kernel(motivo_desalojo);
@@ -235,7 +235,7 @@ void ejecutarResize(char *tamanio){
 	agregar_a_paquete(paquete,&pcb.pid,sizeof(int));
 	agregar_a_paquete(paquete,&tamanio_int,sizeof(int));
 	enviar_paquete(fd_memoria,paquete);
-	log_info(cpu_logger,"Envie paquete peticion resize a memoria");
+	//log_info(cpu_logger,"Envie paquete peticion resize a memoria");
 	eliminar_paquete(paquete);
 	t_codigo_operacion respuesta;
 	recibir_codigo_operacion(fd_memoria,&respuesta);
@@ -249,7 +249,7 @@ void ejecutarResize(char *tamanio){
 		enviar_paquete(fd_kernel_dispatch,paquete);
 		eliminar_paquete(paquete);
 	}
-	log_info(cpu_logger,"Confirmacion resize %d",respuesta);
+	//log_info(cpu_logger,"Confirmacion resize %d",respuesta);
 	//aca deberia esperar recibir el out of memory
 	//En caso de que la respuesta de la memoria sea Out of Memory, se deberá devolver el contexto de ejecución al Kernel informando de esta situación.
 }
@@ -264,13 +264,13 @@ void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
 		if(es_reg_chico(registro_datos)){
 			uint8_t valor;
 			mmu_leer(dl,1,&valor);
-			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
+			//log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
 			set_reg_chico(registro_datos,valor);
 		}
 		else{
 			uint32_t valor;
 			mmu_leer(dl,4,&valor);
-			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
+			//log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
 			set_reg_grande(registro_datos,valor);
 		}
 	}
@@ -279,13 +279,13 @@ void ejecutarMovIn(char* registro_datos, char* registro_direrccion){
 		if(es_reg_chico(registro_datos)){
 			uint8_t valor;
 			mmu_leer(dl,1,&valor);
-			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
+			//log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
 			set_reg_chico(registro_datos,valor);
 		}
 		else{
 			uint32_t valor;
 			mmu_leer(dl,4,&valor);
-			log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
+			//log_info(cpu_logger, "VALOR LEIDO!!: %d", valor);
 			set_reg_grande(registro_datos,valor);
 		}
 	}

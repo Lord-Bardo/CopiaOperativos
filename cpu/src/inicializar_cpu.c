@@ -7,6 +7,7 @@ void inicializar_cpu(char *archivo_configuracion){
 	tlb.reemplazar_fifo =0;
 	tlb.tiempo_actual=0;
 	pthread_mutex_init(&mutex_diccionario,NULL);
+	diccionario_interrpuciones = dictionary_create();
 }
 
 void iniciar_logger(){
