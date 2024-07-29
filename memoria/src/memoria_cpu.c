@@ -167,8 +167,7 @@ void obtener_instruccion(int pc, char* instruccion)
 
 	// Obtengo la instrucción.
 	//strcpy(instruccion, (char *)list_get(proceso->memoria_de_instrucciones, pc));
-	instruccion= (char *)list_get(proceso->memoria_de_instrucciones);
-
+	instruccion= (char *)list_get(proceso->memoria_de_instrucciones, pc);
 }
 
 void resize(int size)
