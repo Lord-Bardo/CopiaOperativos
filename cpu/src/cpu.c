@@ -1,6 +1,7 @@
 #include "../include/cpu.h"
 
 int tamanio_pagina;
+pthread_mutex_t mutex_diccionario;
 
 int main(int argc, char *argv[]) {
 	// Inicializar estructuras de CPU (loggers y config)

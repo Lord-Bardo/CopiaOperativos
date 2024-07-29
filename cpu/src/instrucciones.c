@@ -331,7 +331,7 @@ void ejecutarCopyString(char *tamanio_string){
 	int dl_leer = (int)get_reg_si();
 	void * cadena = malloc(tamanio);
 	mmu_leer_copy_string(dl_leer,tamanio,cadena);
-	log_info(cpu_logger,"La cadena resultado es : %s",cadena);
+	//log_info(cpu_logger,"La cadena resultado es : %s",cadena);
 	int dl_escribir = (int)get_reg_di();
 	mmu_escribir_copy_string(dl_escribir,tamanio,cadena);
 	free(cadena);
@@ -504,21 +504,22 @@ void ejecutarIOFsRead(char * interfaz, char * archivo,char* registro_direccion, 
 	agregar_string_a_paquete(paquete,archivo);
 	
 	if(es_reg_chico(registro_puntero)){
-		uint8_t puntero =get_reg_chico(registro_puntero);	
-		agregar_uint8_a_paquete(paquete,puntero); 
+		int puntero =(int)get_reg_chico(registro_puntero);	
+		agregar_int_a_paquete(paquete,puntero); 
+		//log_info(cpu_logger_obligatorio,"Valor REGISTRO PUNTERO agregado a paquete para kernel :%d", (uint));
 	}
 	else{
-		uint32_t puntero = get_reg_grande(registro_puntero);
-		agregar_uint32_a_paquete(paquete,puntero);
+		int puntero = (int)get_reg_grande(registro_puntero);
+		agregar_int_a_paquete(paquete,puntero);
 	}
 
 	if(es_reg_chico(registro_tamanio)){
-		uint8_t tamanio_a_leer =get_reg_chico(registro_tamanio);	
-		agregar_uint8_a_paquete(paquete,tamanio_a_leer); 
+		int tamanio_a_leer =(int)get_reg_chico(registro_tamanio);	
+		agregar_int_a_paquete(paquete,tamanio_a_leer); 
 	}
 	else{
-		uint32_t tamanio_a_leer = get_reg_grande(registro_tamanio);
-		agregar_uint32_a_paquete(paquete,tamanio_a_leer);
+		int tamanio_a_leer = (int)get_reg_grande(registro_tamanio);
+		agregar_int_a_paquete(paquete,tamanio_a_leer);
 	}
 
 	int cantidad_dirs;
@@ -570,21 +571,21 @@ void ejecutarIOFsWrite(char * interfaz, char * archivo,char* registro_direccion,
 	agregar_string_a_paquete(paquete,archivo);
 	
 	if(es_reg_chico(registro_puntero)){
-		uint8_t puntero =get_reg_chico(registro_puntero);	
-		agregar_uint8_a_paquete(paquete,puntero); 
+		int puntero =(int)get_reg_chico(registro_puntero);	
+		agregar_int_a_paquete(paquete,puntero); 
 	}
 	else{
-		uint32_t puntero = get_reg_grande(registro_puntero);
-		agregar_uint32_a_paquete(paquete,puntero);
+		int puntero = (int)get_reg_grande(registro_puntero);
+		agregar_int_a_paquete(paquete,puntero);
 	}
 	
 	if(es_reg_chico(registro_tamanio)){
-		uint8_t tamanio_a_escribir =get_reg_chico(registro_tamanio);	
-		agregar_uint8_a_paquete(paquete,tamanio_a_escribir); 
+		int tamanio_a_escribir =(int)get_reg_chico(registro_tamanio);	
+		agregar_int_a_paquete(paquete,tamanio_a_escribir); 
 	}
 	else{
-		uint32_t tamanio_a_escribir = get_reg_grande(registro_tamanio);
-		agregar_uint32_a_paquete(paquete,tamanio_a_escribir);
+		int tamanio_a_escribir = (int)get_reg_grande(registro_tamanio);
+		agregar_int_a_paquete(paquete,tamanio_a_escribir);
 	}
 
 	int cantidad_dirs;

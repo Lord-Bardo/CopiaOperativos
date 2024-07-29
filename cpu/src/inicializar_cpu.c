@@ -6,6 +6,7 @@ void inicializar_cpu(char *archivo_configuracion){
 	tlb.entradas = list_create();
 	tlb.reemplazar_fifo =0;
 	tlb.tiempo_actual=0;
+	pthread_mutex_init(&mutex_diccionario,NULL);
 }
 
 void iniciar_logger(){

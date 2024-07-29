@@ -17,15 +17,12 @@
 #include <utils/conexion.h>
 
 
-typedef struct{
-	t_codigo_operacion motivo_desalojo;
-	int pid;
-}t_interrupt;
 
-typedef struct nodo {
-    t_interrupt interrupcion;
-    struct nodo* siguiente;
-} nodo_t;
+
+// typedef struct nodo {
+//     t_interrupt interrupcion;
+//     struct nodo* siguiente;
+// } nodo_t;
 
 typedef struct{
 	int pid;
@@ -96,8 +93,10 @@ extern t_pcb pcb;
 extern int salir_ciclo_instruccion;
 extern int tamanio_pagina;
 extern t_codigo_operacion motivo_desalojo;
-extern nodo_t *lista_interrupciones;
+//extern nodo_t *lista_interrupciones;
+extern t_dictionary *diccionario_interrpuciones;
 extern t_tlb tlb;
+extern pthread_mutex_t mutex_diccionario;
 //HABIRA QUE PONER EL PCB ACA CREO
 extern char* IP_MEMORIA;
 extern char* PUERTO_MEMORIA;
