@@ -137,7 +137,7 @@ int obtener_primer_frame_libre()
     pthread_mutex_lock(&mutex_bitmap);
     while(bitarray_test_bit(frames_libres, num_frame) == true && num_frame < TAM_MEMORIA/TAM_PAGINA)
         num_frame++;
-    pthread_mutex_lock(&mutex_bitmap);
+    pthread_mutex_unlock(&mutex_bitmap);
     return num_frame;
 }
 

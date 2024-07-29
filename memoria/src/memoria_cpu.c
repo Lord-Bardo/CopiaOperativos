@@ -114,7 +114,7 @@ void atender_memoria_cpu(){
 
 				// Libero memoria.
 				eliminar_buffer(buffer);
-
+				free(dato_write);
 				break;
 
 			case SOLICITUD_LECTURA:
@@ -146,7 +146,7 @@ void atender_memoria_cpu(){
 				// Libero memoria.
 				eliminar_buffer(buffer);
 				eliminar_paquete(paquete_read);
-
+				free(dato_read);
 				break;
 
 			default:
