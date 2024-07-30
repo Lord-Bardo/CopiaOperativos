@@ -7,7 +7,7 @@ void inicializar_cpu(char *archivo_configuracion){
 	tlb.reemplazar_fifo =0;
 	tlb.tiempo_actual=0;
 	pthread_mutex_init(&mutex_diccionario,NULL);
-	diccionario_interrpuciones = dictionary_create();
+	diccionario_interrupciones = dictionary_create();
 }
 
 void iniciar_logger(){
@@ -17,7 +17,7 @@ void iniciar_logger(){
 		perror("No se pudo crear el logger.");
 		exit(1);
 	}
-	cpu_logger_obligatorio = log_create("cpu.log", "CPU", 1, LOG_LEVEL_INFO);
+	cpu_logger_obligatorio = log_create("cpu_obligatorios.log", "CPU", 1, LOG_LEVEL_INFO);
 	if(cpu_logger == NULL){
 		perror("No se pudo crear el logger obligatorio.");
 		exit(1);

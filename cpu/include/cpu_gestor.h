@@ -94,7 +94,7 @@ extern int salir_ciclo_instruccion;
 extern int tamanio_pagina;
 extern t_codigo_operacion motivo_desalojo;
 //extern nodo_t *lista_interrupciones;
-extern t_dictionary *diccionario_interrpuciones;
+extern t_dictionary *diccionario_interrupciones;
 extern t_tlb tlb;
 extern pthread_mutex_t mutex_diccionario;
 //HABIRA QUE PONER EL PCB ACA CREO

@@ -245,17 +245,18 @@ void check_interrupt(){
         //limpiar
         //quitar_lista_interrupciones(pcb.pid);
         pthread_mutex_lock(&mutex_diccionario);
-        dictionary_remove_and_destroy(diccionario_interrpuciones,string_itoa(pcb.pid),free);
+        dictionary_remove_and_destroy(diccionario_interrupciones, string_itoa(pcb.pid), free);
         //log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
         pthread_mutex_unlock(&mutex_diccionario);
         //enviar_pcb_kernel(motivo_desalojo);
     }
     else{
         pthread_mutex_lock(&mutex_diccionario);
-        if(dictionary_has_key(diccionario_interrpuciones,string_itoa(pcb.pid))){ //deberia hacer esto si la instruccion quiere continuar ejecutando normalmente verdad?
+        if(dictionary_has_key(diccionario_interrupciones,string_itoa(pcb.pid))){ //deberia hacer esto si la instruccion quiere continuar ejecutando normalmente verdad?
             salir_ciclo_instruccion=1;
-            
-            motivo_desalojo = *(t_codigo_operacion *)dictionary_remove(diccionario_interrpuciones,string_itoa(pcb.pid));
+            t_codigo_operacion *tipo_interrupcion = (t_codigo_operacion *)dictionary_remove(diccionario_interrupciones,string_itoa(pcb.pid));
+            motivo_desalojo = *tipo_interrupcion;
+            free(tipo_interrupcion);
             //quitar_lista_interrupciones(pcb.pid);
             //log_info(cpu_logger,"EL motivo de desalojo es %d",motivo_desalojo);
             enviar_pcb_kernel(motivo_desalojo);
