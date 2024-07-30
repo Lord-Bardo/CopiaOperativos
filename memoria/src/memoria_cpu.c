@@ -15,8 +15,8 @@ void atender_memoria_cpu(){
 
 				// Creo estructuras necesarias.
 				int pc;
-				char* instruccion = malloc(sizeof(char) * 41);
-				
+				// char* instruccion = malloc(sizeof(char) * 41);
+				char* instruccion = NULL;
 				
 				// if (instruccion == NULL) {
 				// 	perror("Error al asignar memoria");
@@ -30,7 +30,7 @@ void atender_memoria_cpu(){
 				
 
 				// Busco y obtengo la instrucción solicitada
-				obtener_instruccion(pc, instruccion);
+				obtener_instruccion(pc, &instruccion);
 				//printf("La instruccion solicitada fue: %s\n", instruccion); 
 
 				// Empaqueto la instrucción con el opcode correspondiente y lo envío a CPU.
@@ -158,7 +158,7 @@ void atender_memoria_cpu(){
 	}
 }
 
-void obtener_instruccion(int pc, char* instruccion)
+void obtener_instruccion(int pc, char** instruccion)
 {
 	// Obtengo el proceso con el pid.
 	pthread_mutex_lock(&mutex_procesos);
@@ -166,8 +166,12 @@ void obtener_instruccion(int pc, char* instruccion)
 	pthread_mutex_unlock(&mutex_procesos);
 
 	// Obtengo la instrucción.
-	strcpy(instruccion, (char *)list_get(proceso->memoria_de_instrucciones, pc));
-	//instruccion= (char *)list_get(proceso->memoria_de_instrucciones, pc);
+	char *instruccion_temp = (char *)list_get(proceso->memoria_de_instrucciones, pc);
+	
+	// Copio la instruccion
+	*instruccion = string_duplicate(instruccion_temp);
+	log_info(memoria_logger, "La instruccion obtenida es: %s", *instruccion);
+	//strcpy(instruccion, (char *)list_get(proceso->memoria_de_instrucciones, pc));
 }
 
 void resize(int size)

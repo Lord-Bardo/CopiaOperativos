@@ -94,7 +94,7 @@ void crear_proceso(t_pcb_memoria *proceso)
     {
         // Definir un búfer de tamaño adecuado
         char buffer[256];
-	//char *buffer = string_new();
+	    //char *buffer = string_new();
 
         // Leer una línea del archivo
         if (fgets(buffer, sizeof(buffer), archivo) == NULL) {
